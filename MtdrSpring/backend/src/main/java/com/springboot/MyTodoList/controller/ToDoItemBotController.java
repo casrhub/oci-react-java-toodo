@@ -4,6 +4,8 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,10 @@ import com.springboot.MyTodoList.util.BotMessages;
 
 public class ToDoItemBotController extends TelegramLongPollingBot {
 
+// State tracker for awaiting commands 
+	private Map<Long, String> sessionState = new HashMap<>();
+	private Map<Long, Integer> pendingTaskId = new HashMap<>();
+	private Map<Long, String> pendingDate = new HashMap<>();
 	private static final Logger logger = LoggerFactory.getLogger(ToDoItemBotController.class);
 	private ToDoItemService toDoItemService;
 	private String botName;
@@ -220,28 +226,65 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 				try {
 					// Example command format: "/setdeadline 123 2024-03-20T12:00:00Z"
 					String[] parts = messageTextFromTelegram.split(" ");
-					if (parts.length != 3) {
-						BotHelper.sendMessageToTelegram(chatId, BotMessages.INVALID_DEADLINE.getMessage(), this);
-						return;
+					if (parts.length != 2) {
+						BotHelper.sendMessageToTelegram(chatId, "Usage: /setdeadline <task_id>", this);
+						return;			
 					}
-			
-					// Extract task ID and deadline
+
 					int taskId = Integer.parseInt(parts[1]);
-					OffsetDateTime deadline = OffsetDateTime.parse(parts[2]);
-			
-					// Call the service method to update the deadline
-					ResponseEntity<ToDoItem> response = toDoItemService.updateDeadline(taskId, deadline);
-			
-					if (response.getStatusCode() == HttpStatus.OK) {
-						BotHelper.sendMessageToTelegram(chatId, BotMessages.DEADLINE_SET.getMessage(), this);
-					} else {
-						BotHelper.sendMessageToTelegram(chatId, BotMessages.TASK_NOT_FOUND.getMessage(), this);
-					}
-				} catch (Exception e) {
+       				pendingTaskId.put(chatId, taskId);
+        			sessionState.put(chatId, "AWAITING_DATE");
+			        BotHelper.sendMessageToTelegram(chatId, "Please enter the deadline date (DD-MM-YYYY):", this);
+					
+				}
+				 catch (Exception e) {
 					logger.error("Error setting deadline: " + e.getMessage(), e);
-					BotHelper.sendMessageToTelegram(chatId, BotMessages.ERROR_SETTING_DEADLINE.getMessage(), this);
+					BotHelper.sendMessageToTelegram(chatId, BotMessages.ERROR_SETTING_DEADLINE.getMessage(), this);// This message comes from util/BotMessages
+					
+				} 
+// Wait for Time 
+			} else if (sessionState.get(chatId) != null && sessionState.get(chatId).equals("AWAITING_DATE")) {
+				pendingDate.put(chatId, messageTextFromTelegram); // Store date input
+				sessionState.put(chatId, "AWAITING_TIME");
+			
+				BotHelper.sendMessageToTelegram(chatId, "Please enter the time (HH:MM, 24-hour format):", this);
+			} else if (sessionState.get(chatId) != null && sessionState.get(chatId).equals("AWAITING_TIME")) {
+				try {
+					String dateInput = pendingDate.get(chatId);
+					String timeInput = messageTextFromTelegram;
+			
+					// Convert to ISO format
+					String[] dateParts = dateInput.split("-");
+					String[] timeParts = timeInput.split(":");
+			
+					String isoDeadline = String.format(
+						"%s-%s-%sT%s:%s:00Z",
+						dateParts[2], dateParts[1], dateParts[0],  // Convert DD-MM-YYYY → YYYY-MM-DD
+						timeParts[0], timeParts[1]  // HH:MM
+					);
+			
+					OffsetDateTime deadline = OffsetDateTime.parse(isoDeadline);
+					int taskId = pendingTaskId.get(chatId);
+			
+					// Save deadline in database
+					ResponseEntity<ToDoItem> response = toDoItemService.updateDeadline(taskId, deadline);
+					if (response.getStatusCode() == HttpStatus.OK) {
+						BotHelper.sendMessageToTelegram(chatId, "✅ Deadline set successfully!", this);
+					} else {
+						BotHelper.sendMessageToTelegram(chatId, "⚠️ Task not found.", this);
+					}
+			
+					// Clear session state
+					sessionState.remove(chatId);
+					pendingTaskId.remove(chatId);
+					pendingDate.remove(chatId);
+					return;
+				} catch (Exception e) {
+					BotHelper.sendMessageToTelegram(chatId, "❌ Error setting deadline. Please try again.", this);
+					return; 
 				}
 			}
+			
 			
 
 			else {

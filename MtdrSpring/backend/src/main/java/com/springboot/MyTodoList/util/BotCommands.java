@@ -6,7 +6,7 @@ public enum BotCommands {
 	HIDE_COMMAND("/hide"), 
 	TODO_LIST("/todolist"),
 	ADD_ITEM("/additem"),
-	SET_DEADLINE("/setdeadline");// setdeadline command in tg mfss
+	SET_DEADLINE("/set_deadline");// setdeadline command in tg mfss
 
 
 

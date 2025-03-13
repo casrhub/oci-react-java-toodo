@@ -19,7 +19,7 @@ The lab executes scripts that require the following software to run properly (al
 * kubectl
 * mvn (Maven) 
 
-## How to Run This Project Locallyy
+## How to Run This Project Locally
 
 1. **Clone the repository**:
    ```bash

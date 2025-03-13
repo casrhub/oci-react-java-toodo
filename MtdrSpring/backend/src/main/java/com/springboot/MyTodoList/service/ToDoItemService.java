@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,42 +16,52 @@ public class ToDoItemService {
 
     @Autowired
     private ToDoItemRepository toDoItemRepository;
+
     public List<ToDoItem> findAll(){
-        List<ToDoItem> todoItems = toDoItemRepository.findAll();
-        return todoItems;
+        return toDoItemRepository.findAll();
     }
+
     public ResponseEntity<ToDoItem> getItemById(int id){
         Optional<ToDoItem> todoData = toDoItemRepository.findById(id);
-        if (todoData.isPresent()){
-            return new ResponseEntity<>(todoData.get(), HttpStatus.OK);
-        }else{
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return todoData.map(toDoItem -> new ResponseEntity<>(toDoItem, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
+
     public ToDoItem addToDoItem(ToDoItem toDoItem){
         return toDoItemRepository.save(toDoItem);
     }
 
     public boolean deleteToDoItem(int id){
-        try{
+        try {
             toDoItemRepository.deleteById(id);
             return true;
-        }catch(Exception e){
+        } catch (Exception e) {
             return false;
         }
     }
+
     public ToDoItem updateToDoItem(int id, ToDoItem td){
         Optional<ToDoItem> toDoItemData = toDoItemRepository.findById(id);
-        if(toDoItemData.isPresent()){
+        if (toDoItemData.isPresent()){
             ToDoItem toDoItem = toDoItemData.get();
-            toDoItem.setID(id);
-            toDoItem.setCreation_ts(td.getCreation_ts());
             toDoItem.setDescription(td.getDescription());
+            toDoItem.setCreation_ts(td.getCreation_ts());
             toDoItem.setDone(td.isDone());
+            toDoItem.setDeadline(td.getDeadline()); // Ensure deadline is updated
             return toDoItemRepository.save(toDoItem);
-        }else{
-            return null;
         }
+        return null;
     }
 
+    // **New Method to Update Only the Deadline**
+    public ResponseEntity<ToDoItem> updateDeadline(int id, OffsetDateTime newDeadline) {
+        Optional<ToDoItem> toDoItemData = toDoItemRepository.findById(id);
+        if (toDoItemData.isPresent()) {
+            ToDoItem toDoItem = toDoItemData.get();
+            toDoItem.setDeadline(newDeadline);
+            return new ResponseEntity<>(toDoItemRepository.save(toDoItem), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
 }

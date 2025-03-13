@@ -202,6 +202,9 @@ function App() {
             <tr key={item.id}>
               <td className="description">{item.description}</td>
               { /*<td>{JSON.stringify(item, null, 2) }</td>*/ }
+              <td className="deadline">
+                {item.deadline ? <Moment format="MMM Do YYYY, hh:mm A">{item.deadline}</Moment> : "No Deadline"}
+              </td>
               <td className="date"><Moment format="MMM Do hh:mm:ss">{item.createdAt}</Moment></td>
               <td><Button variant="contained" className="DoneButton" onClick={(event) => toggleDone(event, item.id, item.description, !item.done)} size="small">
                     Done
@@ -214,23 +217,33 @@ function App() {
           Done items
         </h2>
         <table id="itemlistDone" className="itemlist">
-          <TableBody>
-          {items.map(item => (
-            item.done && (
+  <TableBody>
+    {items.map(item => (
+      item.done && (
+      <tr key={item.id}>
+        <td className="description">{item.description}</td>
+        <td className="date"><Moment format="MMM Do hh:mm:ss">{item.createdAt}</Moment></td>
+        <td className="deadline">
+          {item.deadline ? <Moment format="MMM Do YYYY, hh:mm A">{item.deadline}</Moment> : "No Deadline"}
+        </td>
+        <td>
+          <Button variant="contained" className="DoneButton" 
+            onClick={(event) => toggleDone(event, item.id, item.description, !item.done)} 
+            size="small">
+            Undo
+          </Button>
+        </td>
+        <td>
+          <Button startIcon={<DeleteIcon />} variant="contained" className="DeleteButton" 
+            onClick={() => deleteItem(item.id)} size="small">
+            Delete
+          </Button>
+        </td>
+      </tr>
+    )))}
+  </TableBody>
+</table>
 
-            <tr key={item.id}>
-              <td className="description">{item.description}</td>
-              <td className="date"><Moment format="MMM Do hh:mm:ss">{item.createdAt}</Moment></td>
-              <td><Button variant="contained" className="DoneButton" onClick={(event) => toggleDone(event, item.id, item.description, !item.done)} size="small">
-                    Undo
-                  </Button></td>
-              <td><Button startIcon={<DeleteIcon />} variant="contained" className="DeleteButton" onClick={() => deleteItem(item.id)} size="small">
-                    Delete
-                  </Button></td>
-            </tr>
-          )))}
-          </TableBody>
-        </table>
         </div>
         }
 

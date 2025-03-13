@@ -56,5 +56,5 @@ Once the application is running, you should be able to access it at the specifie
 
 ---
 
-## Expect more ...
+## Expect more ....
 Stay tuned for additional documentation, features, and sample applications. Feel free to open an issue or submit a pull request to contribute!

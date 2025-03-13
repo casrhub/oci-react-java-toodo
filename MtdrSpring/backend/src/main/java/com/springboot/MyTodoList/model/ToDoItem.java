@@ -1,12 +1,11 @@
 package com.springboot.MyTodoList.model;
 
-
 import javax.persistence.*;
 import java.time.OffsetDateTime;
 
 /*
-    representation of the TODOITEM table that exists already
-    in the autonomous database
+    Representation of the TODOITEM table that exists already
+    in the autonomous database.
  */
 @Entity
 @Table(name = "TODOITEM")
@@ -14,20 +13,28 @@ public class ToDoItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int ID;
+
     @Column(name = "DESCRIPTION")
     String description;
+
     @Column(name = "CREATION_TS")
     OffsetDateTime creation_ts;
-    @Column(name = "done")
-    boolean done;
-    public ToDoItem(){
 
+    @Column(name = "DONE")
+    boolean done;
+
+    @Column(name = "DEADLINE", nullable = true)
+    OffsetDateTime deadline;  // New deadline field
+
+    public ToDoItem() {
     }
-    public ToDoItem(int ID, String description, OffsetDateTime creation_ts, boolean done) {
+
+    public ToDoItem(int ID, String description, OffsetDateTime creation_ts, boolean done, OffsetDateTime deadline) {
         this.ID = ID;
         this.description = description;
         this.creation_ts = creation_ts;
         this.done = done;
+        this.deadline = deadline;
     }
 
     public int getID() {
@@ -62,6 +69,14 @@ public class ToDoItem {
         this.done = done;
     }
 
+    public OffsetDateTime getDeadline() {
+        return deadline;
+    }
+
+    public void setDeadline(OffsetDateTime deadline) {
+        this.deadline = deadline;
+    }
+
     @Override
     public String toString() {
         return "ToDoItem{" +
@@ -69,6 +84,7 @@ public class ToDoItem {
                 ", description='" + description + '\'' +
                 ", creation_ts=" + creation_ts +
                 ", done=" + done +
+                ", deadline=" + deadline +
                 '}';
     }
 }

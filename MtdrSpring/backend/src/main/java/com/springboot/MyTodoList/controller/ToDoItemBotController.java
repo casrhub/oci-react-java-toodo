@@ -215,8 +215,34 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 				} catch (Exception e) {
 					logger.error(e.getLocalizedMessage(), e);
 				}
-
+// deadline command 
+			} else if (messageTextFromTelegram.startsWith(BotCommands.SET_DEADLINE.getCommand())) {
+				try {
+					// Example command format: "/setdeadline 123 2024-03-20T12:00:00Z"
+					String[] parts = messageTextFromTelegram.split(" ");
+					if (parts.length != 3) {
+						BotHelper.sendMessageToTelegram(chatId, BotMessages.INVALID_DEADLINE.getMessage(), this);
+						return;
+					}
+			
+					// Extract task ID and deadline
+					int taskId = Integer.parseInt(parts[1]);
+					OffsetDateTime deadline = OffsetDateTime.parse(parts[2]);
+			
+					// Call the service method to update the deadline
+					ResponseEntity<ToDoItem> response = toDoItemService.updateDeadline(taskId, deadline);
+			
+					if (response.getStatusCode() == HttpStatus.OK) {
+						BotHelper.sendMessageToTelegram(chatId, BotMessages.DEADLINE_SET.getMessage(), this);
+					} else {
+						BotHelper.sendMessageToTelegram(chatId, BotMessages.TASK_NOT_FOUND.getMessage(), this);
+					}
+				} catch (Exception e) {
+					logger.error("Error setting deadline: " + e.getMessage(), e);
+					BotHelper.sendMessageToTelegram(chatId, BotMessages.ERROR_SETTING_DEADLINE.getMessage(), this);
+				}
 			}
+			
 
 			else {
 				try {
@@ -236,6 +262,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 				}
 			}
 		}
+
+		
 	}
 
 	@Override
@@ -292,6 +320,10 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 			logger.error(e.getLocalizedMessage(), e);
 			return new ResponseEntity<>(flag, HttpStatus.NOT_FOUND);
 		}
+
+		
 	}
+
+	
 
 }

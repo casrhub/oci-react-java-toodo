@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import NewItem from './NewItem';
 import API_LIST from './API';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Button, TableBody, CircularProgress } from '@mui/material';
+import { Button, TableBody, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 import Moment from 'react-moment';
 
 function App() {
@@ -10,6 +10,8 @@ function App() {
     const [isInserting, setInserting] = useState(false);
     const [items, setItems] = useState([]);
     const [error, setError] = useState();
+    const [selectedTask, setSelectedTask] = useState(null);
+    const [deadline, setDeadline] = useState("");
 
     function deleteItem(deleteId) {
         fetch(API_LIST + '/' + deleteId, { method: 'DELETE' })
@@ -79,25 +81,53 @@ function App() {
         });
     }
 
-//deadline put fetch
+    // Function to handle deadline update
     function updateDeadline(id, newDeadline) {
-      fetch(`${API_LIST}/${id}/deadline`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(newDeadline) // Send the deadline as a string
-      })
-      .then(response => {
-        if (response.ok) {
-          reloadOneItem(id);
-        } else {
-          throw new Error('Failed to update deadline');
-        }
-      })
-      .catch(error => console.error(error));
+        fetch(`${API_LIST}/${id}/deadline`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ deadline: newDeadline })  // Send deadline as JSON object
+        })
+        .then(response => {
+            if (response.ok) {
+                reloadOneItem(id);
+                handleClose();
+            } else {
+                throw new Error('Failed to update deadline');
+            }
+        })
+        .catch(error => console.error(error));
     }
-    
+
+    // Open modal to edit deadline
+    function handleOpen(task) {
+        setSelectedTask(task);
+        setDeadline(task.deadline || "");  // Use existing deadline or empty
+    }
+
+    // Close modal
+    function handleClose() {
+        setSelectedTask(null);
+        setDeadline("");
+    }
+
+    // Handle deadline save
+    function handleSave() {
+      if (selectedTask) {
+          // Convert user input (local time) to UTC before saving
+          const localDate = new Date(deadline);
+          const fullISODate = new Date(
+              localDate.getTime() - localDate.getTimezoneOffset() * 60000
+          ).toISOString();
+  
+          updateDeadline(selectedTask.id, fullISODate);
+  
+          // Update UI immediately with the corrected UTC time
+          setItems(items.map(item => 
+              item.id === selectedTask.id ? { ...item, deadline: fullISODate } : item
+          ));
+      }
+  }
 
     return (
       <div className="App">
@@ -126,7 +156,7 @@ function App() {
                       {item.deadline ? (
                         <Moment format="MMM Do YYYY, hh:mm A" utc>{item.deadline}</Moment>
                       ) : (
-                        "No Deadline"
+                        <Button size="small" onClick={() => handleOpen(item)}>Set Deadline</Button>
                       )}
                     </td>
                     <td className="date">
@@ -161,7 +191,7 @@ function App() {
                       {item.deadline ? (
                         <Moment format="MMM Do YYYY, hh:mm A" utc>{item.deadline}</Moment>
                       ) : (
-                        "No Deadline"
+                        <Button size="small" onClick={() => handleOpen(item)}>Set Deadline</Button>
                       )}
                     </td>
                     <td className="date">
@@ -171,13 +201,29 @@ function App() {
                       <Button variant="contained" className="DoneButton">Undo</Button>
                       <Button startIcon={<DeleteIcon />} variant="contained" className="DeleteButton">Delete</Button>
                     </td>
-
                   </tr>
                 ))}
               </TableBody>
             </table>
           </div>
         )}
+
+        {/* 📅 Deadline Modal */}
+        <Dialog open={!!selectedTask} onClose={handleClose}>
+          <DialogTitle>Set Deadline</DialogTitle>
+          <DialogContent>
+            <TextField
+              type="datetime-local"
+              value={deadline}
+              onChange={(e) => setDeadline(e.target.value)}
+              fullWidth
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleClose} color="secondary">Cancel</Button>
+            <Button onClick={handleSave} color="primary">Save</Button>
+          </DialogActions>
+        </Dialog>
       </div>
     );
 }

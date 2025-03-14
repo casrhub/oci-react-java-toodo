@@ -6,9 +6,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 
 import java.net.URI;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @RestController
@@ -64,6 +66,25 @@ public class ToDoItemController {
             return new ResponseEntity<>(flag,HttpStatus.NOT_FOUND);
         }
     }
+
+    @PutMapping(value = "/todolist/{id}/deadline")
+public ResponseEntity<ToDoItem> updateDeadline(@PathVariable int id, @RequestBody Map<String, String> requestBody) {
+    try {
+        // Extract the deadline from JSON request
+        String deadlineStr = requestBody.get("deadline");
+        if (deadlineStr == null || deadlineStr.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        // Convert string to OffsetDateTime
+        OffsetDateTime newDeadline = OffsetDateTime.parse(deadlineStr);
+
+        // Update the deadline in the database
+        return toDoItemService.updateDeadline(id, newDeadline);
+    } catch (Exception e) {
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+}
 
 
 }

@@ -1,38 +1,45 @@
+/* src/pages/LandingPage.css */
+
 .landing-page {
     background-color: white;
     height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     padding: 1rem;
     box-sizing: border-box;
+    text-align: center;
   }
   
   .landing-title {
     font-size: 2rem;
     font-weight: bold;
-    margin-bottom: 2rem;
+    margin-bottom: 3rem; /* more spacing from buttons */
     color: #000;
   }
   
+  /* Bigger button styling */
   .landing-button {
     background-color: #C74634;
-    color: white;
+    color: #fff;
     border: none;
     border-radius: 30px;
-    padding: 1rem 2.5rem;
-    font-size: 1.2rem;
+    
+    /* Increased padding & font size for a bigger look */
+    padding: 1.25rem 3rem;
+    font-size: 1.3rem;
     font-weight: bold;
+    
     cursor: pointer;
-    margin: 0.5rem 0;
+    margin: 0.75rem 0; /* vertical spacing between the two buttons */
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease;
-    width: 250px;
+    width: 280px;       /* slightly wider than before */
     max-width: 80%;
   }
   
   .landing-button:hover {
-    background-color: #b63f2e;
+    background-color: #b63f2e; /* Slight darken on hover */
   }
   

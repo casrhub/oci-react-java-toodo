@@ -12,8 +12,12 @@ function LandingPage() {
   return (
     <div className="landing-page">
       <h1 className="landing-title">Welcome</h1>
-      <button className="landing-button" onClick={handleClick}>I’m a developer</button>
-      <button className="landing-button" onClick={handleClick}>I’m a manager</button>
+      <button className="landing-button" onClick={handleClick}>
+        I’m a developer
+      </button>
+      <button className="landing-button" onClick={handleClick}>
+        I’m a manager
+      </button>
     </div>
   );
 }

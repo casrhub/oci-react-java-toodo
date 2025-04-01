@@ -1,13 +1,12 @@
 import React from 'react';
-import { useHistory } from 'react-router-dom'; // <-- Add this line
-import './LoginPage.css';
+import { useHistory } from 'react-router-dom';
+import './LoginPage.css'; // reuse same styles
 
-function LoginPage() {
-  const history = useHistory(); // <-- Add this line
+function ManagerLoginPage() {
+  const history = useHistory();
 
   const handleSSOLogin = () => {
-    // Simulated SSO success → redirect to main menu
-    history.push('/main');
+    history.push('/manager-main');
   };
 
   return (
@@ -20,4 +19,4 @@ function LoginPage() {
   );
 }
 
-export default LoginPage;
+export default ManagerLoginPage;

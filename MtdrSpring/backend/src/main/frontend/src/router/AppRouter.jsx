@@ -9,13 +9,16 @@ import DevMainMenuPage from '../pages/DevMainMenuPage';
 import ManagerMainMenuPage from '../pages/ManagerMainMenuPage';
 import Home from '../pages/Home';
 import DevTasksPage from '../pages/DevTasksPage';
+import ManagerTasksPage from '../pages/ManagerTasksPage';
+import ManagerKpisPage from '../pages/ManagerKpisPage';
 
 function AppRouter() {
   return (
     <Router>
       <Switch>
         {/* Landing */}
-        
+        <Route path="/manager/kpis" component={ManagerKpisPage} />
+        <Route path="/manager/tasks" component={ManagerTasksPage} />
         <Route path="/dev/tasks" component={DevTasksPage} />
         <Route exact path="/" component={LandingPage} />
 

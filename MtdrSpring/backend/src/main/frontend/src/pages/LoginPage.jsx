@@ -1,10 +1,13 @@
 import React from 'react';
+import { useHistory } from 'react-router-dom'; // <-- Add this line
 import './LoginPage.css';
 
 function LoginPage() {
+  const history = useHistory(); // <-- Add this line
+
   const handleSSOLogin = () => {
-    // TODO: Replace with real SSO redirect or API call
-    window.location.href = 'https://oracle.com/sso/login'; // placeholder
+    // Simulated SSO success → redirect to main menu
+    history.push('/main');
   };
 
   return (

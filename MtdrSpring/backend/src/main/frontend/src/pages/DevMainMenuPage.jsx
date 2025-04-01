@@ -12,7 +12,7 @@ function MainMenuPage() {
         <button className="main-menu-button" onClick={() => history.push('/kpis')}>
           KPIs
         </button>
-        <button className="main-menu-button" onClick={() => history.push('/home')}>
+        <button className="main-menu-button" onClick={() => history.push('/dev/tasks')}>
           Tasks
         </button>
       </div>

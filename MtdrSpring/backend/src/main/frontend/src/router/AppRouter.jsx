@@ -8,12 +8,15 @@ import ManagerLoginPage from '../pages/ManagerLoginPage';
 import DevMainMenuPage from '../pages/DevMainMenuPage';
 import ManagerMainMenuPage from '../pages/ManagerMainMenuPage';
 import Home from '../pages/Home';
+import DevTasksPage from '../pages/DevTasksPage';
 
 function AppRouter() {
   return (
     <Router>
       <Switch>
         {/* Landing */}
+        
+        <Route path="/dev/tasks" component={DevTasksPage} />
         <Route exact path="/" component={LandingPage} />
 
         {/* Role-specific Login */}

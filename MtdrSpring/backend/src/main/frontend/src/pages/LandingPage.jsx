@@ -5,17 +5,17 @@ import './LandingPage.css';
 function LandingPage() {
   const history = useHistory();
 
-  const handleClick = () => {
-    history.push('/home');
+  const goToLogin = () => {
+    history.push('/login');
   };
 
   return (
     <div className="landing-page">
       <h1 className="landing-title">Welcome</h1>
-      <button className="landing-button" onClick={handleClick}>
+      <button className="landing-button" onClick={goToLogin}>
         I’m a developer
       </button>
-      <button className="landing-button" onClick={handleClick}>
+      <button className="landing-button" onClick={goToLogin}>
         I’m a manager
       </button>
     </div>

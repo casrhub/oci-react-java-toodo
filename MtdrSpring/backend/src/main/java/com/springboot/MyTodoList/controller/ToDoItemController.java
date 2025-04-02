@@ -34,7 +34,7 @@ public class ToDoItemController {
     }
     //@CrossOrigin
     @PostMapping(value = "/todolist")
-    public ResponseEntity addToDoItem(@RequestBody ToDoItem todoItem) throws Exception{
+    public ResponseEntity<ToDoItem> addToDoItem(@RequestBody ToDoItem todoItem) throws Exception{
         ToDoItem td = toDoItemService.addToDoItem(todoItem);
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set("location",""+td.getID());
@@ -46,7 +46,7 @@ public class ToDoItemController {
     }
     //@CrossOrigin
     @PutMapping(value = "todolist/{id}")
-    public ResponseEntity updateToDoItem(@RequestBody ToDoItem toDoItem, @PathVariable int id){
+    public ResponseEntity<ToDoItem> updateToDoItem(@RequestBody ToDoItem toDoItem, @PathVariable int id){
         try{
             ToDoItem toDoItem1 = toDoItemService.updateToDoItem(id, toDoItem);
             System.out.println(toDoItem1.toString());
@@ -68,23 +68,18 @@ public class ToDoItemController {
     }
 
     @PutMapping(value = "/todolist/{id}/deadline")
-public ResponseEntity<ToDoItem> updateDeadline(@PathVariable int id, @RequestBody Map<String, String> requestBody) {
+public ResponseEntity<ToDoItem> updateDeadline(@PathVariable int id, @RequestBody Map<String, String> payload) {
     try {
-        // Extract the deadline from JSON request
-        String deadlineStr = requestBody.get("deadline");
-        if (deadlineStr == null || deadlineStr.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
-        // Convert string to OffsetDateTime
+        String deadlineStr = payload.get("deadline");
         OffsetDateTime newDeadline = OffsetDateTime.parse(deadlineStr);
-
-        // Update the deadline in the database
         return toDoItemService.updateDeadline(id, newDeadline);
     } catch (Exception e) {
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 }
+
+
+    
 
 
 }

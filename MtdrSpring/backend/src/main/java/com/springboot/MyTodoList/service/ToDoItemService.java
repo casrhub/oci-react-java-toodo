@@ -27,7 +27,11 @@ public class ToDoItemService {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    public ToDoItem addToDoItem(ToDoItem toDoItem){
+    public ToDoItem addToDoItem(ToDoItem toDoItem) {
+        if (toDoItem.getCreation_ts() == null) {
+            toDoItem.setCreation_ts(OffsetDateTime.now());
+        }
+        // Optional: you can also check if deadline should be set
         return toDoItemRepository.save(toDoItem);
     }
 

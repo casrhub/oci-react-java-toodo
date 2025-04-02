@@ -331,7 +331,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 	}
 
 	// PUT /todolist
-	public ResponseEntity addToDoItem(@RequestBody ToDoItem todoItem) throws Exception {
+	public ResponseEntity<ToDoItem> addToDoItem(@RequestBody ToDoItem todoItem) throws Exception {
 		ToDoItem td = toDoItemService.addToDoItem(todoItem);
 		HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.set("location", "" + td.getID());
@@ -342,7 +342,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 	}
 
 	// UPDATE /todolist/{id}
-	public ResponseEntity updateToDoItem(@RequestBody ToDoItem toDoItem, @PathVariable int id) {
+	public ResponseEntity<ToDoItem> updateToDoItem(@RequestBody ToDoItem toDoItem, @PathVariable int id) {
 		try {
 			ToDoItem toDoItem1 = toDoItemService.updateToDoItem(id, toDoItem);
 			System.out.println(toDoItem1.toString());

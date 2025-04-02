@@ -1,148 +1,194 @@
-/*
+/* 
 ** Todo application version 1.0.
-**
-** Copyright (c) 2020, Oracle and/or its affiliates.
-** Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl/
+** Copyright (c) 2020, Oracle
+** Licensed under the Universal Permissive License v 1.0
+*/
+
+/* 
+   1) Global Reset/Styles:
+      - Default to a WHITE background for all pages
 */
 body {
-  /* from the redwood theme */
-  background-color: #2F2F2F; /* Dark gray background for "dark mode" look */
+  background-color: white; /* White background for all pages by default */
+  margin: 0;
+  padding: 0;
   width: 100%;
-  max-width: 50rem;
-  margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-.App {
+
+/*
+   2) Themed Wrapper:
+      - ONLY the Home page wraps its content in .themed-wrapper,
+        so these dark styles won't spill over to other pages.
+*/
+.themed-wrapper {
+  background-color: #2F2F2F; /* Dark gray background for "dark mode" look */
+  max-width: 50rem;
+  margin: 0 auto;
+  /* You can add padding if desired */
+}
+
+/* 
+   3) App Container Styles:
+      - Scoped so only .App inside .themed-wrapper gets these dark colors
+*/
+.themed-wrapper .App {
   background: #363432; /* Dark container background */
   color: #FEF9F2;
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: max(12px,min(2vw, 18px)); /*calc(1vw + 1vmin);*/
+  font-size: max(12px, min(2vw, 18px)); 
   margin: 2rem 0 4rem 0;
   padding: 1rem;
   position: relative;
-  box-shadow: 0 10px 18px 0 rgba(0, 0, 0, 0.2), 0 4.5rem 8rem 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 18px 0 rgba(0, 0, 0, 0.2), 
+              0 4.5rem 8rem 0 rgba(0, 0, 0, 0.1);
   border-radius: 0.5rem;
-
-  /* Added a subtle fade-in + scale animation on load */
   animation: fadeInApp 0.6s ease forwards;
 }
-div#maincontent, div#newinputform form {
+
+/* 
+   4) Main Content: 
+      - Still only affects elements inside .themed-wrapper .App
+*/
+.themed-wrapper div#maincontent,
+.themed-wrapper div#newinputform form {
   width: 95%;
 }
-div#maincontent {
+
+.themed-wrapper div#maincontent {
   margin: 0;
   padding: 0;
 }
-h1 {
+
+.themed-wrapper h1 {
   margin: 0.5rem 0 1rem 0;
   padding: 0;
 }
-h2 {
-  /* Slightly increase space for clarity */
+
+.themed-wrapper h2 {
   margin: 0.5rem 0 0.5rem 0;
   padding: 0;
 }
-#newiteminput {
+
+.themed-wrapper #newiteminput {
   width: 100%;
 }
-div#newinputform {
+
+.themed-wrapper div#newinputform {
   width: 100%;
 }
-div#newinputform form {
+
+.themed-wrapper div#newinputform form {
   display: flex;
   flex-direction: row;
   margin: 0 auto;
 }
-#donelist {
+
+.themed-wrapper #donelist {
   margin: 1rem 0 0;
   padding: 0;
 }
-table#itemlistNotDone {
+
+.themed-wrapper table#itemlistNotDone {
   margin-bottom: 2rem;
 }
-table#itemlistDone {
+
+.themed-wrapper table#itemlistDone {
   margin-bottom: 3rem;
 }
-table.itemlist {
+
+.themed-wrapper table.itemlist {
   margin-top: 0.7rem;
   border-collapse: collapse;
   margin-bottom: 1rem;
 }
-table.itemlist td {
-  /* Use a lighter border on dark background */
+
+.themed-wrapper table.itemlist td {
   border-bottom: solid 1px #4A4844;
-  padding: .5rem;
-  /* Add a little transition for hover effect */
+  padding: 0.5rem;
   transition: background-color 0.3s ease;
 }
-table.itemlist td.description {
+
+.themed-wrapper table.itemlist td.description {
   width: 100%;
   padding-left: 1rem;
   padding-right: 1rem;
 }
-table.itemlist td.date {
-  font-size: max(10px,min(1.5vw, 14px));
-  color: #CCCCCC; /* Lighter gray for better contrast on dark background */
+
+.themed-wrapper table.itemlist td.date {
+  font-size: max(10px, min(1.5vw, 14px));
+  color: #CCCCCC;
   white-space: nowrap;
   padding-right: 0;
   padding-left: 0;
 }
-table.itemlist tr:hover {
-  background-color: #2A2926; /* Subtle hover highlight over dark background */
+
+.themed-wrapper table.itemlist tr:hover {
+  background-color: #2A2926;
 }
+
 input {
   font-family: inherit;
   font-size: 100%;
   line-height: 1;
   margin: 0;
 }
+
 button,
 input {
   overflow: visible;
 }
-input[type="text"] {
+
+input[type='text'] {
   border-radius: 0.3rem;
   padding-left: 10px;
 }
-button.AddButton,
-button.DeleteButton,
-button.AddButton,
-button.DoneButton {
-  font-size: max(8px,min(2vw, 12px));
-  padding: 0.35em 0.5em;
-  color: #161513; /* Default text color for buttons unless overridden below */
 
-  /* Add a smooth transform transition (for scaling on hover) */
+/*
+  5) Buttons: 
+     - Also scoped inside .themed-wrapper 
+*/
+.themed-wrapper button.AddButton,
+.themed-wrapper button.DeleteButton,
+.themed-wrapper button.DoneButton {
+  font-size: max(8px, min(2vw, 12px));
+  padding: 0.35em 0.5em;
+  color: #161513; 
   transition: transform 0.2s ease;
 }
-/* from the redwood theme */
-button.AddButton {
-  color: #FEF9F2;                /* Override text color for contrast */
-  background-color: #0079AE;     /* Redwood accent for "Add" */
-}
-button.AddButton:hover {
-  background-color: #0090CF;     /* Lighter accent hover */
-  transform: scale(1.03);        /* Subtle "pop" effect on hover */
-}
-button.DeleteButton {
+
+.themed-wrapper button.AddButton {
   color: #FEF9F2;
-  background-color: #D63B25;     /* Redwood "critical" color */
+  background-color: #0079AE;
 }
-button.DeleteButton:hover {
+
+.themed-wrapper button.AddButton:hover {
+  background-color: #0090CF;
+  transform: scale(1.03);
+}
+
+.themed-wrapper button.DeleteButton {
+  color: #FEF9F2;
+  background-color: #D63B25;
+}
+
+.themed-wrapper button.DeleteButton:hover {
   background-color: #EC4F3A;
   transform: scale(1.03);
 }
-button.DoneButton {
-  background-color: #E2E0DB;     /* Light neutral background */
+
+.themed-wrapper button.DoneButton {
+  background-color: #E2E0DB;
 }
-button.DoneButton:hover {
-  background-color: #BEBBB5;     /* Slightly darker hover */
+
+.themed-wrapper button.DoneButton:hover {
+  background-color: #BEBBB5;
   transform: scale(1.03);
 }
 
@@ -157,10 +203,11 @@ button.DoneButton:hover {
     transform: scale(1);
   }
 }
+
 /* ✅ Style for the Deadline Column */
-table.itemlist td.deadline {
+.themed-wrapper table.itemlist td.deadline {
   font-size: max(10px, min(1.5vw, 14px));
-  color: #FFA500; /* Orange for visibility */
+  color: #FFA500;
   font-weight: bold;
   white-space: nowrap;
   padding-right: 10px;
@@ -168,9 +215,8 @@ table.itemlist td.deadline {
 }
 
 /* ✅ Align buttons in the same row */
-td.actions {
+.themed-wrapper td.actions {
   display: flex;
-  gap: 10px; /* Adds spacing between buttons */
-  justify-content: flex-end; /* Aligns buttons to the right */
+  gap: 10px;
+  justify-content: flex-end;
 }
-

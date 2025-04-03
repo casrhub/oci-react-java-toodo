@@ -1,10 +1,10 @@
 import React from 'react';
 import '../styles/ManagerKpisPage.css'; 
 import MemberCard from '../components/Pages/MemberCard';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 function ManagerKpisPage() {
-  const history = useHistory();
+  const history = useNavigate();
 
   // Hardcoded team members (replace later with dynamic data)
   const teamMembers = [
@@ -17,7 +17,7 @@ function ManagerKpisPage() {
 
   const handleMemberClick = (member) => {
     console.log(`Clicked on ${member.name}`);
-    history.push(`/home`); // Navigate to the member's KPIs page
+    history(`/home`); // Navigate to the member's KPIs page
   };
 
   return (

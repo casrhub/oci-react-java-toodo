@@ -1,18 +1,18 @@
 import React from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import '../styles/MainMenuPage.css'; 
 
 function ManagerMainMenuPage() {
-  const history = useHistory();
+  const history = useNavigate();
 
   return (
     <div className="main-menu-page">
       <h1 className="main-menu-title">Project Management Tool</h1>
       <div className="button-group">
-        <button className="main-menu-button" onClick={() => history.push('/manager/kpis')}>
+        <button className="main-menu-button" onClick={() => history('/manager/kpis')}>
           KPIs
         </button>
-        <button className="main-menu-button" onClick={() => history.push('/manager/tasks')}>
+        <button className="main-menu-button" onClick={() => history('/manager/tasks')}>
           Tasks
         </button>
       </div>

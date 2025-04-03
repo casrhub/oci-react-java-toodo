@@ -1,12 +1,12 @@
 import React from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import '../styles/LoginPage.css'; // reuse same styles
 
 function ManagerLoginPage() {
-  const history = useHistory();
+  const history = useNavigate();
 
   const handleSSOLogin = () => {
-    history.push('/manager-main');
+    history('/manager-main');
   };
 
   return (

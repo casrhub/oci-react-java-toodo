@@ -1,12 +1,12 @@
 import React from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import '../styles/LoginPage.css'; 
 
 function DevLoginPage() {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const handleSSOLogin = () => {
-    history.push('/dev-main');
+    navigate('/dev-main');
   };
 
   return (

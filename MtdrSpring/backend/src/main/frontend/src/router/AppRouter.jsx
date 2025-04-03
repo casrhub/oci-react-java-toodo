@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // Pages
 import LandingPage from '../pages/LandingPage';
@@ -15,24 +15,24 @@ import ManagerKpisPage from '../pages/ManagerKpisPage';
 function AppRouter() {
   return (
     <Router>
-      <Switch>
+      <Routes>
         {/* Landing */}
-        <Route path="/manager/kpis" component={ManagerKpisPage} />
-        <Route path="/manager/tasks" component={ManagerTasksPage} />
-        <Route path="/dev/tasks" component={DevTasksPage} />
-        <Route exact path="/" component={LandingPage} />
+        <Route path="/manager/kpis" element={<ManagerKpisPage />} />
+        <Route path="/manager/tasks" element={<ManagerTasksPage />} />
+        <Route path="/dev/tasks" element={<DevTasksPage />} />
+        <Route path="/" element={<LandingPage />} />
 
         {/* Role-specific Login */}
-        <Route path="/dev-login" component={DevLoginPage} />
-        <Route path="/manager-login" component={ManagerLoginPage} />
+        <Route path="/dev-login" element={<DevLoginPage />} />
+        <Route path="/manager-login" element={<ManagerLoginPage />} />
 
         {/* Role-specific Main Menus */}
-        <Route path="/dev-main" component={DevMainMenuPage} />
-        <Route path="/manager-main" component={ManagerMainMenuPage} />
+        <Route path="/dev-main" element={<DevMainMenuPage />} />
+        <Route path="/manager-main" element={<ManagerMainMenuPage />} />
 
         {/* Tasks (shared or dev) */}
-        <Route path="/home" component={Home} />
-      </Switch>
+        <Route path="/home" element={<Home />} />
+      </Routes>
     </Router>
   );
 }

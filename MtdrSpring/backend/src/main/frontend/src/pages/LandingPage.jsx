@@ -1,16 +1,16 @@
 import React from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import '../styles/LandingPage.css';
 
 function LandingPage() {
-  const history = useHistory();
+  const history = useNavigate();
 
   const goToDevLogin = () => {
-    history.push('/dev-login');
+    history('/dev-login');
   };
 
   const goToManagerLogin = () => {
-    history.push('/manager-login');
+    history('/manager-login');
   };
 
   return (

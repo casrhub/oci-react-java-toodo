@@ -18,6 +18,7 @@ function App() {
   const [expandedTaskId, setExpandedTaskId] = useState(null);
   const [newSubTitulo, setNewSubTitulo] = useState('');
   const [newSubHoras, setNewSubHoras] = useState('');
+  const [pendingSubtaskPrompt, setPendingSubtaskPrompt] = useState(null);
 
   function fetchSubTareas(tareaId) {
     return fetch(`${API_SUBTAREAS}?tareaId=${tareaId}`)
@@ -103,7 +104,7 @@ function App() {
 
   function addItem(titulo, descripcion, usuarioId, equipoId, proyectoId, horasEstimadas) {
     setInserting(true);
-
+  
     const baseTask = {
       titulo,
       descripcion,
@@ -114,29 +115,32 @@ function App() {
       estado: "pendiente",
       fechaCreacion: new Date().toISOString()
     };
-
+  
     fetch(API_TAREAS, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(baseTask)
     })
       .then(response => response.ok ? response.json() : Promise.reject(new Error('Failed to create task')))
-      .then(() => {
-        reloadAllItems();
-        setInserting(false);
+      .then(createdTask => {
+        if (horasEstimadas > 4) {
+          const remaining = horasEstimadas - 4;
+          setPendingSubtaskPrompt({ tareaId: createdTask.tareaId, remainingHours: remaining });
+        }
+        return createdTask.tareaId;
       })
-      
-     
       .then(() => {
-        reloadAllItems();
-        setInserting(false);
+        // Only reload after the modal is shown
+        setTimeout(reloadAllItems, 300); // Delay to let the dialog render cleanly
       })
       .catch(error => {
-        setInserting(false);
         setError(error);
+      })
+      .finally(() => {
+        setInserting(false);
       });
   }
-
+  
   function updateDeadline(id, newDeadline) {
     fetch(`${API_TAREAS}/${id}/deadline`, {
       method: 'PUT',
@@ -184,7 +188,7 @@ function App() {
         .then(subs => {
           setItems(items.map(item => 
             item.tareaId === taskId 
-              ? { ...item, subTareas: subs } 
+              ? { ...item, subTareas: subs }  // ✅ Only update the right task
               : item
           ));
           setExpandedTaskId(taskId);
@@ -192,6 +196,7 @@ function App() {
         .catch(err => console.error(err));
     }
   }
+  
 
   return (
     <div className="App">
@@ -199,6 +204,19 @@ function App() {
       <NewItem addItem={addItem} isInserting={isInserting} />
       {error && <p className="errorMessage">Error: {error.message}</p>}
       {isLoading && <CircularProgress />}
+      {/* Pending Subtask Prompt */}
+      {pendingSubtaskPrompt && (
+        <Dialog open={true}>
+          <DialogTitle>Break task into subtasks</DialogTitle>
+          <DialogContent>
+            <p>You have {pendingSubtaskPrompt.remainingHours} hours left to split into subtasks.</p>
+            {/* You could add subtask UI fields here */}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setPendingSubtaskPrompt(null)}>Done</Button>
+          </DialogActions>
+        </Dialog>
+      )}
       {!isLoading && (
         <div id="maincontent">
           <h2>Pending Tasks</h2>

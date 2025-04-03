@@ -7,14 +7,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Override
-    public void addViewControllers(ViewControllerRegistry registry) {
-        // This handles client-side routing in React
-        registry.addViewController("/{spring:\\w+}")
-                .setViewName("forward:/index.html");
-        registry.addViewController("/**/{spring:\\w+}")
-                .setViewName("forward:/index.html");
-        registry.addViewController("/{spring:\\w+}/**{spring:?!(\\.js|\\.css|\\.json|\\.png)$}")
-                .setViewName("forward:/index.html");
-    }
+        @Override
+        public void addViewControllers(ViewControllerRegistry registry) {
+                // Match everything except actual API, JS, CSS, or media files
+                registry.addViewController("/{spring:[\\w-]+}")
+                                .setViewName("forward:/index.html");
+                registry.addViewController("/**/{spring:[\\w-]+}")
+                                .setViewName("forward:/index.html");
+                registry.addViewController(
+                                "/{spring:[\\w-]+}/**{spring:?!(\\.js|\\.css|\\.json|\\.png|\\.jpg|\\.jpeg|\\.svg|\\.ico)$}")
+                                .setViewName("forward:/index.html");
+        }
 }

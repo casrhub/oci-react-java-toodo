@@ -12,7 +12,6 @@ import Moment from 'react-moment';
 import { API_TAREAS, API_SUBTAREAS } from '../api'; 
 import NewItem from '../components/tasks/NewItem';  
 
-
 function DevTasksPage() {
   // ───────── STATES ─────────────────────────────
   const [tasks, setTasks] = useState([]);
@@ -269,6 +268,10 @@ function DevTasksPage() {
 
   // ───────── RENDER ─────────────────────────────
 
+  // Separate tasks by status
+  const pendingTasks = tasks.filter((t) => t.estado !== 'completado');
+  const completedTasks = tasks.filter((t) => t.estado === 'completado');
+
   return (
     <div style={{ padding: '1rem' }}>
       {/* Header Toolbar */}
@@ -334,58 +337,57 @@ function DevTasksPage() {
         </Dialog>
       )}
 
-      {/* TABLE */}
-      {!isLoading && tasks.length > 0 && (
-        <TableContainer component={Paper} sx={{ marginTop: '1rem' }}>
-          <Table>
-            <TableHead sx={{ backgroundColor: '#C74634' }}>
-              <TableRow>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>#</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Title</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Status</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Deadline</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {tasks.map((t, index) => {
-                // Convert backend "estado" => front-end "status"
-                let statusLabel = 'To Do';
-                if (t.estado === 'completado') statusLabel = 'Done';
-                else if (t.estado === 'pendiente') statusLabel = 'To Do';
-                else if (t.estado === 'en progreso') statusLabel = 'In Progress';
+      {/* ────────────────────────────────────────────────────────────
+         PENDING / IN-PROGRESS TASKS TABLE
+      ──────────────────────────────────────────────────────────── */}
+      {pendingTasks.length > 0 && (
+        <>
+          <Typography variant="h6" sx={{ marginTop: '2rem' }}>
+            Pending Tasks
+          </Typography>
+          <TableContainer component={Paper} sx={{ marginTop: '0.5rem' }}>
+            <Table>
+              <TableHead sx={{ backgroundColor: '#C74634' }}>
+                <TableRow>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>#</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Title</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Status</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Deadline</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {pendingTasks.map((t, index) => {
+                  // Convert backend "estado" => front-end "status"
+                  let statusLabel = 'To Do';
+                  if (t.estado === 'en progreso') statusLabel = 'In Progress';
 
-                const isDone = t.estado === 'completado';
-
-                return (
-                  <React.Fragment key={t.tareaId}>
-                    {/* Main Row */}
-                    <TableRow>
-                      <TableCell>{index + 1}</TableCell>
-
-                      {/* Title => Click to expand subtasks */}
-                      <TableCell>
-                        <Button onClick={() => toggleSubtaskRow(t.tareaId)}>
-                          {t.titulo}
-                        </Button>
-                      </TableCell>
-
-                      <TableCell>{statusLabel}</TableCell>
-
-                      <TableCell>
-                        {t.deadline ? (
-                          <Moment format="MMM Do YYYY, hh:mm A" utc>
-                            {t.deadline}
-                          </Moment>
-                        ) : (
-                          <Button size="small" onClick={() => openDeadlineDialog(t)}>
-                            Set Deadline
+                  return (
+                    <React.Fragment key={t.tareaId}>
+                      {/* Main Row */}
+                      <TableRow>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>
+                          <Button onClick={() => toggleSubtaskRow(t.tareaId)}>
+                            {t.titulo}
                           </Button>
-                        )}
-                      </TableCell>
-
-                      <TableCell>
-                        {!isDone && (
+                        </TableCell>
+                        <TableCell>{statusLabel}</TableCell>
+                        <TableCell>
+                          {t.deadline ? (
+                            <Moment format="MMM Do YYYY, hh:mm A" utc>
+                              {t.deadline}
+                            </Moment>
+                          ) : (
+                            <Button
+                              size="small"
+                              onClick={() => openDeadlineDialog(t)}
+                            >
+                              Set Deadline
+                            </Button>
+                          )}
+                        </TableCell>
+                        <TableCell>
                           <Button
                             variant="contained"
                             sx={{ marginRight: '0.5rem' }}
@@ -393,74 +395,115 @@ function DevTasksPage() {
                           >
                             Done
                           </Button>
-                        )}
-                        {isDone && (
-                          <Button
-                            variant="contained"
-                            startIcon={<DeleteIcon />}
-                            color="error"
-                            onClick={() => deleteItem(t.tareaId)}
-                          >
-                            Delete
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-
-                    {/* Expanded Row for Subtasks */}
-                    {expandedTaskId === t.tareaId && (
-                      <TableRow>
-                        <TableCell colSpan={5} sx={{ backgroundColor: '#f9f9f9' }}>
-                          {/* Subtask List */}
-                          {t.subTareas && t.subTareas.length > 0 ? (
-                            <ul>
-                              {t.subTareas.map((sub) => (
-                                <li key={sub.subTareaId}>
-                                  {sub.titulo} — {sub.estado} — {sub.horasEstimadas}h
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <p>No subtasks yet</p>
-                          )}
-
-                          {/* Subtask creation form */}
-                          <form
-                            onSubmit={(e) => handleAddSubtask(t.tareaId, e)}
-                            style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}
-                          >
-                            <TextField
-                              label="Subtask title"
-                              size="small"
-                              value={newSubTitulo}
-                              onChange={(e) => setNewSubTitulo(e.target.value)}
-                            />
-                            <TextField
-                              label="Hours"
-                              size="small"
-                              type="number"
-                              value={newSubHoras}
-                              onChange={(e) => setNewSubHoras(e.target.value)}
-                            />
-                            <Button variant="contained" type="submit">
-                              Add Subtask
-                            </Button>
-                          </form>
                         </TableCell>
                       </TableRow>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+
+                      {/* Expanded Row for Subtasks */}
+                      {expandedTaskId === t.tareaId && (
+                        <TableRow>
+                          <TableCell colSpan={5} sx={{ backgroundColor: '#f9f9f9' }}>
+                            {/* Subtask List */}
+                            {t.subTareas && t.subTareas.length > 0 ? (
+                              <ul>
+                                {t.subTareas.map((sub) => (
+                                  <li key={sub.subTareaId}>
+                                    {sub.titulo} — {sub.estado} — {sub.horasEstimadas}h
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p>No subtasks yet</p>
+                            )}
+
+                            {/* Subtask creation form */}
+                            <form
+                              onSubmit={(e) => handleAddSubtask(t.tareaId, e)}
+                              style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}
+                            >
+                              <TextField
+                                label="Subtask title"
+                                size="small"
+                                value={newSubTitulo}
+                                onChange={(e) => setNewSubTitulo(e.target.value)}
+                              />
+                              <TextField
+                                label="Hours"
+                                size="small"
+                                type="number"
+                                value={newSubHoras}
+                                onChange={(e) => setNewSubHoras(e.target.value)}
+                              />
+                              <Button variant="contained" type="submit">
+                                Add Subtask
+                              </Button>
+                            </form>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </>
+      )}
+
+      {/* ────────────────────────────────────────────────────────────
+         COMPLETED TASKS TABLE
+      ──────────────────────────────────────────────────────────── */}
+      {completedTasks.length > 0 && (
+        <>
+          <Typography variant="h6" sx={{ marginTop: '2rem' }}>
+            Completed Tasks
+          </Typography>
+          <TableContainer component={Paper} sx={{ marginTop: '0.5rem' }}>
+            <Table>
+              <TableHead sx={{ backgroundColor: '#C74634' }}>
+                <TableRow>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>#</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Title</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Status</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Deadline</TableCell>
+                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {completedTasks.map((t, index) => (
+                  <TableRow key={t.tareaId}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{t.titulo}</TableCell>
+                    <TableCell>Done</TableCell>
+                    <TableCell>
+                      <Moment format="MMM Do YYYY, hh:mm A" utc>
+                        {t.deadline}
+                      </Moment>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        startIcon={<DeleteIcon />}
+                        color="error"
+                        onClick={() => deleteItem(t.tareaId)}
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </>
       )}
 
       {/* ───────── DIALOGS ───────────────── */}
 
       {/* Add Task Dialog + “NewItem” component inside */}
-      <Dialog open={newTaskDialogOpen} onClose={() => setNewTaskDialogOpen(false)}>
+      <Dialog
+        open={newTaskDialogOpen}
+        onClose={() => setNewTaskDialogOpen(false)}
+      >
         <DialogTitle>Add New Task</DialogTitle>
         <DialogContent>
           <NewItem addItem={addItem} isInserting={isInserting} />
@@ -489,7 +532,10 @@ function DevTasksPage() {
       </Dialog>
 
       {/* Complete Task Dialog */}
-      <Dialog open={completeDialogOpen} onClose={closeCompleteDialog}>
+      <Dialog
+        open={completeDialogOpen}
+        onClose={closeCompleteDialog}
+      >
         <DialogTitle>Complete Task</DialogTitle>
         <DialogContent>
           <TextField

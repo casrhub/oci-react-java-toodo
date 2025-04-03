@@ -7,7 +7,7 @@ import Moment from 'react-moment';
 import NewItem from '../components/tasks/NewItem';  // adjusted import paths
 
 
-function App() {
+function Home() {
   const [isLoading, setLoading] = useState(false);
   const [isInserting, setInserting] = useState(false);
   const [items, setItems] = useState([]);
@@ -382,4 +382,4 @@ function App() {
   );
 }
 
-export default App;
+export default Home;

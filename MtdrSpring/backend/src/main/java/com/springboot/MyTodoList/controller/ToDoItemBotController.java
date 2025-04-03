@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +25,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import com.springboot.MyTodoList.model.ToDoItem;
+import com.springboot.MyTodoList.model.Usuarios;
 import com.springboot.MyTodoList.service.ToDoItemService;
+import com.springboot.MyTodoList.service.UsuarioService;
 import com.springboot.MyTodoList.util.BotCommands;
 import com.springboot.MyTodoList.util.BotHelper;
 import com.springboot.MyTodoList.util.BotLabels;
@@ -35,16 +39,19 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 	private Map<Long, String> sessionState = new HashMap<>();
 	private Map<Long, Integer> pendingTaskId = new HashMap<>();
 	private Map<Long, String> pendingDate = new HashMap<>();
+	private Map<Long, String> pendingLinkCodes = new HashMap<>();
 	private static final Logger logger = LoggerFactory.getLogger(ToDoItemBotController.class);
 	private ToDoItemService toDoItemService;
 	private String botName;
+	private UsuarioService usuarioService;
 
-	public ToDoItemBotController(String botToken, String botName, ToDoItemService toDoItemService) {
+	public ToDoItemBotController(String botToken, String botName, ToDoItemService toDoItemService, UsuarioService usuarioService) {
 		super(botToken);
 		logger.info("Bot Token: " + botToken);
 		logger.info("Bot name: " + botName);
 		this.toDoItemService = toDoItemService;
 		this.botName = botName;
+		this.usuarioService = usuarioService;
 	}
 
 	@Override
@@ -283,7 +290,41 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					BotHelper.sendMessageToTelegram(chatId, "❌ Error setting deadline. Please try again.", this);
 					return; 
 				}
+			} 
+			// Handle /link command
+			else if (messageTextFromTelegram.startsWith("/link")) {
+				try {
+					String[] parts = messageTextFromTelegram.split(" ");
+					if (parts.length != 2) {
+						BotHelper.sendMessageToTelegram(chatId, "Usage: /link <email>", this);
+						return;
+					}
+			
+					String email = parts[1];
+					logger.info("🔗 Attempting to link Telegram chatId {} with email {}", chatId, email);
+			
+					Optional<Usuarios> userOpt = usuarioService.findByEmail(email);
+			
+					if (userOpt.isPresent()) {
+						Usuarios user = userOpt.get();
+						logger.info("✅ Found user: {} - Linking now...", user.getEmail());
+			
+						user.setTelegramChatId(chatId);
+						usuarioService.save(user);
+			
+						BotHelper.sendMessageToTelegram(chatId, "✅ Your account has been linked!", this);
+					} else {
+						logger.warn("❌ No user found with email: {}", email);
+						BotHelper.sendMessageToTelegram(chatId, "❌ Email not found. Please verify and try again.", this);
+					}
+				} catch (Exception e) {
+					logger.error("❌ Linking error", e);
+					BotHelper.sendMessageToTelegram(chatId, "❌ Unexpected error during linking.", this);
+				}
 			}
+			
+			
+			
 			
 			
 

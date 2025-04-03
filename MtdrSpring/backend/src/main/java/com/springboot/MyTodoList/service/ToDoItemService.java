@@ -68,4 +68,13 @@ public class ToDoItemService {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    public Optional<Integer> verifyLinkCode(String code) {
+        // For now, mock a successful link by matching a hardcoded code
+        if ("ABC123".equals(code)) {
+            return Optional.of(1); // Return user ID (or any identifier you need)
+        }
+        return Optional.empty();
+    }
+    
 }

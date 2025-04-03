@@ -1,157 +1,225 @@
 import React, { useState, useEffect } from 'react';
 import NewItem from './NewItem';
-import API_LIST from './API';
+import { API_TAREAS, API_SUBTAREAS } from './API';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Button, TableBody, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 import Moment from 'react-moment';
 
 function App() {
-    const [isLoading, setLoading] = useState(false);
-    const [isInserting, setInserting] = useState(false);
-    const [items, setItems] = useState([]);
-    const [error, setError] = useState();
-    const [selectedTask, setSelectedTask] = useState(null);
-    const [deadline, setDeadline] = useState("");
+  const [isLoading, setLoading] = useState(false);
+  const [isInserting, setInserting] = useState(false);
+  const [items, setItems] = useState([]);
+  const [error, setError] = useState();
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [deadline, setDeadline] = useState("");
+  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
+  const [selectedCompleteTask, setSelectedCompleteTask] = useState(null);
+  const [realHours, setRealHours] = useState("");
+  const [expandedTaskId, setExpandedTaskId] = useState(null);
+  const [newSubTitulo, setNewSubTitulo] = useState('');
+  const [newSubHoras, setNewSubHoras] = useState('');
 
-    function deleteItem(deleteId) {
-        fetch(API_LIST + '/' + deleteId, { method: 'DELETE' })
-        .then(response => {
-            if (response.ok) {
-                setItems(items.filter(item => item.id !== deleteId));
-            } else {
-                throw new Error('Something went wrong ...');
-            }
-        })
-        .catch(err => setError(err));
-    }
-
-    function toggleDone(event, id, description, done) {
-        event.preventDefault();
-        modifyItem(id, description, done).then(() => reloadOneItem(id), (error) => setError(error));
-    }
-
-    function reloadOneItem(id) {
-        fetch(API_LIST + '/' + id)
-        .then(response => response.ok ? response.json() : Promise.reject(new Error('Something went wrong ...')))
-        .then(result => {
-            setItems(items.map(x => (x.id === id ? { ...x, description: result.description, done: result.done, deadline: result.deadline } : x)));
-        })
-        .catch(error => setError(error));
-    }
-
-    function modifyItem(id, description, done) {
-        return fetch(API_LIST + '/' + id, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ description, done })
-        })
-        .then(response => response.ok ? response : Promise.reject(new Error('Something went wrong ...')));
-    }
-
-    useEffect(() => {
-        setLoading(true);
-        fetch(API_LIST)
-        .then(response => response.ok ? response.json() : Promise.reject(new Error('Something went wrong ...')))
-        .then(result => {
-            setLoading(false);
-            setItems(result);
-        })
-        .catch(error => {
-            setLoading(false);
-            setError(error);
-        });
-    }, []);
-
-    function addItem(text) {
-        setInserting(true);
-        fetch(API_LIST, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ description: text })
-        })
-        .then(response => response.ok ? response : Promise.reject(new Error('Something went wrong ...')))
-        .then(result => {
-            const id = result.headers.get('location');
-            setItems([{ id, description: text }, ...items]);
-            setInserting(false);
-        })
-        .catch(error => {
-            setInserting(false);
-            setError(error);
-        });
-    }
-
-    // Function to handle deadline update
-    function updateDeadline(id, newDeadline) {
-        fetch(`${API_LIST}/${id}/deadline`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ deadline: newDeadline })  // Send deadline as JSON object
-        })
-        .then(response => {
-            if (response.ok) {
-                reloadOneItem(id);
-                handleClose();
-            } else {
-                throw new Error('Failed to update deadline');
-            }
-        })
-        .catch(error => console.error(error));
-    }
-
-    // Open modal to edit deadline
-    function handleOpen(task) {
-        setSelectedTask(task);
-        setDeadline(task.deadline || "");  // Use existing deadline or empty
-    }
-
-    // Close modal
-    function handleClose() {
-        setSelectedTask(null);
-        setDeadline("");
-    }
-
-    // Handle deadline save
-    function handleSave() {
-      if (selectedTask) {
-          // Convert user input (local time) to UTC before saving
-          const localDate = new Date(deadline);
-          const fullISODate = new Date(
-              localDate.getTime() - localDate.getTimezoneOffset() * 60000
-          ).toISOString();
+  function fetchSubTareas(tareaId) {
+    return fetch(`${API_SUBTAREAS}?tareaId=${tareaId}`)
+      .then(response => response.ok ? response.json() : Promise.reject('Failed to fetch subtareas'));
+  }
   
-          updateDeadline(selectedTask.id, fullISODate);
+  function createSubTarea(tareaId, titulo, horasEstimadas) {
+    fetch(API_SUBTAREAS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tareaId, // 👈 send it flat, not nested!
+        titulo,
+        descripcion: 'Subtask manual',
+        estado: 'pendiente',
+        horasEstimadas,
+        horasReales: 0,
+        fechaCreacion: new Date().toISOString(),
+        deadline: null
+      })
+    })
+      .then(res => res.ok ? reloadOneItem(tareaId) : console.error("Failed to add subtask"))
+      .catch(err => console.error(err));
+  }
   
-          // Update UI immediately with the corrected UTC time
-          setItems(items.map(item => 
-              item.id === selectedTask.id ? { ...item, deadline: fullISODate } : item
-          ));
-      }
+  
+
+
+  function deleteItem(deleteId) {
+    fetch(API_TAREAS + '/' + deleteId, { method: 'DELETE' })
+      .then(response => {
+        if (response.ok) {
+          setItems(items.filter(item => item.tareaId !== deleteId));
+        } else {
+          throw new Error('Something went wrong ...');
+        }
+      })
+      .catch(err => setError(err));
   }
 
-    return (
-      <div className="App">
-        <h1>MY TODO LIST</h1>
-        <NewItem addItem={addItem} isInserting={isInserting} />
-        {error && <p className="errorMessage">Error: {error.message}</p>}
-        {isLoading && <CircularProgress />}
-        {!isLoading && (
-          <div id="maincontent">
-            {/* ✅ Not Done Items Table */}
-            <h2>Pending Tasks</h2>
-            <table id="itemlistNotDone" className="itemlist">
-              <thead>
-                <tr>
-                  <th>Description</th>
-                  <th className="deadline">Deadline</th>
-                  <th className="date">Created On</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <TableBody>
-                {items.map(item => !item.done && (
-                  <tr key={item.id}>
-                    <td className="description">{item.description}</td>
+  function markTaskComplete(id, horasReales) {
+    fetch(`${API_TAREAS}/${id}/complete`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ estado: "completado", horasReales })
+    })
+      .then(response => {
+        if (response.ok) {
+          reloadOneItem(id);
+        } else {
+          throw new Error('Failed to mark task complete');
+        }
+      })
+      .catch(error => setError(error));
+  }
+
+  function reloadOneItem(id) {
+    fetch(API_TAREAS + '/' + id)
+      .then(response => response.ok ? response.json() : Promise.reject(new Error('Something went wrong ...')))
+      .then(result => {
+        setItems(items.map(x => (x.tareaId === id ? { ...x, ...result } : x)));
+      })
+      .catch(error => setError(error));
+  }
+
+  useEffect(() => {
+    reloadAllItems();
+  }, []);
+
+  function reloadAllItems() {
+    setLoading(true);
+    fetch(API_TAREAS)
+      .then(response => response.ok ? response.json() : Promise.reject(new Error('Something went wrong ...')))
+      .then(result => {
+        setLoading(false);
+        setItems(result);
+      })
+      .catch(error => {
+        setLoading(false);
+        setError(error);
+      });
+  }
+
+  function addItem(titulo, descripcion, usuarioId, equipoId, proyectoId, horasEstimadas) {
+    setInserting(true);
+
+    const baseTask = {
+      titulo,
+      descripcion,
+      usuarioId,
+      equipoId,
+      proyectoId,
+      horasEstimadas: Math.min(horasEstimadas, 4),
+      estado: "pendiente",
+      fechaCreacion: new Date().toISOString()
+    };
+
+    fetch(API_TAREAS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(baseTask)
+    })
+      .then(response => response.ok ? response.json() : Promise.reject(new Error('Failed to create task')))
+      .then(() => {
+        reloadAllItems();
+        setInserting(false);
+      })
+      
+     
+      .then(() => {
+        reloadAllItems();
+        setInserting(false);
+      })
+      .catch(error => {
+        setInserting(false);
+        setError(error);
+      });
+  }
+
+  function updateDeadline(id, newDeadline) {
+    fetch(`${API_TAREAS}/${id}/deadline`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deadline: newDeadline })
+    })
+      .then(response => {
+        if (response.ok) {
+          reloadOneItem(id);
+          handleClose();
+        } else {
+          throw new Error('Failed to update deadline');
+        }
+      })
+      .catch(error => console.error(error));
+  }
+
+  function handleOpen(task) {
+    setSelectedTask(task);
+    setDeadline(task.deadline || "");
+  }
+
+  function handleClose() {
+    setSelectedTask(null);
+    setDeadline("");
+  }
+
+  function handleSave() {
+    if (selectedTask) {
+      const localDate = new Date(deadline);
+      const fullISODate = new Date(
+        localDate.getTime() - localDate.getTimezoneOffset() * 60000
+      ).toISOString();
+
+      updateDeadline(selectedTask.tareaId, fullISODate);
+      setItems(items.map(item => item.tareaId === selectedTask.tareaId ? { ...item, deadline: fullISODate } : item));
+    }
+  }
+
+  function toggleSubtask(taskId) {
+    if (expandedTaskId === taskId) {
+      setExpandedTaskId(null);
+    } else {
+      fetchSubTareas(taskId)
+        .then(subs => {
+          setItems(items.map(item => 
+            item.tareaId === taskId 
+              ? { ...item, subTareas: subs } 
+              : item
+          ));
+          setExpandedTaskId(taskId);
+        })
+        .catch(err => console.error(err));
+    }
+  }
+
+  return (
+    <div className="App">
+      <h1>MY TODO LIST</h1>
+      <NewItem addItem={addItem} isInserting={isInserting} />
+      {error && <p className="errorMessage">Error: {error.message}</p>}
+      {isLoading && <CircularProgress />}
+      {!isLoading && (
+        <div id="maincontent">
+          <h2>Pending Tasks</h2>
+          <table id="itemlistNotDone" className="itemlist">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th className="deadline">Deadline</th>
+                <th className="date">Created On</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <TableBody>
+              {items.map(item => item.estado !== "completado" && (
+                <React.Fragment key={item.tareaId}>
+                  <tr>
+                    <td>
+                      <Button onClick={() => toggleSubtask(item.tareaId)}>{item.titulo}</Button>
+                    </td>
+                    <td>{item.descripcion}</td>
                     <td className="deadline">
                       {item.deadline ? (
                         <Moment format="MMM Do YYYY, hh:mm A" utc>{item.deadline}</Moment>
@@ -160,72 +228,138 @@ function App() {
                       )}
                     </td>
                     <td className="date">
-                      <Moment format="MMM Do YYYY, hh:mm A">{item.creation_ts}</Moment>
+                      <Moment format="MMM Do YYYY, hh:mm A">{item.fechaCreacion}</Moment>
                     </td>
                     <td>
-                      <Button variant="contained" className="DoneButton" onClick={(event) => toggleDone(event, item.id, item.description, !item.done)} size="small">
+                      <Button
+                        variant="contained"
+                        className="DoneButton"
+                        onClick={() => {
+                          setSelectedCompleteTask(item);
+                          setCompleteDialogOpen(true);
+                        }}
+                        size="small"
+                      >
                         Done
                       </Button>
                     </td>
                   </tr>
-                ))}
-              </TableBody>
-            </table>
+                  {expandedTaskId === item.tareaId && (
+              <tr>
+                <td colSpan="5">
+                  <ul>
+                    {item.subTareas && item.subTareas.map(sub => (
+                      <li key={sub.subTareaId}>{sub.titulo} - {sub.estado} - {sub.horasEstimadas}h</li>
+                    ))}
+                  </ul>
 
-            {/* ✅ Done Items Table */}
-            <h2 id="donelist">Completed Tasks</h2>
-            <table id="itemlistDone" className="itemlist">
-              <thead>
-                <tr>
-                  <th>Description</th>
-                  <th className="deadline">Deadline</th>
-                  <th className="date">Created On</th>
-                  <th>Actions</th>
+                  {/* Subtask creation form */}
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    createSubTarea(item.tareaId, newSubTitulo, newSubHoras);
+                    setNewSubTitulo('');
+                    setNewSubHoras('');
+                  }}>
+                    <input
+                      placeholder="Subtask title"
+                      value={newSubTitulo}
+                      onChange={e => setNewSubTitulo(e.target.value)}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Hours"
+                      value={newSubHoras}
+                      onChange={e => setNewSubHoras(e.target.value)}
+                    />
+                    <button type="submit">Add Subtask</button>
+                  </form>
+                </td>
+              </tr>
+            )}
+
+                </React.Fragment>
+              ))}
+            </TableBody>
+          </table>
+
+          <h2 id="donelist">Completed Tasks</h2>
+          <table id="itemlistDone" className="itemlist">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th className="deadline">Deadline</th>
+                <th className="date">Created On</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <TableBody>
+              {items.map(item => item.estado === "completado" && (
+                <tr key={item.tareaId}>
+                  <td>{item.titulo}</td>
+                  <td>{item.descripcion}</td>
+                  <td className="deadline">
+                    <Moment format="MMM Do YYYY, hh:mm A" utc>{item.deadline}</Moment>
+                  </td>
+                  <td className="date">
+                    <Moment format="MMM Do YYYY, hh:mm A">{item.fechaCreacion}</Moment>
+                  </td>
+                  <td className="actions">
+                    <Button startIcon={<DeleteIcon />} variant="contained" className="DeleteButton" onClick={() => deleteItem(item.tareaId)}>Delete</Button>
+                  </td>
                 </tr>
-              </thead>
-              <TableBody>
-                {items.map(item => item.done && (
-                  <tr key={item.id}>
-                    <td className="description">{item.description}</td>
-                    <td className="deadline">
-                      {item.deadline ? (
-                        <Moment format="MMM Do YYYY, hh:mm A" utc>{item.deadline}</Moment>
-                      ) : (
-                        <Button size="small" onClick={() => handleOpen(item)}>Set Deadline</Button>
-                      )}
-                    </td>
-                    <td className="date">
-                      <Moment format="MMM Do YYYY, hh:mm A">{item.creation_ts}</Moment>
-                    </td>
-                    <td className="actions">
-                      <Button variant="contained" className="DoneButton">Undo</Button>
-                      <Button startIcon={<DeleteIcon />} variant="contained" className="DeleteButton">Delete</Button>
-                    </td>
-                  </tr>
-                ))}
-              </TableBody>
-            </table>
-          </div>
-        )}
+              ))}
+            </TableBody>
+          </table>
+        </div>
+      )}
 
-        {/* 📅 Deadline Modal */}
-        <Dialog open={!!selectedTask} onClose={handleClose}>
-          <DialogTitle>Set Deadline</DialogTitle>
-          <DialogContent>
-            <TextField
-              type="datetime-local"
-              value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
-              fullWidth
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose} color="secondary">Cancel</Button>
-            <Button onClick={handleSave} color="primary">Save</Button>
-          </DialogActions>
-        </Dialog>
-      </div>
-    );
+      <Dialog open={!!selectedTask} onClose={handleClose}>
+        <DialogTitle>Set Deadline</DialogTitle>
+        <DialogContent>
+          <TextField
+            type="datetime-local"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+            fullWidth
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="secondary">Cancel</Button>
+          <Button onClick={handleSave} color="primary">Save</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={completeDialogOpen} onClose={() => setCompleteDialogOpen(false)}>
+        <DialogTitle>Complete Task</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            label="Real Hours Worked"
+            type="number"
+            fullWidth
+            value={realHours}
+            onChange={(e) => setRealHours(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCompleteDialogOpen(false)} color="secondary">Cancel</Button>
+          <Button
+            onClick={() => {
+              if (selectedCompleteTask && realHours) {
+                markTaskComplete(selectedCompleteTask.tareaId, realHours);
+                setCompleteDialogOpen(false);
+                setRealHours("");
+              }
+            }}
+            color="primary"
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </div>
+  );
 }
 
 export default App;

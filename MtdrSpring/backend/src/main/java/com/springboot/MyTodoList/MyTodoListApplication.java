@@ -13,12 +13,15 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import com.springboot.MyTodoList.controller.ToDoItemBotController;
 import com.springboot.MyTodoList.service.ToDoItemService;
+import com.springboot.MyTodoList.service.UsuarioService;
 import com.springboot.MyTodoList.util.BotMessages;
 
 @SpringBootApplication
 public class MyTodoListApplication implements CommandLineRunner {
 
 	private static final Logger logger = LoggerFactory.getLogger(MyTodoListApplication.class);
+
+	private final UsuarioService usuarioService;
 
 	@Autowired
 	private ToDoItemService toDoItemService;
@@ -29,6 +32,11 @@ public class MyTodoListApplication implements CommandLineRunner {
 	@Value("${telegram.bot.name}")
 	private String botName;
 
+	@Autowired
+	public MyTodoListApplication(UsuarioService usuarioService) {
+		this.usuarioService = usuarioService;
+	}
+
 	public static void main(String[] args) {
 		SpringApplication.run(MyTodoListApplication.class, args);
 	}
@@ -37,7 +45,7 @@ public class MyTodoListApplication implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		try {
 			TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
-			telegramBotsApi.registerBot(new ToDoItemBotController(telegramBotToken, botName, toDoItemService));
+			telegramBotsApi.registerBot(new ToDoItemBotController(telegramBotToken, botName, toDoItemService, usuarioService));
 			logger.info(BotMessages.BOT_REGISTERED_STARTED.getMessage());
 		} catch (TelegramApiException e) {
 			e.printStackTrace();

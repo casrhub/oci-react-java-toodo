@@ -1,62 +1,57 @@
-/*
-## MyToDoReact version 1.0.
-##
-## Copyright (c) 2022 Oracle, Inc.
-## Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl/
-*/
-/*
- * Component that supports creating a new todo item.
- * @author  jean.de.lavarene@oracle.com
- */
-
 import React, { useState } from "react";
-import Button from '@mui/material/Button';
-
+import { Button, TextField } from '@mui/material';
 
 function NewItem(props) {
-  const [item, setItem] = useState('');
+  const [titulo, setTitulo] = useState('');
+  const [descripcion, setDescripcion] = useState('');
+  const [usuarioId, setUsuarioId] = useState('');
+  const [equipoId, setEquipoId] = useState('');
+  const [proyectoId, setProyectoId] = useState('');
+  const [horasEstimadas, setHorasEstimadas] = useState('');
+
   function handleSubmit(e) {
-    // console.log("NewItem.handleSubmit("+e+")");
-    if (!item.trim()) {
-      return;
-    }
-    // addItem makes the REST API call:
-    props.addItem(item);
-    setItem("");
     e.preventDefault();
+    if (!titulo.trim() || !descripcion.trim()) return;
+
+    props.addItem(
+      titulo,
+      descripcion,
+      parseInt(usuarioId),
+      parseInt(equipoId),
+      parseInt(proyectoId),
+      parseFloat(horasEstimadas)
+    );
+
+    // Reset all fields
+    setTitulo('');
+    setDescripcion('');
+    setUsuarioId('');
+    setEquipoId('');
+    setProyectoId('');
+    setHorasEstimadas('');
   }
-  function handleChange(e) {
-    setItem(e.target.value);
-  }
+
   return (
     <div id="newinputform">
-    <form>
-      <input
-        id="newiteminput"
-        placeholder="New item"
-        type="text"
-        autoComplete="off"
-        value={item}
-        onChange={handleChange}
-        // No need to click on the "ADD" button to add a todo item. You
-        // can simply press "Enter":
-        onKeyDown={event => {
-          if (event.key === 'Enter') {
-            handleSubmit(event);
-          }
-        }}
-      />
-      <span>&nbsp;&nbsp;</span>
-      <Button
-        className="AddButton"
-        variant="contained"
-        disabled={props.isInserting}
-        onClick={!props.isInserting ? handleSubmit : null}
-        size="small"
-      >
-        {props.isInserting ? 'Adding…' : 'Add'}
-      </Button>
-    </form>
+      <form onSubmit={handleSubmit}>
+        <TextField label="Título" value={titulo} onChange={e => setTitulo(e.target.value)} fullWidth />
+        <TextField label="Descripción" value={descripcion} onChange={e => setDescripcion(e.target.value)} fullWidth />
+        <TextField label="Usuario ID" value={usuarioId} onChange={e => setUsuarioId(e.target.value)} type="number" fullWidth />
+        <TextField label="Equipo ID" value={equipoId} onChange={e => setEquipoId(e.target.value)} type="number" fullWidth />
+        <TextField label="Proyecto ID" value={proyectoId} onChange={e => setProyectoId(e.target.value)} type="number" fullWidth />
+        <TextField label="Horas Estimadas" value={horasEstimadas} onChange={e => setHorasEstimadas(e.target.value)} type="number" fullWidth />
+
+        <Button
+          className="AddButton"
+          variant="contained"
+          disabled={props.isInserting}
+          onClick={!props.isInserting ? handleSubmit : null}
+          size="small"
+          style={{ marginTop: '10px' }}
+        >
+          {props.isInserting ? 'Adding…' : 'Add'}
+        </Button>
+      </form>
     </div>
   );
 }

@@ -18,5 +18,3 @@
 // const API_LIST = 'https://di2eyonlz5s7kmuektcddaw5zq.apigateway.eu-frankfurt-1.oci.customer-oci.com/todolist';
 const API_LIST = '/todolist';
 export default API_LIST;
-export const API_TAREAS = '/tareas';
-export const API_SUBTAREAS = '/subtareas';

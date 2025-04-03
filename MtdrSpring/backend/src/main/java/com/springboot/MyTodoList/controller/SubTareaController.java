@@ -30,10 +30,17 @@ private TareaRepository tareaRepository;
     private SubTareaService subTareaService;
 
     @GetMapping
-    public List<SubTarea> getAll() {
+    
+public List<SubTarea> getSubTareas(@RequestParam(required = false) Long tareaId) {
+    if (tareaId != null) {
+        logger.debug("Fetching subtareas for tareaId: {}", tareaId);
+        return subTareaService.findByTareaId(tareaId);
+    } else {
         logger.debug("Fetching all subtareas");
         return subTareaService.findAll();
     }
+}
+
 
     @GetMapping("/byTarea/{tareaId}")
     public List<SubTarea> getByTarea(@PathVariable Long tareaId) {

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import NewItem from './NewItem';
-import { API_TAREAS, API_SUBTAREAS } from './API';
+import { API_TAREAS, API_SUBTAREAS } from '../api/index';  // adjusted import paths
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Button, TableBody, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 import Moment from 'react-moment';
+
+import NewItem from '../components/tasks/NewItem';  // adjusted import paths
+
 
 function App() {
   const [isLoading, setLoading] = useState(false);

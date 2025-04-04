@@ -137,6 +137,7 @@ public class Tarea {
 
     @ManyToOne
     @JoinColumn(name = "SPRINT_ID")
+    @com.fasterxml.jackson.annotation.JsonBackReference
     private Sprint sprint;
 
     public Sprint getSprint() {

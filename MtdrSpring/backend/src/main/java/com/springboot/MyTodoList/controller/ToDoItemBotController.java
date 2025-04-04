@@ -1,5 +1,6 @@
 package com.springboot.MyTodoList.controller;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +25,12 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import com.springboot.MyTodoList.model.SubTarea;
+import com.springboot.MyTodoList.model.Tarea;
 import com.springboot.MyTodoList.model.ToDoItem;
 import com.springboot.MyTodoList.model.Usuarios;
+import com.springboot.MyTodoList.service.SubTareaService;
+import com.springboot.MyTodoList.service.TareaService;
 import com.springboot.MyTodoList.service.ToDoItemService;
 import com.springboot.MyTodoList.service.UsuarioService;
 import com.springboot.MyTodoList.util.BotCommands;
@@ -34,6 +39,19 @@ import com.springboot.MyTodoList.util.BotLabels;
 import com.springboot.MyTodoList.util.BotMessages;
 
 public class ToDoItemBotController extends TelegramLongPollingBot {
+
+	private Map<Long, Map<String, Object>> taskCreationState = new HashMap<>();
+    private Map<Long, String> taskStep = new HashMap<>();
+
+	private SubTareaService subTareaService;
+
+
+
+
+	
+
+
+	private TareaService tareaService;
 
 // State tracker for awaiting commands 
 	private Map<Long, String> sessionState = new HashMap<>();
@@ -45,14 +63,17 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 	private String botName;
 	private UsuarioService usuarioService;
 
-	public ToDoItemBotController(String botToken, String botName, ToDoItemService toDoItemService, UsuarioService usuarioService) {
-		super(botToken);
-		logger.info("Bot Token: " + botToken);
-		logger.info("Bot name: " + botName);
-		this.toDoItemService = toDoItemService;
-		this.botName = botName;
-		this.usuarioService = usuarioService;
-	}
+	public ToDoItemBotController(String botToken,
+                              String botName,
+                              TareaService tareaService,
+                              SubTareaService subTareaService, 
+                              UsuarioService usuarioService) {
+    super(botToken);
+    this.tareaService = tareaService;
+    this.subTareaService = subTareaService; 
+    this.botName = botName;
+    this.usuarioService = usuarioService;
+}
 
 	@Override
 	public void onUpdateReceived(Update update) {
@@ -155,7 +176,10 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					|| messageTextFromTelegram.equals(BotLabels.LIST_ALL_ITEMS.getLabel())
 					|| messageTextFromTelegram.equals(BotLabels.MY_TODO_LIST.getLabel())) {
 
-				List<ToDoItem> allItems = getAllToDoItems();
+				List<Tarea> allItems = getAllTareas();
+				List<Tarea> activeItems = allItems.stream().filter(t -> !"completado".equalsIgnoreCase(t.getEstado())).collect(Collectors.toList());
+                List<Tarea> doneItems = allItems.stream().filter(t -> "completado".equalsIgnoreCase(t.getEstado())).collect(Collectors.toList());
+
 				ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
 				List<KeyboardRow> keyboard = new ArrayList<>();
 
@@ -172,25 +196,29 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 				myTodoListTitleRow.add(BotLabels.MY_TODO_LIST.getLabel());
 				keyboard.add(myTodoListTitleRow);
 
-				List<ToDoItem> activeItems = allItems.stream().filter(item -> item.isDone() == false)
-						.collect(Collectors.toList());
+				List<Tarea> activeTareas = allItems.stream()
+                   .filter(item -> !"completado".equalsIgnoreCase(item.getEstado()))
+                   .collect(Collectors.toList());
 
-				for (ToDoItem item : activeItems) {
 
+				List<Tarea> doneTareas = allItems.stream()
+				   .filter(item -> "completado".equalsIgnoreCase(item.getEstado()))
+				   .collect(Collectors.toList());
+
+				   for (Tarea item : activeTareas) {
 					KeyboardRow currentRow = new KeyboardRow();
-					currentRow.add(item.getDescription());
-					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + BotLabels.DONE.getLabel());
+					currentRow.add(item.getTitulo());
+					currentRow.add(item.getTareaId() + BotLabels.DASH.getLabel() + BotLabels.DONE.getLabel());
 					keyboard.add(currentRow);
 				}
 
-				List<ToDoItem> doneItems = allItems.stream().filter(item -> item.isDone() == true)
-						.collect(Collectors.toList());
+	
 
-				for (ToDoItem item : doneItems) {
+				for (Tarea item : doneItems) {
 					KeyboardRow currentRow = new KeyboardRow();
-					currentRow.add(item.getDescription());
-					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + BotLabels.UNDO.getLabel());
-					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + BotLabels.DELETE.getLabel());
+					currentRow.add(item.getDescripcion());
+					currentRow.add(item.getTareaId() + BotLabels.DASH.getLabel() + BotLabels.UNDO.getLabel());
+					currentRow.add(item.getTareaId() + BotLabels.DASH.getLabel() + BotLabels.DELETE.getLabel());
 					keyboard.add(currentRow);
 				}
 
@@ -321,7 +349,107 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					logger.error("❌ Linking error", e);
 					BotHelper.sendMessageToTelegram(chatId, "❌ Unexpected error during linking.", this);
 				}
+			} else if (messageTextFromTelegram.equals("/newtask")) {
+				taskCreationState.put(chatId, new HashMap<>());
+				taskStep.put(chatId, "AWAITING_TITLE");
+				BotHelper.sendMessageToTelegram(chatId, "📝 What's the title of the task?", this);
 			}
+			
+			else if (taskStep.containsKey(chatId)) {
+				String step = taskStep.get(chatId);
+				Map<String, Object> data = taskCreationState.get(chatId);
+			
+				switch (step) {
+					case "AWAITING_TITLE":
+						data.put("titulo", messageTextFromTelegram);
+						taskStep.put(chatId, "AWAITING_DESCRIPTION");
+						BotHelper.sendMessageToTelegram(chatId, "✍️ Now enter the description:", this);
+						break;
+			
+					case "AWAITING_DESCRIPTION":
+						data.put("descripcion", messageTextFromTelegram);
+						taskStep.put(chatId, "AWAITING_HOURS");
+						BotHelper.sendMessageToTelegram(chatId, "⏱ Estimated hours (number):", this);
+						break;
+					
+					case "AWAITING_HOURS":
+						int estimated = Integer.parseInt(messageTextFromTelegram);
+						data.put("horasEstimadas", Math.min(estimated, 4)); // Cap at 4h
+						if (estimated > 4) {
+							data.put("remainingHours", estimated - 4);
+							data.put("needsSubtasks", true); // signal for later
+						}
+						taskStep.put(chatId, "AWAITING_USER");
+						BotHelper.sendMessageToTelegram(chatId, "👤 What's your user ID?", this);
+						break;
+					
+			
+			
+						case "AWAITING_USER":
+    data.put("usuarioId", Long.parseLong(messageTextFromTelegram));
+    taskStep.put(chatId, "AWAITING_EQUIPO");
+    BotHelper.sendMessageToTelegram(chatId, "👥 What's the Equipo ID?", this);
+    break;
+
+case "AWAITING_EQUIPO":
+    data.put("equipoId", Long.parseLong(messageTextFromTelegram));
+    taskStep.put(chatId, "AWAITING_PROYECTO");
+    BotHelper.sendMessageToTelegram(chatId, "📁 What's the Proyecto ID?", this);
+    break;
+
+	case "AWAITING_PROYECTO":
+	data.put("proyectoId", Long.parseLong(messageTextFromTelegram));
+	data.put("estado", "pendiente");
+	data.put("fechaCreacion", OffsetDateTime.now().toString());
+
+	if (Boolean.TRUE.equals(data.get("needsSubtasks"))) {
+		data.put("subtasks", new ArrayList<Map<String, Object>>());
+		taskStep.put(chatId, "AWAITING_SUBTASK_TITLE");
+		BotHelper.sendMessageToTelegram(chatId, "⛏ Now let's break it into subtasks. Enter the first subtask title:", this);
+	} else {
+		// Proceed to create the task
+		createTareaAndSubtasks(chatId, data);
+	}
+	break;
+
+
+	case "AWAITING_SUBTASK_TITLE":
+	// Ask for subtask hours
+	data.put("currentSubtaskTitle", messageTextFromTelegram);
+	taskStep.put(chatId, "AWAITING_SUBTASK_HOURS");
+	BotHelper.sendMessageToTelegram(chatId, "⌛ How many hours for this subtask?", this);
+	break;
+
+case "AWAITING_SUBTASK_HOURS":
+	try {
+		BigDecimal hours = new BigDecimal(messageTextFromTelegram);
+		Map<String, Object> subtask = new HashMap<>();
+		subtask.put("titulo", data.get("currentSubtaskTitle"));
+		subtask.put("horasEstimadas", hours);
+
+		List<Map<String, Object>> subs = (List<Map<String, Object>>) data.get("subtasks");
+		subs.add(subtask);
+
+		BigDecimal remaining = new BigDecimal(data.get("remainingHours").toString()).subtract(hours);
+		data.put("remainingHours", remaining);
+
+		if (remaining.compareTo(BigDecimal.ZERO) > 0) {
+			taskStep.put(chatId, "AWAITING_SUBTASK_TITLE");
+			BotHelper.sendMessageToTelegram(chatId, "➕ Enter next subtask title (" + remaining + "h remaining):", this);
+		} else {
+			createTareaAndSubtasks(chatId, data); // All subtasks collected
+		}
+	} catch (NumberFormatException e) {
+		BotHelper.sendMessageToTelegram(chatId, "❌ Invalid number. Please enter a valid number for hours.", this);
+	}
+	break;
+
+
+
+					
+				}
+			}
+			
 			
 			
 			
@@ -347,8 +475,52 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 			}
 		}
 
+
+		
+
+
 		
 	}
+
+
+
+	private void createTareaAndSubtasks(long chatId, Map<String, Object> data) {
+		try {
+			Tarea tarea = new Tarea();
+			tarea.setTitulo((String) data.get("titulo"));
+			tarea.setDescripcion((String) data.get("descripcion"));
+			tarea.setUsuarioId((Long) data.get("usuarioId"));
+			tarea.setEquipoId((Long) data.get("equipoId"));
+			tarea.setProyectoId((Long) data.get("proyectoId"));
+			tarea.setHorasEstimadas(new BigDecimal(data.get("horasEstimadas").toString()));
+			tarea.setEstado((String) data.get("estado"));
+			tarea.setFechaCreacion(OffsetDateTime.parse(data.get("fechaCreacion").toString()));
+	
+			Tarea saved = tareaService.save(tarea);
+	
+			List<Map<String, Object>> subtasks = (List<Map<String, Object>>) data.getOrDefault("subtasks", new ArrayList<>());
+			for (Map<String, Object> sub : subtasks) {
+				SubTarea subTarea = new SubTarea();
+				subTarea.setTarea(saved);
+				subTarea.setTitulo((String) sub.get("titulo"));
+				subTarea.setDescripcion("From bot");
+				subTarea.setEstado("pendiente");
+				subTarea.setHorasEstimadas(new BigDecimal(sub.get("horasEstimadas").toString()));
+				subTarea.setHorasReales(BigDecimal.ZERO);
+				subTarea.setFechaCreacion(OffsetDateTime.now());
+	
+				subTareaService.save(subTarea);
+			}
+	
+			BotHelper.sendMessageToTelegram(chatId, "✅ Task and subtasks created!", this);
+		} catch (Exception e) {
+			logger.error("❌ Error creating task or subtasks", e);
+			BotHelper.sendMessageToTelegram(chatId, "❌ Something went wrong. Try again later.", this);
+		}
+		taskStep.remove(chatId);
+		taskCreationState.remove(chatId);
+	}
+	
 
 	@Override
 	public String getBotUsername() {		
@@ -356,9 +528,10 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 	}
 
 	// GET /todolist
-	public List<ToDoItem> getAllToDoItems() { 
-		return toDoItemService.findAll();
-	}
+	public List<Tarea> getAllTareas() {
+    return tareaService.findAll();
+}
+
 
 	// GET BY ID /todolist/{id}
 	public ResponseEntity<ToDoItem> getToDoItemById(@PathVariable int id) {
@@ -381,6 +554,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
 		return ResponseEntity.ok().headers(responseHeaders).build();
 	}
+
+	
 
 	// UPDATE /todolist/{id}
 	public ResponseEntity<ToDoItem> updateToDoItem(@RequestBody ToDoItem toDoItem, @PathVariable int id) {

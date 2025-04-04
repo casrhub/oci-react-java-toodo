@@ -16,6 +16,7 @@ import com.springboot.MyTodoList.service.ToDoItemService;
 import com.springboot.MyTodoList.service.UsuarioService;
 import com.springboot.MyTodoList.util.BotMessages;
 import com.springboot.MyTodoList.service.TareaService;
+import com.springboot.MyTodoList.service.SprintService;
 import com.springboot.MyTodoList.service.SubTareaService;;
 
 @SpringBootApplication
@@ -25,6 +26,9 @@ public class MyTodoListApplication implements CommandLineRunner {
 	private TareaService tareaService;
 	@Autowired
 	private SubTareaService subTareaService;
+	@Autowired
+	private SprintService sprintService;
+
 
 	private static final Logger logger = LoggerFactory.getLogger(MyTodoListApplication.class);
 
@@ -49,8 +53,7 @@ public class MyTodoListApplication implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		try {
 			TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
-			ToDoItemBotController bot = new ToDoItemBotController(telegramBotToken, botName, tareaService,
-					subTareaService, usuarioService);
+			ToDoItemBotController bot = new ToDoItemBotController(telegramBotToken, botName, tareaService, sprintService, usuarioService);
 			telegramBotsApi.registerBot(bot);
 			logger.info(BotMessages.BOT_REGISTERED_STARTED.getMessage());
 		} catch (TelegramApiException e) {

@@ -25,10 +25,12 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import com.springboot.MyTodoList.model.Sprint;
 import com.springboot.MyTodoList.model.SubTarea;
 import com.springboot.MyTodoList.model.Tarea;
 import com.springboot.MyTodoList.model.ToDoItem;
 import com.springboot.MyTodoList.model.Usuarios;
+import com.springboot.MyTodoList.service.SprintService;
 import com.springboot.MyTodoList.service.SubTareaService;
 import com.springboot.MyTodoList.service.TareaService;
 import com.springboot.MyTodoList.service.ToDoItemService;
@@ -44,6 +46,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     private Map<Long, String> taskStep = new HashMap<>();
 
 	private SubTareaService subTareaService;
+	private final SprintService sprintService; 
+	
 
 
 
@@ -53,9 +57,12 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
 	private TareaService tareaService;
 
-// State tracker for awaiting commands 
+// State tracker for awaiting commands
+	private Map<Long, Long> pendingSprintTareaId = new HashMap<>();
+
 	private Map<Long, String> sessionState = new HashMap<>();
 	private Map<Long, Integer> pendingTaskId = new HashMap<>();
+	private Map<Long, Long> pendingTaskIdTwo = new HashMap<>();
 	private Map<Long, String> pendingDate = new HashMap<>();
 	private Map<Long, String> pendingLinkCodes = new HashMap<>();
 	private static final Logger logger = LoggerFactory.getLogger(ToDoItemBotController.class);
@@ -64,15 +71,15 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 	private UsuarioService usuarioService;
 
 	public ToDoItemBotController(String botToken,
-                              String botName,
-                              TareaService tareaService,
-                              SubTareaService subTareaService, 
-                              UsuarioService usuarioService) {
+                             String botName,
+                             TareaService tareaService,
+                             SprintService sprintService,   // 🟢 Put SprintService here
+                             UsuarioService usuarioService) {
     super(botToken);
     this.tareaService = tareaService;
-    this.subTareaService = subTareaService; 
-    this.botName = botName;
+    this.sprintService = sprintService;
     this.usuarioService = usuarioService;
+    this.botName = botName;
 }
 
 	@Override
@@ -318,7 +325,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					BotHelper.sendMessageToTelegram(chatId, "❌ Error setting deadline. Please try again.", this);
 					return; 
 				}
-			} 
+			}  
 			// Handle /link command
 			else if (messageTextFromTelegram.startsWith("/link")) {
 				try {
@@ -448,7 +455,94 @@ case "AWAITING_SUBTASK_HOURS":
 
 					
 				}
-			}
+			}  else if (messageTextFromTelegram.startsWith("/done")) {
+				try {
+					String[] parts = messageTextFromTelegram.split(" ");
+					if (parts.length != 2) {
+						BotHelper.sendMessageToTelegram(chatId, "Usage: /done <task_id>", this);
+						return;
+					}
+			
+					Long taskId = Long.parseLong(parts[1]);
+					pendingTaskIdTwo.put(chatId, taskId);
+					sessionState.put(chatId, "AWAITING_HORAS_REALES");
+			
+					BotHelper.sendMessageToTelegram(chatId, "⏱ How many real hours did you spend on this task?", this);
+				} catch (Exception e) {
+					logger.error("❌ Failed to parse task id", e);
+					BotHelper.sendMessageToTelegram(chatId, "❌ Invalid task ID. Try again.", this);
+				}
+			}  else if ("AWAITING_HORAS_REALES".equals(sessionState.get(chatId))) {
+				try {
+					BigDecimal realHours = new BigDecimal(messageTextFromTelegram);
+					Long taskId = pendingTaskIdTwo.get(chatId);
+			
+					Map<String, Object> payload = new HashMap<>();
+					payload.put("estado", "completado");
+					payload.put("horasReales", realHours);
+			
+					// Call your existing TareaController endpoint
+					Tarea updated = tareaService.markAsComplete(taskId, "completado", realHours);
+			
+					if (updated != null) {
+						BotHelper.sendMessageToTelegram(chatId, "✅ Task marked as completed with " + realHours + " hours!", this);
+					} else {
+						BotHelper.sendMessageToTelegram(chatId, "❌ Task not found.", this);
+					}
+			
+				} catch (Exception e) {
+					logger.error("❌ Failed to set real hours", e);
+					BotHelper.sendMessageToTelegram(chatId, "❌ Invalid input. Please enter a number (e.g., 2.5)", this);
+					return; // Let them try again
+				}
+			
+				// ✅ Clean up session state
+				sessionState.remove(chatId);
+				pendingTaskId.remove(chatId);
+			} else if (messageTextFromTelegram.startsWith("/assignsprint")) {
+				String[] parts = messageTextFromTelegram.split(" ");
+				if (parts.length != 2) {
+					BotHelper.sendMessageToTelegram(chatId, "⚠️ Usage: /assignsprint <TAREA_ID>", this);
+					return;
+				}
+			
+				try {
+					Long tareaId = Long.parseLong(parts[1]);
+					pendingSprintTareaId.put(chatId, tareaId);
+					sessionState.put(chatId, "AWAITING_SPRINT_ID");
+					BotHelper.sendMessageToTelegram(chatId, "📦 Please enter the SPRINT_ID to assign this task to:", this);
+				} catch (NumberFormatException e) {
+					BotHelper.sendMessageToTelegram(chatId, "❌ Invalid TAREA_ID format.", this);
+				}
+			} else if ("AWAITING_SPRINT_ID".equals(sessionState.get(chatId))) {
+    try {
+        Long sprintId = Long.parseLong(messageTextFromTelegram);
+        Long tareaId = pendingSprintTareaId.get(chatId);
+
+        Optional<Tarea> tareaOpt = tareaService.findById(tareaId);
+        Optional<Sprint> sprintOpt = sprintService.findById(sprintId);
+
+        if (tareaOpt.isPresent() && sprintOpt.isPresent()) {
+            Tarea tarea = tareaOpt.get();
+            tarea.setSprint(sprintOpt.get());
+            tareaService.save(tarea);
+
+            BotHelper.sendMessageToTelegram(chatId, "✅ Task " + tareaId + " assigned to sprint " + sprintId, this);
+        } else {
+            BotHelper.sendMessageToTelegram(chatId, "⚠️ Invalid TAREA_ID or SPRINT_ID. Please try again.", this);
+        }
+
+        // Clear session
+        sessionState.remove(chatId);
+        pendingSprintTareaId.remove(chatId);
+    } catch (Exception e) {
+        logger.error("❌ Error assigning sprint", e);
+        BotHelper.sendMessageToTelegram(chatId, "❌ Something went wrong assigning the sprint.", this);
+    }
+}
+
+			
+			
 			
 			
 			

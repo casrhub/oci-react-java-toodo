@@ -9,13 +9,12 @@ public class WebConfig implements WebMvcConfigurer {
 
         @Override
         public void addViewControllers(ViewControllerRegistry registry) {
-                // Match everything except actual API, JS, CSS, or media files
-                registry.addViewController("/{spring:[\\w-]+}")
+                // Forward everything except static files and API endpoints to index.html
+                registry.addViewController("/{spring:[a-zA-Z0-9\\-_]+}")
                                 .setViewName("forward:/index.html");
-                registry.addViewController("/**/{spring:[\\w-]+}")
+                registry.addViewController("/**/{spring:[a-zA-Z0-9\\-_]+}")
                                 .setViewName("forward:/index.html");
-                registry.addViewController(
-                                "/{spring:[\\w-]+}/**{spring:?!(\\.js|\\.css|\\.json|\\.png|\\.jpg|\\.jpeg|\\.svg|\\.ico)$}")
+                registry.addViewController("/{spring:[a-zA-Z0-9\\-_]+}/**/{spring:[a-zA-Z0-9\\-_]+}")
                                 .setViewName("forward:/index.html");
         }
 }

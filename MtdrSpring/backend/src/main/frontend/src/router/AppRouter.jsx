@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 
 // Pages
 import LandingPage from '../pages/LandingPage';
@@ -17,9 +17,6 @@ function AppRouter() {
     <Router>
       <Routes>
         {/* Landing */}
-        <Route path="/manager/kpis" element={<ManagerKpisPage />} />
-        <Route path="/manager/tasks" element={<ManagerTasksPage />} />
-        <Route path="/dev/tasks" element={<DevTasksPage />} />
         <Route path="/" element={<LandingPage />} />
 
         {/* Role-specific Login */}
@@ -30,8 +27,11 @@ function AppRouter() {
         <Route path="/dev-main" element={<DevMainMenuPage />} />
         <Route path="/manager-main" element={<ManagerMainMenuPage />} />
 
-        {/* Tasks (shared or dev) */}
+        {/* Pages */}
         <Route path="/home" element={<Home />} />
+        <Route path="/dev/tasks" element={<DevTasksPage />} />
+        <Route path="/manager/tasks" element={<ManagerTasksPage />} />
+        <Route path="/manager/kpis" element={<ManagerKpisPage />} />
       </Routes>
     </Router>
   );

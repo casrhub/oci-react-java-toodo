@@ -29,6 +29,7 @@ public class Sprint {
     private String estado;
 
     @OneToMany(mappedBy = "sprint")
+    @com.fasterxml.jackson.annotation.JsonManagedReference
     private List<Tarea> tareas;
 
     // Getters & Setters

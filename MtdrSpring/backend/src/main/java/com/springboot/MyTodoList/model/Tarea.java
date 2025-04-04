@@ -44,7 +44,8 @@ public class Tarea {
     private OffsetDateTime deadline;
 
     // Constructors
-    public Tarea() {}
+    public Tarea() {
+    }
 
     // Getters & Setters
     public Long getTareaId() {
@@ -133,5 +134,18 @@ public class Tarea {
 
     public void setDeadline(OffsetDateTime deadline) {
         this.deadline = deadline;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "SPRINT_ID")
+    @com.fasterxml.jackson.annotation.JsonBackReference
+    private Sprint sprint;
+
+    public Sprint getSprint() {
+        return sprint;
+    }
+
+    public void setSprint(Sprint sprint) {
+        this.sprint = sprint;
     }
 }

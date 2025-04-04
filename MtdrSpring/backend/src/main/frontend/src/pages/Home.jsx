@@ -265,37 +265,48 @@ function Home() {
                     </td>
                   </tr>
                   {expandedTaskId === item.tareaId && (
-              <tr>
-                <td colSpan="5">
-                  <ul>
-                    {item.subTareas && item.subTareas.map(sub => (
-                      <li key={sub.subTareaId}>{sub.titulo} - {sub.estado} - {sub.horasEstimadas}h</li>
-                    ))}
-                  </ul>
+                  <>
+                    <tr>
+                      <td colSpan="5">
+                        <strong>Description:</strong>
+                        <div style={{ whiteSpace: "pre-wrap" }}>
+                          {item.descripcion || "No description provided"}
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colSpan="5">
+                        <ul>
+                          {item.subTareas && item.subTareas.map(sub => (
+                            <li key={sub.subTareaId}>{sub.titulo} - {sub.estado} - {sub.horasEstimadas}h</li>
+                          ))}
+                        </ul>
 
-                  {/* Subtask creation form */}
-                  <form onSubmit={(e) => {
-                    e.preventDefault();
-                    createSubTarea(item.tareaId, newSubTitulo, newSubHoras);
-                    setNewSubTitulo('');
-                    setNewSubHoras('');
-                  }}>
-                    <input
-                      placeholder="Subtask title"
-                      value={newSubTitulo}
-                      onChange={e => setNewSubTitulo(e.target.value)}
-                    />
-                    <input
-                      type="number"
-                      placeholder="Hours"
-                      value={newSubHoras}
-                      onChange={e => setNewSubHoras(e.target.value)}
-                    />
-                    <button type="submit">Add Subtask</button>
-                  </form>
-                </td>
-              </tr>
-            )}
+                        {/* Subtask creation form */}
+                        <form onSubmit={(e) => {
+                          e.preventDefault();
+                          createSubTarea(item.tareaId, newSubTitulo, newSubHoras);
+                          setNewSubTitulo('');
+                          setNewSubHoras('');
+                        }}>
+                          <input
+                            placeholder="Subtask title"
+                            value={newSubTitulo}
+                            onChange={e => setNewSubTitulo(e.target.value)}
+                          />
+                          <input
+                            type="number"
+                            placeholder="Hours"
+                            value={newSubHoras}
+                            onChange={e => setNewSubHoras(e.target.value)}
+                          />
+                          <button type="submit">Add Subtask</button>
+                        </form>
+                      </td>
+                    </tr>
+                  </>
+                )}
+
 
                 </React.Fragment>
               ))}

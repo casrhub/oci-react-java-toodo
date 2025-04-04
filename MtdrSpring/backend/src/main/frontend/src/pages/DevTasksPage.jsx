@@ -400,46 +400,59 @@ function DevTasksPage() {
 
                       {/* Expanded Row for Subtasks */}
                       {expandedTaskId === t.tareaId && (
-                        <TableRow>
-                          <TableCell colSpan={5} sx={{ backgroundColor: '#f9f9f9' }}>
-                            {/* Subtask List */}
-                            {t.subTareas && t.subTareas.length > 0 ? (
-                              <ul>
-                                {t.subTareas.map((sub) => (
-                                  <li key={sub.subTareaId}>
-                                    {sub.titulo} — {sub.estado} — {sub.horasEstimadas}h
-                                  </li>
-                                ))}
-                              </ul>
-                            ) : (
-                              <p>No subtasks yet</p>
-                            )}
+                        <>
+                          {/* Description Row */}
+                          <TableRow>
+                            <TableCell colSpan={5} sx={{ backgroundColor: '#fcfcfc' }}>
+                              <strong>Description:</strong>
+                              <div style={{ whiteSpace: 'pre-wrap', marginTop: '0.5rem' }}>
+                                {t.descripcion || 'No description provided'}
+                              </div>
+                            </TableCell>
+                          </TableRow>
 
-                            {/* Subtask creation form */}
-                            <form
-                              onSubmit={(e) => handleAddSubtask(t.tareaId, e)}
-                              style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}
-                            >
-                              <TextField
-                                label="Subtask title"
-                                size="small"
-                                value={newSubTitulo}
-                                onChange={(e) => setNewSubTitulo(e.target.value)}
-                              />
-                              <TextField
-                                label="Hours"
-                                size="small"
-                                type="number"
-                                value={newSubHoras}
-                                onChange={(e) => setNewSubHoras(e.target.value)}
-                              />
-                              <Button variant="contained" type="submit">
-                                Add Subtask
-                              </Button>
-                            </form>
-                          </TableCell>
-                        </TableRow>
+                          {/* Subtask Row */}
+                          <TableRow>
+                            <TableCell colSpan={5} sx={{ backgroundColor: '#f9f9f9' }}>
+                              {t.subTareas && t.subTareas.length > 0 ? (
+                                <ul>
+                                  {t.subTareas.map((sub) => (
+                                    <li key={sub.subTareaId}>
+                                      {sub.titulo} — {sub.estado} — {sub.horasEstimadas}h
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p>No subtasks yet</p>
+                              )}
+
+                              {/* Subtask creation form */}
+                              <form
+                                onSubmit={(e) => handleAddSubtask(t.tareaId, e)}
+                                style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}
+                              >
+                                <TextField
+                                  label="Subtask title"
+                                  size="small"
+                                  value={newSubTitulo}
+                                  onChange={(e) => setNewSubTitulo(e.target.value)}
+                                />
+                                <TextField
+                                  label="Hours"
+                                  size="small"
+                                  type="number"
+                                  value={newSubHoras}
+                                  onChange={(e) => setNewSubHoras(e.target.value)}
+                                />
+                                <Button variant="contained" type="submit">
+                                  Add Subtask
+                                </Button>
+                              </form>
+                            </TableCell>
+                          </TableRow>
+                        </>
                       )}
+
                     </React.Fragment>
                   );
                 })}

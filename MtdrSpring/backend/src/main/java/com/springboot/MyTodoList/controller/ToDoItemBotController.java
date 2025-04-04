@@ -521,14 +521,18 @@ case "AWAITING_SUBTASK_HOURS":
 
         Optional<Tarea> tareaOpt = tareaService.findById(tareaId);
         Optional<Sprint> sprintOpt = sprintService.findById(sprintId);
-
-        if (tareaOpt.isPresent() && sprintOpt.isPresent()) {
-            Tarea tarea = tareaOpt.get();
-            tarea.setSprint(sprintOpt.get());
-            tareaService.save(tarea);
-
-            BotHelper.sendMessageToTelegram(chatId, "✅ Task " + tareaId + " assigned to sprint " + sprintId, this);
-        } else {
+		if (tareaOpt.isPresent() && sprintOpt.isPresent()) {
+			Tarea tarea = tareaOpt.get();
+			tarea.setSprint(sprintOpt.get());
+		
+			// ✅ Update status to "en progreso" if currently "pendiente"
+			if ("pendiente".equalsIgnoreCase(tarea.getEstado())) {
+				tarea.setEstado("en progreso");
+			}
+		
+			tareaService.save(tarea);
+			BotHelper.sendMessageToTelegram(chatId, "✅ Task " + tareaId + " assigned to sprint " + sprintId + " and marked as 'en progreso'", this);
+		} else {
             BotHelper.sendMessageToTelegram(chatId, "⚠️ Invalid TAREA_ID or SPRINT_ID. Please try again.", this);
         }
 

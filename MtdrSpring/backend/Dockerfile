@@ -14,12 +14,17 @@ RUN mvn clean package -DskipTests
 FROM openjdk:22
 WORKDIR /app
 
-# Copy built JAR
+# ✅ Copy built JAR
 COPY --from=backend-builder /app/target/MyTodoList-0.0.1-SNAPSHOT.jar MyTodoList.jar
 
-# Copy built frontend into static resources
+# ✅ Copy static frontend build
 COPY --from=frontend-builder /app/frontend/build /app/src/main/resources/static
 
+# ✅ Copy Oracle wallet into container
+COPY wallet_production /etc/wallet
+
+# ✅ Expose port
 EXPOSE 8080
 
+# ✅ Run Spring Boot app
 ENTRYPOINT ["java", "-jar", "MyTodoList.jar"]

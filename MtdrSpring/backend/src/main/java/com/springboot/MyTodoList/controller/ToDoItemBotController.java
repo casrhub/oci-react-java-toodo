@@ -12,9 +12,11 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -70,16 +72,19 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 	private String botName;
 	private UsuarioService usuarioService;
 
+	@Autowired
 	public ToDoItemBotController(String botToken,
                              String botName,
                              TareaService tareaService,
                              SprintService sprintService,   // 🟢 Put SprintService here
-                             UsuarioService usuarioService) {
+                             UsuarioService usuarioService,
+							 SubTareaService subTareaService) {
     super(botToken);
     this.tareaService = tareaService;
     this.sprintService = sprintService;
     this.usuarioService = usuarioService;
     this.botName = botName;
+	this.subTareaService = subTareaService;
 }
 
 	@Override
@@ -583,6 +588,7 @@ case "AWAITING_SUBTASK_HOURS":
 
 
 	private void createTareaAndSubtasks(long chatId, Map<String, Object> data) {
+		System.out.println("🛠️ Creating Tarea with data: " + data);
 		try {
 			Tarea tarea = new Tarea();
 			tarea.setTitulo((String) data.get("titulo"));

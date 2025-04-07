@@ -7,6 +7,7 @@ import com.springboot.MyTodoList.model.Usuarios;
 import com.springboot.MyTodoList.repository.UsuariosRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.util.List;
 
 import java.util.Optional;
 
@@ -48,5 +49,14 @@ public class UsuarioService {
     public Usuarios save(Usuarios usuario) {
         return usuarioRepository.save(usuario);
     }
+
+    // nuevos para usar todos los atributos de la tabla y tener tests completos
+    public List<Usuarios> findAll() {
+        return usuarioRepository.findAll();
+    }
+    
+    public void deleteById(Integer id) {
+        usuarioRepository.deleteById(id);
+    }    
     
 }

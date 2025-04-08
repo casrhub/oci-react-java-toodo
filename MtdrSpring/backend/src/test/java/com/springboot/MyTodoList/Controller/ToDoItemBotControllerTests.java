@@ -1,54 +1,51 @@
 package com.springboot.MyTodoList.Controller;
 
-import com.springboot.MyTodoList.model.ToDoItem;
-import com.springboot.MyTodoList.service.ToDoItemService;
-import com.springboot.MyTodoList.service.UsuarioService;
-
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.*;
 
-import java.time.OffsetDateTime;
+import com.springboot.MyTodoList.controller.ToDoItemBotController;
+import com.springboot.MyTodoList.model.Tarea;
+import com.springboot.MyTodoList.service.TareaService;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
 import java.util.List;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-@WebMvcTest(ToDoItemBotControllerTests.class)
 public class ToDoItemBotControllerTests {
+    @Mock
+    private TareaService tareaService;
 
-    @MockBean
-    private UsuarioService usuarioService;
+    @InjectMocks
+    private ToDoItemBotController controller;
 
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
-    private ToDoItemService toDoItemService;
+     @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
-    public void testGetAllTareas() throws Exception {
-        OffsetDateTime now = OffsetDateTime.now();
+    public void testGetAllTareas_ReturnsListOfTareas() {
+        // Arrange
+        Tarea tarea1 = new Tarea(1L, "Write tests", "Write unit tests for controller", "pendiente");
 
-        List<ToDoItem> mockList = List.of(
-            new ToDoItem(1, "Write tests", now.minusDays(1), false, now.plusDays(3)),
-            new ToDoItem(2, "Review PR", now, true, now.plusDays(1))
-        );
+        Tarea tarea2 = new Tarea(1L, "Write tests", "Write unit tests for controller", "pendiente");
 
-        Mockito.when(toDoItemService.findAll()).thenReturn(mockList);
+        List<Tarea> mockTareas = Arrays.asList(tarea1, tarea2);
 
-        mockMvc.perform(get("/todolist").accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(2)))
-            .andExpect(jsonPath("$[0].description").value("Write tests"))
-            .andExpect(jsonPath("$[0].done").value(false))
-            .andExpect(jsonPath("$[1].description").value("Review PR"))
-            .andExpect(jsonPath("$[1].done").value(true));
+        when(tareaService.findAll()).thenReturn(mockTareas);
+
+        // Act
+        List<Tarea> result = controller.getAllTareas();
+
+        // Assert
+        assertEquals(2, result.size());
+        assertEquals("Write unit tests for controller", result.get(0).getDescripcion());
+        verify(tareaService, times(1)).findAll();
     }
+
 }

@@ -6,16 +6,22 @@ import org.mockito.*;
 
 import com.springboot.MyTodoList.controller.ToDoItemBotController;
 import com.springboot.MyTodoList.model.Tarea;
+import com.springboot.MyTodoList.model.Usuarios;
 import com.springboot.MyTodoList.service.TareaService;
+import com.springboot.MyTodoList.service.UsuarioService;
 import com.springboot.MyTodoList.util.BotCommands;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import java.util.Optional;
+
 
 
 import java.util.Arrays;
@@ -104,5 +110,43 @@ when(message.getText()).thenReturn(command + " 42");
         assertEquals(null, bot.getPendingTaskId().get(chatId));
         assertEquals(null, bot.getSessionState().get(chatId));
     }
+
+
+    @Test
+    public void testLinkCommand_CallsSaveWithCorrectChatId() {
+        Long chatId = 5780178554L;
+        String email = "test@example.com";
+    
+        Usuarios user = new Usuarios();
+        user.setEmail(email); // make sure this is not null
+    
+        UsuarioService usuarioService = mock(UsuarioService.class);
+        when(usuarioService.findByEmail(email)).thenReturn(Optional.of(user));
+    
+        Message message = mock(Message.class);
+        when(message.getText()).thenReturn("/link " + email);
+        when(message.getChatId()).thenReturn(chatId);
+    
+        Update update = mock(Update.class);
+        when(update.hasMessage()).thenReturn(true);
+        when(update.getMessage()).thenReturn(message);
+    
+        ToDoItemBotController bot = new ToDoItemBotController(
+            "dummyToken", "TestBot", null, null, usuarioService, null
+        );
+    
+        bot.onUpdateReceived(update);
+    
+        ArgumentCaptor<Usuarios> captor = ArgumentCaptor.forClass(Usuarios.class);
+        verify(usuarioService).save(captor.capture());
+    
+        assertEquals(chatId, captor.getValue().getTelegramChatId());
+    }
+    
+    
+    
+    
+    
+
     
 }

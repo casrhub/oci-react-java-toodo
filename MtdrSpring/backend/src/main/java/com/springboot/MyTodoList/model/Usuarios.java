@@ -1,5 +1,5 @@
 package com.springboot.MyTodoList.model;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.persistence.*;
 
 @Entity
@@ -27,7 +27,10 @@ public class Usuarios {
     private Long telegramChatId;
 
     // Getters and Setters
+    @JsonProperty("usuario_id") // para que los tests lo mappeen a como lo regresa el json
     public Integer getId() { return id; }
+
+    @JsonProperty("usuario_id") 
     public void setId(Integer id) { this.id = id; }
 
     public String getNombre() { return nombre; }
@@ -39,8 +42,12 @@ public class Usuarios {
     public String getRol() { return rol; }
     public void setRol(String rol) { this.rol = rol; }
 
+    @JsonProperty("equipo_id")
     public Integer getEquipoId() { return equipoId; }
+
+    @JsonProperty("equipo_id")
     public void setEquipoId(Integer equipoId) { this.equipoId = equipoId; }
+
 
     public Long getTelegramChatId() { return telegramChatId; }
     public void setTelegramChatId(Long telegramChatId) { this.telegramChatId = telegramChatId; }

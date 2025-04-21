@@ -17,6 +17,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -47,8 +48,13 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 	private Map<Long, Map<String, Object>> taskCreationState = new HashMap<>();
     private Map<Long, String> taskStep = new HashMap<>();
 
+	
+
 	private SubTareaService subTareaService;
 	private final SprintService sprintService; 
+
+	
+	
 	
 
 
@@ -71,6 +77,19 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 	private ToDoItemService toDoItemService;
 	private String botName;
 	private UsuarioService usuarioService;
+
+	// for testing testDoneCommand_StoresTaskIdAndRequestsRealHours
+	public Map<Long, Long> getPendingTaskIdTwo() {
+		return pendingTaskIdTwo;
+	}
+	
+	public Map<Long, String> getSessionState() {
+		return sessionState;
+	}
+	
+	public Map<Long, Integer> getPendingTaskId() {
+		return pendingTaskId;
+	}
 
 	@Autowired
 	public ToDoItemBotController(String botToken,
@@ -469,8 +488,14 @@ case "AWAITING_SUBTASK_HOURS":
 					}
 			
 					Long taskId = Long.parseLong(parts[1]);
+	
+					System.out.println("✅ DEBUG INSIDE /done: chatId=" + chatId + ", taskId=" + taskId);
 					pendingTaskIdTwo.put(chatId, taskId);
 					sessionState.put(chatId, "AWAITING_HORAS_REALES");
+
+					System.out.println("✅ Stored taskId: " + taskId + " for chatId: " + chatId);
+					System.out.println("✅ Session state now: " + sessionState.get(chatId));
+
 			
 					BotHelper.sendMessageToTelegram(chatId, "⏱ How many real hours did you spend on this task?", this);
 				} catch (Exception e) {
@@ -686,6 +711,14 @@ case "AWAITING_SUBTASK_HOURS":
 
 		
 	}
+
+	
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTarea(@PathVariable Long id) {
+        boolean deleted = tareaService.deleteById(id);
+        return deleted ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    }
+
 
 	
 

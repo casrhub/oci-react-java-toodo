@@ -8,6 +8,15 @@ import java.time.OffsetDateTime;
 @Table(name = "TAREAS", schema = "ADMIN") // Replace schema if needed
 public class Tarea {
 
+  
+    public Tarea(Long tareaId, String titulo, String descripcion, String estado) {
+        this.tareaId = tareaId;
+        this.titulo = titulo;
+        this.descripcion = descripcion;
+        this.estado = estado;
+    }
+    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "TAREA_ID")

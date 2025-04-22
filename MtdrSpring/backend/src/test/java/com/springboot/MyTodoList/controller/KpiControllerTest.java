@@ -60,8 +60,8 @@ public class KpiControllerTest {
         String payload = objectMapper.writeValueAsString(kpi);
 
         mockMvc.perform(post("/kpis/crear")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payload))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.kpiId").exists())
                 .andExpect(jsonPath("$.usuarioId").value(1));
@@ -85,8 +85,8 @@ public class KpiControllerTest {
         String payload = objectMapper.writeValueAsString(kpi);
 
         String response = mockMvc.perform(post("/kpis/crear")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payload))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
@@ -99,8 +99,8 @@ public class KpiControllerTest {
         String updatePayload = objectMapper.writeValueAsString(createdKpi);
 
         mockMvc.perform(put("/kpis/" + createdId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(updatePayload))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updatePayload))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nombreKpi").value("Tiempo promedio / tiempo estimado"))
                 .andExpect(jsonPath("$.valorActual").value(1.0));
@@ -128,13 +128,13 @@ public class KpiControllerTest {
         String payload2 = objectMapper.writeValueAsString(kpi2);
 
         mockMvc.perform(post("/kpis/crear")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload1))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payload1))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(post("/kpis/crear")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload2))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payload2))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(get("/kpis"))

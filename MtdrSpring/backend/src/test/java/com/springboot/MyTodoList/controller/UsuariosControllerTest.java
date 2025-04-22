@@ -1,4 +1,4 @@
-package com.springboot.MyTodoList.Controller;
+package com.springboot.MyTodoList.controller;
 
 import com.springboot.MyTodoList.controller.UsuariosController;
 import com.springboot.MyTodoList.model.Usuarios;
@@ -43,7 +43,6 @@ public class UsuariosControllerTest {
     @MockBean
     private SprintService sprintService;
 
-
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -63,7 +62,8 @@ public class UsuariosControllerTest {
                 .content(objectMapper.writeValueAsString(mockNuevoUsuarios)))
                 .andExpect(status().isCreated()) // 201
                 .andExpect(jsonPath("$.usuario_id").value(1))
-                // esto es para validar que el usuario ID y el estatus 201 sea lo único que devuelve:
+                // esto es para validar que el usuario ID y el estatus 201 sea lo único que
+                // devuelve:
                 .andExpect(jsonPath("$.nombre").doesNotExist())
                 .andExpect(jsonPath("$.email").doesNotExist())
                 .andExpect(jsonPath("$.rol").doesNotExist())
@@ -72,23 +72,23 @@ public class UsuariosControllerTest {
 
     @Test
     public void getUserByIdTest() throws Exception {
-    Usuarios mockExistentUsuario = new Usuarios();
-    mockExistentUsuario.setId(1);
-    mockExistentUsuario.setNombre("Diego Ivan Morales");
-    mockExistentUsuario.setEmail("a01643382@tec.mx");
-    mockExistentUsuario.setRol("developer");
-    mockExistentUsuario.setEquipoId(1);
+        Usuarios mockExistentUsuario = new Usuarios();
+        mockExistentUsuario.setId(1);
+        mockExistentUsuario.setNombre("Diego Ivan Morales");
+        mockExistentUsuario.setEmail("a01643382@tec.mx");
+        mockExistentUsuario.setRol("developer");
+        mockExistentUsuario.setEquipoId(1);
 
-    Mockito.when(usuarioService.findById(1)).thenReturn(Optional.of(mockExistentUsuario));
+        Mockito.when(usuarioService.findById(1)).thenReturn(Optional.of(mockExistentUsuario));
 
-    mockMvc.perform(get("/usuarios/1")
-            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk()) // 200
-            .andExpect(jsonPath("$.usuario_id").value(1))
-            .andExpect(jsonPath("$.nombre").value("Diego Ivan Morales"))
-            .andExpect(jsonPath("$.email").value("a01643382@tec.mx"))
-            .andExpect(jsonPath("$.rol").value("developer"))
-            .andExpect(jsonPath("$.equipo_id").value(1));
+        mockMvc.perform(get("/usuarios/1")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()) // 200
+                .andExpect(jsonPath("$.usuario_id").value(1))
+                .andExpect(jsonPath("$.nombre").value("Diego Ivan Morales"))
+                .andExpect(jsonPath("$.email").value("a01643382@tec.mx"))
+                .andExpect(jsonPath("$.rol").value("developer"))
+                .andExpect(jsonPath("$.equipo_id").value(1));
     }
 
     @Test
@@ -243,7 +243,7 @@ public class UsuariosControllerTest {
         mockMvc.perform(put("/usuarios/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidUser)))
-                .andExpect(status().isBadRequest()) // 400 
+                .andExpect(status().isBadRequest()) // 400
                 .andExpect(jsonPath("$.error").value("El usuario con rol manager no puede tener otro rol"));
     }
 }

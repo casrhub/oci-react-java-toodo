@@ -1,4 +1,4 @@
-package com.springboot.MyTodoList.Controller;
+package com.springboot.MyTodoList.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.springboot.MyTodoList.model.Tarea;

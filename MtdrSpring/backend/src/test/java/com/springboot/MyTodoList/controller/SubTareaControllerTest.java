@@ -1,4 +1,4 @@
-package com.springboot.MyTodoList.Controller;
+package com.springboot.MyTodoList.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -100,7 +100,8 @@ public class SubTareaControllerTest {
         assertEquals(HttpStatus.OK.value(), mvcResult.getResponse().getStatus(), "Should return 200 OK");
 
         String jsonResponse = mvcResult.getResponse().getContentAsString();
-        List<SubTarea> responseList = objectMapper.readValue(jsonResponse, new TypeReference<List<SubTarea>>() {});
+        List<SubTarea> responseList = objectMapper.readValue(jsonResponse, new TypeReference<List<SubTarea>>() {
+        });
 
         assertEquals(1, responseList.size(), "Should return SubTarea");
 
@@ -123,23 +124,25 @@ public class SubTareaControllerTest {
         mockSubTarea.setHorasReales(new BigDecimal("2.0"));
         mockSubTarea.setFechaCreacion(OffsetDateTime.now());
         mockSubTarea.setDeadline(OffsetDateTime.now().plusDays(7));
-        
+
         List<SubTarea> mockList = Collections.singletonList(mockSubTarea);
-    
+
         when(subTareaService.findByTareaId(1L)).thenReturn(mockList);
-    
+
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders
                 .get("/subtareas/byTarea/{tareaId}", 1L) // Providing a valid tareaId
                 .accept(MediaType.APPLICATION_JSON))
                 .andReturn();
-    
-        assertEquals(HttpStatus.OK.value(), mvcResult.getResponse().getStatus(), "Validate endpoint returns 200 OK status");
-        
+
+        assertEquals(HttpStatus.OK.value(), mvcResult.getResponse().getStatus(),
+                "Validate endpoint returns 200 OK status");
+
         String jsonResponse = mvcResult.getResponse().getContentAsString();
-        List<SubTarea> responseList = objectMapper.readValue(jsonResponse, new TypeReference<List<SubTarea>>() {});
-        
+        List<SubTarea> responseList = objectMapper.readValue(jsonResponse, new TypeReference<List<SubTarea>>() {
+        });
+
         assertEquals(1, responseList.size(), "Should return one SubTarea");
-        
+
         SubTarea returned = responseList.get(0);
         assertEquals("Mock SubTarea", returned.getTitulo());
         assertEquals("Test Description", returned.getDescripcion());
@@ -158,11 +161,11 @@ public class SubTareaControllerTest {
         mockSubTarea.setHorasReales(new BigDecimal("3.0"));
         mockSubTarea.setFechaCreacion(OffsetDateTime.now());
         mockSubTarea.setDeadline(OffsetDateTime.now().plusDays(7));
-            
+
         when(subTareaService.findById(1L)).thenReturn(Optional.of(mockSubTarea));
-    
+
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders
-                .get("/subtareas/{id}", 1L) 
+                .get("/subtareas/{id}", 1L)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.subTareaId").value(1))
                 .andExpect(jsonPath("$.titulo").value("Mock SubTarea"))
@@ -171,10 +174,10 @@ public class SubTareaControllerTest {
                 .andExpect(jsonPath("$.horasEstimadas").value(4.0))
                 .andExpect(jsonPath("$.horasReales").value(3.0))
                 .andReturn();
-    
+
         String jsonResponse = mvcResult.getResponse().getContentAsString();
         SubTarea returned = objectMapper.readValue(jsonResponse, SubTarea.class);
-    
+
         assertEquals("Mock SubTarea", returned.getTitulo());
         assertEquals("EN_PROCESO", returned.getEstado());
         assertEquals(new BigDecimal("4.0"), returned.getHorasEstimadas());
@@ -214,11 +217,9 @@ public class SubTareaControllerTest {
 
         System.out.println("Payload before serialization: " + payload); // DEBUG
 
-
         String jsonPayload = objectMapper.writeValueAsString(payload);
 
         System.out.println("JSON Payload: " + jsonPayload); // DEBUG
-
 
         // Perform the POST request
         mockMvc.perform(post("/subtareas")
@@ -263,5 +264,3 @@ public class SubTareaControllerTest {
     }
 
 }
-
-

@@ -104,6 +104,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     this.usuarioService = usuarioService;
     this.botName = botName;
 	this.subTareaService = subTareaService;
+	this.sessionState = new HashMap<>();
+	this.pendingSprintTareaId = new HashMap<>();
 }
 
 	@Override
@@ -538,8 +540,10 @@ case "AWAITING_SUBTASK_HOURS":
 			
 				try {
 					Long tareaId = Long.parseLong(parts[1]);
+					System.out.println("DEBUG: Processing /assignsprint command for tareaId: " + tareaId);
 					pendingSprintTareaId.put(chatId, tareaId);
 					sessionState.put(chatId, "AWAITING_SPRINT_ID");
+					System.out.println("DEBUG: Set session state to AWAITING_SPRINT_ID for chatId: " + chatId);
 					BotHelper.sendMessageToTelegram(chatId, "📦 Please enter the SPRINT_ID to assign this task to:", this);
 				} catch (NumberFormatException e) {
 					BotHelper.sendMessageToTelegram(chatId, "❌ Invalid TAREA_ID format.", this);
@@ -719,7 +723,8 @@ case "AWAITING_SUBTASK_HOURS":
         return deleted ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 
-
-	
+    public Map<Long, Long> getPendingSprintTareaId() {
+        return pendingSprintTareaId;
+    }
 
 }

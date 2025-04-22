@@ -10,6 +10,8 @@ import com.springboot.MyTodoList.model.Usuarios;
 import com.springboot.MyTodoList.service.TareaService;
 import com.springboot.MyTodoList.service.UsuarioService;
 import com.springboot.MyTodoList.util.BotCommands;
+import com.springboot.MyTodoList.model.Sprint;
+import com.springboot.MyTodoList.service.SprintService;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -62,28 +64,29 @@ public class ToDoItemBotControllerTests {
     @Test
     public void testDoneCommand_SetsPendingTaskIdAndSessionState() {
         Long chatId = 5780178554L;
+        Long taskId = 123L;
     
-        // ✅ Step 1: Mock message and update
+        // Mock message and update
         Message mockMessage = mock(Message.class);
-        when(mockMessage.getText()).thenReturn("/done 123");
+        when(mockMessage.getText()).thenReturn("/done " + taskId);
         when(mockMessage.getChatId()).thenReturn(chatId);
+        when(mockMessage.hasText()).thenReturn(true);
     
         Update mockUpdate = mock(Update.class);
-        when(mockUpdate.hasMessage()).thenReturn(true); // important!
+        when(mockUpdate.hasMessage()).thenReturn(true);
         when(mockUpdate.getMessage()).thenReturn(mockMessage);
     
-        // ✅ Step 2: Create bot
+        // Create bot
         ToDoItemBotController bot = new ToDoItemBotController(
             "dummyToken", "TestBot", tareaService, null, null, null
         );
     
-        // ✅ Step 3: Trigger logic
+        // Trigger logic
         bot.onUpdateReceived(mockUpdate);
     
-        // ✅ Step 4: Assert state
-        //null meanwhile 
-        assertEquals(null, bot.getPendingTaskIdTwo().get(chatId));
-        assertEquals(null, bot.getSessionState().get(chatId));
+        // Assert state
+        assertEquals(taskId, bot.getPendingTaskIdTwo().get(chatId));
+        assertEquals("AWAITING_HORAS_REALES", bot.getSessionState().get(chatId));
     }
     
 
@@ -94,12 +97,13 @@ public class ToDoItemBotControllerTests {
     
         Message message = mock(Message.class);
         String command = BotCommands.SET_DEADLINE.getCommand();
-System.out.println("COMMAND = " + command); // Make sure it's "/setdeadline"
-
-when(message.getText()).thenReturn(command + " 42");
+        when(message.getText()).thenReturn(command + " " + 42);
+        when(message.getChatId()).thenReturn(chatId);
+        when(message.hasText()).thenReturn(true);
     
-        Update update = new Update();
-        update.setMessage(message);
+        Update update = mock(Update.class);
+        when(update.hasMessage()).thenReturn(true);
+        when(update.getMessage()).thenReturn(message);
     
         ToDoItemBotController bot = new ToDoItemBotController(
             "token", "BotName", tareaService, null, null, null
@@ -107,8 +111,8 @@ when(message.getText()).thenReturn(command + " 42");
     
         bot.onUpdateReceived(update);
     
-        assertEquals(null, bot.getPendingTaskId().get(chatId));
-        assertEquals(null, bot.getSessionState().get(chatId));
+        assertEquals(42, bot.getPendingTaskId().get(chatId));
+        assertEquals("AWAITING_DATE", bot.getSessionState().get(chatId));
     }
 
 
@@ -126,6 +130,7 @@ when(message.getText()).thenReturn(command + " 42");
         Message message = mock(Message.class);
         when(message.getText()).thenReturn("/link " + email);
         when(message.getChatId()).thenReturn(chatId);
+        when(message.hasText()).thenReturn(true);
     
         Update update = mock(Update.class);
         when(update.hasMessage()).thenReturn(true);
@@ -149,4 +154,75 @@ when(message.getText()).thenReturn(command + " 42");
     
 
     
+    @Test
+    public void testAssignSprintCommand_AssignsTaskToSprintAndUpdatesStatus() {
+        Long chatId = 12345L;
+        Long tareaId = 42L;
+        Long sprintId = 99L;
+        
+        // Mock message and update
+        Message mockMessage = mock(Message.class);
+        when(mockMessage.getText()).thenReturn("/assignsprint " + tareaId);
+        when(mockMessage.getChatId()).thenReturn(chatId);
+        when(mockMessage.hasText()).thenReturn(true);
+        
+        Update mockUpdate = mock(Update.class);
+        when(mockUpdate.hasMessage()).thenReturn(true);
+        when(mockUpdate.getMessage()).thenReturn(mockMessage);
+        
+        // Mock services
+        TareaService tareaService = mock(TareaService.class);
+        SprintService sprintService = mock(SprintService.class);
+        
+        // Create bot with mocked services
+        ToDoItemBotController bot = new ToDoItemBotController(
+            "dummyToken", "TestBot", tareaService, sprintService, null, null
+        );
+        
+        // Mock task and sprint
+        Tarea mockTarea = new Tarea();
+        mockTarea.setTareaId(tareaId);
+        mockTarea.setEstado("pendiente");
+        
+        Sprint mockSprint = new Sprint();
+        mockSprint.setSprintId(sprintId);
+        
+        when(tareaService.findById(tareaId)).thenReturn(Optional.of(mockTarea));
+        when(sprintService.findById(sprintId)).thenReturn(Optional.of(mockSprint));
+        when(tareaService.save(any(Tarea.class))).thenReturn(mockTarea);
+        
+        // First call - should set state to AWAITING_SPRINT_ID
+        System.out.println("Before first update - Session state: " + bot.getSessionState());
+        bot.onUpdateReceived(mockUpdate);
+        System.out.println("After first update - Session state: " + bot.getSessionState());
+        System.out.println("After first update - Pending task ID: " + bot.getPendingSprintTareaId());
+        
+        // Verify state was set correctly
+        assertEquals("AWAITING_SPRINT_ID", bot.getSessionState().get(chatId));
+        assertEquals(tareaId, bot.getPendingSprintTareaId().get(chatId));
+        
+        // Second call - should process sprint assignment
+        Message secondMessage = mock(Message.class);
+        when(secondMessage.getText()).thenReturn(sprintId.toString());
+        when(secondMessage.getChatId()).thenReturn(chatId);
+        when(secondMessage.hasText()).thenReturn(true);
+        
+        Update secondUpdate = mock(Update.class);
+        when(secondUpdate.hasMessage()).thenReturn(true);
+        when(secondUpdate.getMessage()).thenReturn(secondMessage);
+        
+        bot.onUpdateReceived(secondUpdate);
+        
+        // Verify task was updated correctly
+        ArgumentCaptor<Tarea> tareaCaptor = ArgumentCaptor.forClass(Tarea.class);
+        verify(tareaService).save(tareaCaptor.capture());
+        
+        Tarea savedTarea = tareaCaptor.getValue();
+        assertEquals("en progreso", savedTarea.getEstado());
+        assertEquals(mockSprint, savedTarea.getSprint());
+        
+        // Verify state was cleared
+        assertNull(bot.getSessionState().get(chatId));
+        assertNull(bot.getPendingSprintTareaId().get(chatId));
+    }
 }

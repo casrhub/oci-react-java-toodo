@@ -19,6 +19,8 @@ public class TareaController {
     @Autowired
     private TareaService tareaService;
 
+    /* ---------- CRUD básico ---------- */
+
     @GetMapping
     public List<Tarea> getAllTareas() {
         return tareaService.findAll();
@@ -37,59 +39,77 @@ public class TareaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Tarea> updateTarea(@PathVariable Long id, @RequestBody Tarea newData) {
+    public ResponseEntity<Tarea> updateTarea(@PathVariable Long id,
+            @RequestBody Tarea newData) {
         Tarea updated = tareaService.update(id, newData);
-        return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
+        return updated != null ? ResponseEntity.ok(updated)
+                : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTarea(@PathVariable Long id) {
         boolean deleted = tareaService.deleteById(id);
-        return deleted ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+        return deleted ? ResponseEntity.ok().build()
+                : ResponseEntity.notFound().build();
     }
 
- @PutMapping("/{id}/complete")
-public ResponseEntity<Tarea> markAsComplete(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
-    try {
-        String estado = (String) payload.get("estado");
+    /* ---------- PATCH SOLO ASIGNACIÓN ---------- */
 
-        Object horasObj = payload.get("horasReales");
-        BigDecimal horasReales = null;
-
-        if (horasObj instanceof Number) {
-            horasReales = new BigDecimal(((Number) horasObj).toString());
-        } else if (horasObj instanceof String) {
-            horasReales = new BigDecimal((String) horasObj);
+    /** Cambia únicamente el usuario asignado sin tocar otros campos. */
+    @PatchMapping("/{id}/assignee")
+    public ResponseEntity<Tarea> updateAssignee(@PathVariable Long id,
+            @RequestBody Map<String, Long> payload) {
+        Long usuarioId = payload.get("usuarioId");
+        if (usuarioId == null) {
+            return ResponseEntity.badRequest().build();
         }
 
-        Tarea updated = tareaService.markAsComplete(id, estado, horasReales);
-
-        return updated != null
-            ? ResponseEntity.ok(updated)
-            : ResponseEntity.notFound().build();
-
-    } catch (Exception e) {
-        return ResponseEntity.badRequest().build();
+        Tarea updated = tareaService.updateAssignee(id, usuarioId);
+        return updated != null ? ResponseEntity.ok(updated)
+                : ResponseEntity.notFound().build();
     }
-}
 
-//deadline PUT controller
+    /* ---------- completar ---------- */
 
-@PutMapping("/{id}/deadline")
-public ResponseEntity<Tarea> updateDeadline(@PathVariable Long id, @RequestBody Map<String, String> payload) {
-    String deadlineStr = payload.get("deadline");
+    @PutMapping("/{id}/complete")
+    public ResponseEntity<Tarea> markAsComplete(@PathVariable Long id,
+            @RequestBody Map<String, Object> payload) {
+        try {
+            String estado = (String) payload.get("estado");
 
-    try {
-        OffsetDateTime deadline = OffsetDateTime.parse(deadlineStr);
-        Tarea updated = tareaService.updateDeadline(id, deadline);
+            Object horasObj = payload.get("horasReales");
+            BigDecimal horasReales = null;
 
-        return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
-    } catch (DateTimeParseException e) {
-        return ResponseEntity.badRequest().build();
+            if (horasObj instanceof Number) {
+                horasReales = new BigDecimal(((Number) horasObj).toString());
+            } else if (horasObj instanceof String) {
+                horasReales = new BigDecimal((String) horasObj);
+            }
+
+            Tarea updated = tareaService.markAsComplete(id, estado, horasReales);
+            return updated != null ? ResponseEntity.ok(updated)
+                    : ResponseEntity.notFound().build();
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
-}
 
+    /* ---------- deadline ---------- */
 
+    @PutMapping("/{id}/deadline")
+    public ResponseEntity<Tarea> updateDeadline(@PathVariable Long id,
+            @RequestBody Map<String, String> payload) {
+        String deadlineStr = payload.get("deadline");
 
-    
+        try {
+            OffsetDateTime deadline = OffsetDateTime.parse(deadlineStr);
+            Tarea updated = tareaService.updateDeadline(id, deadline);
+
+            return updated != null ? ResponseEntity.ok(updated)
+                    : ResponseEntity.notFound().build();
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }

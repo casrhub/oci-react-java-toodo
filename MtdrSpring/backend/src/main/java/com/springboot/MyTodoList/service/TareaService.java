@@ -9,10 +9,9 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 
 @Service
 public class TareaService {
@@ -108,5 +107,49 @@ public class TareaService {
             return tareaRepository.save(tarea);
         }
         return null;
+    }
+
+    // Horas trabajadas por equipo por sprint
+    public BigDecimal getHorasRealesByEquipoAndSprint(Long equipoId, Long sprintId) {
+        return tareaRepository.sumHorasRealesByEquipoAndSprint(equipoId, sprintId);
+    }    
+
+    // Tareas completadas por equipo por sprint
+    public Long countCompletedTareasByEquipoAndSprint(Long equipoId, Long sprintId) {
+        return tareaRepository.countCompletedTareasByEquipoAndSprint(equipoId, sprintId);
+    }  
+    
+    // Horas trabajadas por usuario en un sprint    
+    public BigDecimal sumHorasRealesByUsuarioAndSprint(Long usuarioId, Long sprintId) {
+        return tareaRepository.sumHorasRealesByUsuarioAndSprint(usuarioId, sprintId);
+    }
+    
+    // Tareas completadas por usuario en un sprint
+    public Long countCompletedTareasByUsuarioAndSprint(Long usuarioId, Long sprintId) {
+        return tareaRepository.countCompletedTareasByUsuarioAndSprint(usuarioId, sprintId);
+    }
+
+    public Map<String, Long> resumenPorEquipo(Long equipoId) {
+        long asignadas   = tareaRepository.countByEquipo(equipoId);
+        long antes       = tareaRepository.countCompletedBeforeDeadlineTeam(equipoId);
+        long despues     = tareaRepository.countCompletedAfterDeadlineTeam(equipoId);
+
+        return Map.of(
+                "asignadas", asignadas,
+                "completadasAntes", antes,
+                "completadasDespues", despues
+        );
+    }
+
+    public Map<String, Long> resumenPorUsuario(Long usuarioId) {
+        long asignadas   = tareaRepository.countByUsuario(usuarioId);
+        long antes       = tareaRepository.countCompletedBeforeDeadline(usuarioId);
+        long despues     = tareaRepository.countCompletedAfterDeadline(usuarioId);
+
+        return Map.of(
+                "asignadas", asignadas,
+                "completadasAntes", antes,
+                "completadasDespues", despues
+        );
     }
 } 

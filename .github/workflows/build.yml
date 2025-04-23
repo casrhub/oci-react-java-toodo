@@ -2,7 +2,7 @@ name: Backend CI
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, LinuxTaks]
   pull_request:
 
 jobs:

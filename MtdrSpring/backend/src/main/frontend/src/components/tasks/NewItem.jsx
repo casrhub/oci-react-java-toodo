@@ -1,59 +1,79 @@
-import React, { useState } from "react";
-import { Button, TextField } from '@mui/material';
+import React, { useState } from 'react';
+import {
+  Box, TextField, FormControl,
+  InputLabel, Select, MenuItem, Button
+} from '@mui/material';
 
-function NewItem(props) {
+export default function NewItem({ addItem, isInserting, users }) {
+  /* ---- local state ---- */
   const [titulo, setTitulo] = useState('');
   const [descripcion, setDescripcion] = useState('');
-  const [usuarioId, setUsuarioId] = useState('');
-  const [equipoId, setEquipoId] = useState('');
+  const [usuarioId, setUsuarioId] = useState('');  // string '' | '101'
+  const [equipoId, setEquipoId]   = useState('');
   const [proyectoId, setProyectoId] = useState('');
-  const [horasEstimadas, setHorasEstimadas] = useState('');
+  const [horas, setHoras] = useState('');
 
-  function handleSubmit(e) {
+  /* ---- submit ---- */
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!titulo.trim() || !descripcion.trim()) return;
+    if (!titulo.trim() || !descripcion.trim() || usuarioId === '') return;
 
-    props.addItem(
+    addItem(
       titulo,
       descripcion,
-      parseInt(usuarioId),
-      parseInt(equipoId),
-      parseInt(proyectoId),
-      parseFloat(horasEstimadas)
+      Number(usuarioId),
+      equipoId   ? Number(equipoId)   : null,
+      proyectoId ? Number(proyectoId) : null,
+      Number(horas) || 0
     );
 
-    // Reset all fields
+    // reset
     setTitulo('');
     setDescripcion('');
     setUsuarioId('');
     setEquipoId('');
     setProyectoId('');
-    setHorasEstimadas('');
-  }
+    setHoras('');
+  };
 
+  /* ---- UI ---- */
   return (
-    <div id="newinputform">
-      <form onSubmit={handleSubmit}>
-        <TextField label="Título" value={titulo} onChange={e => setTitulo(e.target.value)} fullWidth />
-        <TextField label="Descripción" value={descripcion} onChange={e => setDescripcion(e.target.value)} fullWidth />
-        <TextField label="Usuario ID" value={usuarioId} onChange={e => setUsuarioId(e.target.value)} type="number" fullWidth />
-        <TextField label="Equipo ID" value={equipoId} onChange={e => setEquipoId(e.target.value)} type="number" fullWidth />
-        <TextField label="Proyecto ID" value={proyectoId} onChange={e => setProyectoId(e.target.value)} type="number" fullWidth />
-        <TextField label="Horas Estimadas" value={horasEstimadas} onChange={e => setHorasEstimadas(e.target.value)} type="number" fullWidth />
+    <Box component="form" onSubmit={handleSubmit}
+      sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+    >
+      <TextField label="Título" required value={titulo} onChange={e=>setTitulo(e.target.value)} />
+      <TextField label="Descripción" multiline rows={3}
+        value={descripcion} onChange={e=>setDescripcion(e.target.value)} />
 
-        <Button
-          className="AddButton"
-          variant="contained"
-          disabled={props.isInserting}
-          onClick={!props.isInserting ? handleSubmit : null}
-          size="small"
-          style={{ marginTop: '10px' }}
+      <FormControl required size="small" fullWidth>
+        <InputLabel id="dev-label">Asignar a</InputLabel>
+        <Select
+          labelId="dev-label"
+          value={usuarioId}
+          label="Asignar a"
+          onChange={e => setUsuarioId(e.target.value)}
+          renderValue={val =>
+            val === '' ? <em style={{ color:'#888' }}>Selecciona un dev…</em>
+                        : users.find(u => String(u.id) === val)?.nombre
+          }
         >
-          {props.isInserting ? 'Adding…' : 'Add'}
-        </Button>
-      </form>
-    </div>
+          <MenuItem value=""><em>Selecciona un dev…</em></MenuItem>
+          {users.map(u => (
+            <MenuItem key={u.id} value={String(u.id)}>{u.nombre}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      <TextField label="Equipo ID"  type="number"
+        value={equipoId} onChange={e=>setEquipoId(e.target.value)} />
+      <TextField label="Proyecto ID" type="number"
+        value={proyectoId} onChange={e=>setProyectoId(e.target.value)} />
+      <TextField label="Horas Estimadas" required type="number"
+        value={horas} onChange={e=>setHoras(e.target.value)} />
+
+      <Button type="submit" variant="contained"
+        disabled={isInserting || usuarioId===''}
+      >{isInserting ? 'Adding…' : 'Add'}</Button>
+    </Box>
   );
 }
-
-export default NewItem;

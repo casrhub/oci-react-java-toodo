@@ -1,504 +1,231 @@
+// src/pages/DevTasksPage.jsx
 import React, { useState, useEffect } from 'react';
 import {
   Table, TableHead, TableBody, TableRow, TableCell,
-  TableContainer, Paper, Button, Menu, MenuItem, Toolbar, Typography, Dialog,
-  DialogTitle, DialogContent, DialogActions, TextField, CircularProgress
+  TableContainer, Paper, Button, Toolbar, Menu, MenuItem,
+  Typography, Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, CircularProgress, FormControl, InputLabel, Select
 } from '@mui/material';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import Moment from 'react-moment';
 
-import { API_TAREAS, API_SUBTAREAS } from '../api'; 
-import NewItem from '../components/tasks/NewItem';  
+import { API_TAREAS, API_SUBTAREAS, API_USUARIOS } from '../api';
+import NewItem from '../components/tasks/NewItem';
 
-function DevTasksPage() {
-  // ───────── STATES ─────────────────────────────
-  const [tasks, setTasks] = useState([]);
-  const [isLoading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+/* ────────────────────────────────────────────────────────── */
+export default function DevTasksPage() {
+  /* ---------- STATE ---------- */
+  const [tasks, setTasks]   = useState([]);
+  const [users, setUsers]   = useState([]);       // {id, nombre}
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
 
-  // Adding a task
-  const [isInserting, setInserting] = useState(false);
-  const [newTaskDialogOpen, setNewTaskDialogOpen] = useState(false);
-  const [pendingSubtaskPrompt, setPendingSubtaskPrompt] = useState(null);
+  /* dialogs */
+  const [newDlgOpen, setNewDlgOpen] = useState(false);
+  const [inserting, setInserting]   = useState(false);
 
-  // Subtasks expansion
-  const [expandedTaskId, setExpandedTaskId] = useState(null);
+  const [deadlineDlg, setDeadlineDlg] = useState({ open: false, task: null, value: '' });
+  const [completeDlg, setCompleteDlg] = useState({ open: false, task: null, hours: '' });
 
-  // Deadline dialog
-  const [selectedTask, setSelectedTask] = useState(null);
-  const [deadline, setDeadline] = useState('');
-
-  // Complete-task dialog
-  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
-  const [selectedCompleteTask, setSelectedCompleteTask] = useState(null);
-  const [realHours, setRealHours] = useState('');
-
-  // Filter Menu
+  /* subtasks & menu */
+  const [expanded, setExpanded] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
-  const filterMenuOpen = Boolean(anchorEl);
 
-  // Subtask creation
-  const [newSubTitulo, setNewSubTitulo] = useState('');
-  const [newSubHoras, setNewSubHoras] = useState('');
-
-  // ───────── EFFECTS ─────────────────────────────
+  /* ---------- EFFECTS ---------- */
   useEffect(() => {
-    reloadAllTasks();
+    Promise.all([fetchTasks(), fetchUsers()]).finally(() => setLoading(false));
   }, []);
 
-  // ───────── API / BACKEND LOGIC ─────────────────
+  /* ---------- API ---------- */
+  const fetchTasks = () =>
+    fetch(API_TAREAS).then(r=>r.ok?r.json():Promise.reject('tasks')).then(setTasks).catch(setError);
 
-  /** Fetch main tasks */
-  function reloadAllTasks() {
-    setLoading(true);
-    fetch(API_TAREAS)
-      .then((response) => (response.ok ? response.json() : Promise.reject('Error fetching tasks')))
-      .then((data) => {
-        setTasks(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err);
-        setLoading(false);
-      });
-  }
+  const fetchUsers = () =>
+    fetch(API_USUARIOS)
+      .then(r=>r.ok?r.json():Promise.reject('users'))
+      .then(arr => setUsers(arr.map(u=>({ id: u.usuario_id ?? u.usuarioId ?? u.id, nombre: u.nombre }))))
+      .catch(setError);
 
-  /** Fetch subtasks for a specific task */
-  function fetchSubTareas(tareaId) {
-    return fetch(`${API_SUBTAREAS}?tareaId=${tareaId}`)
-      .then((res) => (res.ok ? res.json() : Promise.reject('Error fetching subtareas')));
-  }
+  const reloadOne = (id) =>
+    fetch(`${API_TAREAS}/${id}`)
+      .then(r=>r.ok?r.json():Promise.reject())
+      .then(t=>setTasks(p=>p.map(x=>x.tareaId===id?{...x,...t}:x)))
+      .catch(setError);
 
-  /** Create a new subtask */
-  function createSubTarea(tareaId, titulo, horasEstimadas) {
-    fetch(API_SUBTAREAS, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tareaId,
-        titulo,
-        descripcion: 'Subtask manual',
-        estado: 'pendiente',
-        horasEstimadas,
-        horasReales: 0,
-        fechaCreacion: new Date().toISOString(),
-        deadline: null
-      })
-    })
-      .then((res) => {
-        if (res.ok) {
-          reloadOneTask(tareaId);
-        } else {
-          console.error('Failed to add subtask');
-        }
-      })
-      .catch((err) => console.error(err));
-  }
-
-  /** Create a new main task */
-  function addItem(titulo, descripcion, usuarioId, equipoId, proyectoId, horasEstimadas) {
+  const addItem = (tit, desc, uid, eq, pid, hrs) => {
     setInserting(true);
-
-    const baseTask = {
-      titulo,
-      descripcion,
-      usuarioId,
-      equipoId,
-      proyectoId,
-      horasEstimadas: Math.min(horasEstimadas, 4),
-      estado: 'pendiente',
-      fechaCreacion: new Date().toISOString()
+    const body = {
+      titulo: tit, descripcion: desc, usuarioId: uid,
+      equipoId: eq, proyectoId: pid,
+      horasEstimadas: Math.min(hrs,4),
+      estado:'pendiente',
+      fechaCreacion:new Date().toISOString()
     };
+    fetch(API_TAREAS,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+      .then(r=>r.ok?r.json():Promise.reject())
+      .then(fetchTasks)
+      .catch(setError)
+      .finally(()=>{ setInserting(false); setNewDlgOpen(false); });
+  };
 
-    fetch(API_TAREAS, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(baseTask)
-    })
-      .then((response) => (response.ok ? response.json() : Promise.reject('Failed to create task')))
-      .then((createdTask) => {
-        // If user asked for more than 4 hours, show the subtask-splitting prompt
-        if (horasEstimadas > 4) {
-          const remaining = horasEstimadas - 4;
-          setPendingSubtaskPrompt({ tareaId: createdTask.tareaId, remainingHours: remaining });
-        }
-        return createdTask.tareaId;
-      })
-      .then(() => {
-        // Wait briefly so the prompt can open before reloading tasks
-        setTimeout(reloadAllTasks, 300);
-      })
-      .catch((err) => {
-        setError(err);
-      })
-      .finally(() => {
-        setInserting(false);
-        setNewTaskDialogOpen(false); // Close the "Add Task" dialog
-      });
-  }
+  const updateAssignee = (tid, uid) =>
+    fetch(`${API_TAREAS}/${tid}`,{
+      method:'PUT',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({usuarioId:uid})
+    }).then(r=>r.ok?reloadOne(tid):Promise.reject()).catch(setError);
 
-  /** Reload a single task after changes */
-  function reloadOneTask(tareaId) {
-    fetch(`${API_TAREAS}/${tareaId}`)
-      .then((response) => (response.ok ? response.json() : Promise.reject('Error reloading task')))
-      .then((result) => {
-        setTasks((prev) =>
-          prev.map((t) => (t.tareaId === tareaId ? { ...t, ...result } : t))
-        );
-      })
-      .catch((err) => setError(err));
-  }
+  const deleteTask = (tid) =>
+    fetch(`${API_TAREAS}/${tid}`,{method:'DELETE'}).then(fetchTasks).catch(setError);
 
-  /** Delete a task */
-  function deleteItem(tareaId) {
-    fetch(`${API_TAREAS}/${tareaId}`, { method: 'DELETE' })
-      .then((res) => {
-        if (res.ok) {
-          setTasks((prev) => prev.filter((t) => t.tareaId !== tareaId));
-        } else {
-          throw new Error('Error deleting task');
-        }
-      })
-      .catch((err) => setError(err));
-  }
+  const markDone = (tid, hrs) =>
+    fetch(`${API_TAREAS}/${tid}/complete`,{
+      method:'PUT',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({estado:'completado',horasReales:hrs})
+    }).then(r=>r.ok?reloadOne(tid):Promise.reject()).catch(setError);
 
-  /** Mark task complete with real hours */
-  function markTaskComplete(tareaId, horasReales) {
-    fetch(`${API_TAREAS}/${tareaId}/complete`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ estado: 'completado', horasReales })
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to mark task complete');
-        reloadOneTask(tareaId);
-      })
-      .catch((err) => setError(err));
-  }
+  const setDeadline = (tid, iso) =>
+    fetch(`${API_TAREAS}/${tid}/deadline`,{
+      method:'PUT',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({deadline:iso})
+    }).then(r=>r.ok?reloadOne(tid):Promise.reject()).catch(setError);
 
-  /** Update a task's deadline */
-  function updateDeadline(tareaId, newDeadline) {
-    fetch(`${API_TAREAS}/${tareaId}/deadline`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ deadline: newDeadline })
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to update deadline');
-        // Reload this single task
-        reloadOneTask(tareaId);
-      })
-      .catch((err) => console.error(err));
-  }
+  /* ---------- HELPERS ---------- */
+  const renderAssignee = (task) => (
+    <FormControl size="small" fullWidth>
+      <InputLabel id={`ass-${task.tareaId}`}>Asignado</InputLabel>
+      <Select
+        labelId={`ass-${task.tareaId}`}
+        value={task.usuarioId!=null?String(task.usuarioId):''}
+        label="Asignado"
+        onChange={e=>updateAssignee(task.tareaId,e.target.value===''?null:Number(e.target.value))}
+      >
+        <MenuItem value=""><em>No asignado</em></MenuItem>
+        {users.map(u=><MenuItem key={u.id} value={String(u.id)}>{u.nombre}</MenuItem>)}
+      </Select>
+    </FormControl>
+  );
 
-  // ───────── HANDLERS (Dialogs, Subtasks, Etc.) ─────────────────
+  const openDeadline = (t) =>
+    setDeadlineDlg({ open:true, task:t, value:t.deadline?new Date(t.deadline).toISOString().slice(0,16):'' });
 
-  /** Toggle row expand/collapse to show subtasks */
-  function toggleSubtaskRow(tareaId) {
-    if (expandedTaskId === tareaId) {
-      // Close if already expanded
-      setExpandedTaskId(null);
-    } else {
-      // Fetch subtasks, then expand
-      fetchSubTareas(tareaId)
-        .then((subs) => {
-          setTasks((prev) =>
-            prev.map((t) =>
-              t.tareaId === tareaId ? { ...t, subTareas: subs } : t
-            )
-          );
-          setExpandedTaskId(tareaId);
-        })
-        .catch((err) => console.error(err));
-    }
-  }
+  const saveDeadline = () => {
+    const {task,value}=deadlineDlg;
+    const iso = new Date(value).toISOString();
+    setDeadline(task.tareaId, iso);
+    setDeadlineDlg({open:false,task:null,value:''});
+  };
 
-  /** Open "Set Deadline" dialog */
-  function openDeadlineDialog(task) {
-    setSelectedTask(task);
-    setDeadline(task.deadline || '');
-  }
+  const openComplete = (t) => setCompleteDlg({open:true,task:t,hours:''});
 
-  /** Close "Set Deadline" dialog */
-  function closeDeadlineDialog() {
-    setSelectedTask(null);
-    setDeadline('');
-  }
+  const confirmComplete = () => {
+    markDone(completeDlg.task.tareaId, completeDlg.hours);
+    setCompleteDlg({open:false,task:null,hours:''});
+  };
 
-  /** Save deadline (user picks date/time) */
-  function saveDeadline() {
-    if (!selectedTask) return;
-    const localDate = new Date(deadline);
-    const fullISODate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000).toISOString();
+  const toggleExpand = (id) => setExpanded(expanded===id?null:id);
 
-    updateDeadline(selectedTask.tareaId, fullISODate);
-    closeDeadlineDialog();
-  }
+  /* ---------- RENDER ---------- */
+  const pending   = tasks.filter(t=>t.estado!=='completado');
+  const completed = tasks.filter(t=>t.estado==='completado');
 
-  /** Open "Mark Complete" dialog */
-  function openCompleteDialog(task) {
-    setSelectedCompleteTask(task);
-    setCompleteDialogOpen(true);
-  }
-
-  /** Close "Mark Complete" dialog */
-  function closeCompleteDialog() {
-    setCompleteDialogOpen(false);
-    setRealHours('');
-    setSelectedCompleteTask(null);
-  }
-
-  /** Confirm "Done" with real hours */
-  function confirmCompleteTask() {
-    if (selectedCompleteTask && realHours) {
-      markTaskComplete(selectedCompleteTask.tareaId, realHours);
-      closeCompleteDialog();
-    }
-  }
-
-  /** Add subtask to expanded parent */
-  function handleAddSubtask(parentTaskId, e) {
-    e.preventDefault();
-    createSubTarea(parentTaskId, newSubTitulo, newSubHoras);
-    setNewSubTitulo('');
-    setNewSubHoras('');
-  }
-
-  // ───────── RENDER ─────────────────────────────
-
-  // Separate tasks by status
-  const pendingTasks = tasks.filter((t) => t.estado !== 'completado');
-  const completedTasks = tasks.filter((t) => t.estado === 'completado');
+  if (loading) return <CircularProgress sx={{m:4}} />;
+  if (error)   return <Typography color="error">{error.toString()}</Typography>;
 
   return (
-    <div style={{ padding: '1rem' }}>
-      {/* Header Toolbar */}
-      <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
-        <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
-          My Tasks
-        </Typography>
-
+    <div style={{padding:16}}>
+      <Toolbar sx={{justifyContent:'space-between'}}>
+        <Typography variant="h5" fontWeight="bold">My Tasks</Typography>
         <div>
-          {/* Filter Button + Menu */}
-          <Button
-            variant="outlined"
-            startIcon={<FilterListIcon />}
-            onClick={(event) => setAnchorEl(event.currentTarget)}
-            sx={{ marginRight: '1rem' }}
-          >
-            Filter
-          </Button>
-          <Menu
-            anchorEl={anchorEl}
-            open={filterMenuOpen}
-            onClose={() => setAnchorEl(null)}
-            PaperProps={{ style: { maxHeight: 200 } }}
-          >
-            {/* Future filter options */}
-            <MenuItem onClick={() => setAnchorEl(null)}>No filters yet</MenuItem>
+          <Button variant="outlined" startIcon={<FilterListIcon/>}
+                  onClick={e=>setAnchorEl(e.currentTarget)} sx={{mr:2}}>Filter</Button>
+          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={()=>setAnchorEl(null)}>
+            <MenuItem onClick={()=>setAnchorEl(null)}>No filters yet</MenuItem>
           </Menu>
-
-          {/* Add Task Button (opens modal with NewItem) */}
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setNewTaskDialogOpen(true)}
-            sx={{
-              backgroundColor: '#C74634',
-              '&:hover': {
-                backgroundColor: '#b63f2e'
-              }
-            }}
-          >
+          <Button startIcon={<AddIcon/>} variant="contained"
+                  onClick={()=>setNewDlgOpen(true)}
+                  sx={{bgcolor:'#C74634','&:hover':{bgcolor:'#b63f2e'}}}>
             Add Task
           </Button>
         </div>
       </Toolbar>
 
-      {/* Error / Loading */}
-      {error && <p style={{ color: 'red' }}>Error: {error.toString()}</p>}
-      {isLoading && <CircularProgress style={{ marginTop: '1rem' }} />}
-
-      {/* Pending subtask prompt (if user enters >4 hours) */}
-      {pendingSubtaskPrompt && (
-        <Dialog open={true} onClose={() => setPendingSubtaskPrompt(null)}>
-          <DialogTitle>Break task into subtasks</DialogTitle>
-          <DialogContent>
-            <p>
-              You have {pendingSubtaskPrompt.remainingHours} hours left to split
-              into subtasks. (Implementation placeholder)
-            </p>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setPendingSubtaskPrompt(null)}>Done</Button>
-          </DialogActions>
-        </Dialog>
-      )}
-
-      {/* ────────────────────────────────────────────────────────────
-         PENDING / IN-PROGRESS TASKS TABLE
-      ──────────────────────────────────────────────────────────── */}
-      {pendingTasks.length > 0 && (
+      {/* ---------- Pending ---------- */}
+      {pending.length>0 && (
         <>
-          <Typography variant="h6" sx={{ marginTop: '2rem' }}>
-            Pending Tasks
-          </Typography>
-          <TableContainer component={Paper} sx={{ marginTop: '0.5rem' }}>
-            <Table>
-              <TableHead sx={{ backgroundColor: '#C74634' }}>
+          <Typography variant="h6" sx={{mt:3}}>Pending</Typography>
+          <TableContainer component={Paper} sx={{mt:1}}>
+            <Table size="small">
+              <TableHead sx={{bgcolor:'#C74634'}}>
                 <TableRow>
-                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>#</TableCell>
-                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Title</TableCell>
-                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Status</TableCell>
-                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Deadline</TableCell>
-                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
+                  {['#','Title','Assignee','Status','Deadline','Actions'].map(h=>(
+                    <TableCell key={h} sx={{color:'white',fontWeight:'bold'}}>{h}</TableCell>
+                  ))}
                 </TableRow>
               </TableHead>
               <TableBody>
-                {pendingTasks.map((t, index) => {
-                  // Convert backend "estado" => front-end "status"
-                  let statusLabel = 'To Do';
-                  if (t.estado === 'en progreso') statusLabel = 'In Progress';
-
-                  return (
-                    <React.Fragment key={t.tareaId}>
-                      {/* Main Row */}
+                {pending.map((t,i)=>(
+                  <React.Fragment key={t.tareaId}>
+                    <TableRow>
+                      <TableCell>{i+1}</TableCell>
+                      <TableCell>
+                        <Button onClick={()=>toggleExpand(t.tareaId)}>{t.titulo}</Button>
+                      </TableCell>
+                      <TableCell>{renderAssignee(t)}</TableCell>
+                      <TableCell>{t.estado==='en progreso'?'In Progress':'To Do'}</TableCell>
+                      <TableCell>
+                        {t.deadline
+                          ? <Moment format="DD/MM/YYYY HH:mm" utc>{t.deadline}</Moment>
+                          : <Button size="small" onClick={()=>openDeadline(t)}>Set</Button>}
+                      </TableCell>
+                      <TableCell>
+                        <Button size="small" variant="contained" onClick={()=>openComplete(t)}>
+                          Done
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                    {expanded===t.tareaId && (
                       <TableRow>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>
-                          <Button onClick={() => toggleSubtaskRow(t.tareaId)}>
-                            {t.titulo}
-                          </Button>
-                        </TableCell>
-                        <TableCell>{statusLabel}</TableCell>
-                        <TableCell>
-                          {t.deadline ? (
-                            <Moment format="MMM Do YYYY, hh:mm A" utc>
-                              {t.deadline}
-                            </Moment>
-                          ) : (
-                            <Button
-                              size="small"
-                              onClick={() => openDeadlineDialog(t)}
-                            >
-                              Set Deadline
-                            </Button>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="contained"
-                            sx={{ marginRight: '0.5rem' }}
-                            onClick={() => openCompleteDialog(t)}
-                          >
-                            Done
-                          </Button>
+                        <TableCell colSpan={6} sx={{bgcolor:'#fafafa'}}>
+                          <strong>Description: </strong>{t.descripcion || '—'}
                         </TableCell>
                       </TableRow>
-
-                      {/* Expanded Row for Subtasks */}
-                      {expandedTaskId === t.tareaId && (
-                        <>
-                          {/* Description Row */}
-                          <TableRow>
-                            <TableCell colSpan={5} sx={{ backgroundColor: '#fcfcfc' }}>
-                              <strong>Description:</strong>
-                              <div style={{ whiteSpace: 'pre-wrap', marginTop: '0.5rem' }}>
-                                {t.descripcion || 'No description provided'}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-
-                          {/* Subtask Row */}
-                          <TableRow>
-                            <TableCell colSpan={5} sx={{ backgroundColor: '#f9f9f9' }}>
-                              {t.subTareas && t.subTareas.length > 0 ? (
-                                <ul>
-                                  {t.subTareas.map((sub) => (
-                                    <li key={sub.subTareaId}>
-                                      {sub.titulo} — {sub.estado} — {sub.horasEstimadas}h
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <p>No subtasks yet</p>
-                              )}
-
-                              {/* Subtask creation form */}
-                              <form
-                                onSubmit={(e) => handleAddSubtask(t.tareaId, e)}
-                                style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}
-                              >
-                                <TextField
-                                  label="Subtask title"
-                                  size="small"
-                                  value={newSubTitulo}
-                                  onChange={(e) => setNewSubTitulo(e.target.value)}
-                                />
-                                <TextField
-                                  label="Hours"
-                                  size="small"
-                                  type="number"
-                                  value={newSubHoras}
-                                  onChange={(e) => setNewSubHoras(e.target.value)}
-                                />
-                                <Button variant="contained" type="submit">
-                                  Add Subtask
-                                </Button>
-                              </form>
-                            </TableCell>
-                          </TableRow>
-                        </>
-                      )}
-
-                    </React.Fragment>
-                  );
-                })}
+                    )}
+                  </React.Fragment>
+                ))}
               </TableBody>
             </Table>
           </TableContainer>
         </>
       )}
 
-      {/* ────────────────────────────────────────────────────────────
-         COMPLETED TASKS TABLE
-      ──────────────────────────────────────────────────────────── */}
-      {completedTasks.length > 0 && (
+      {/* ---------- Completed ---------- */}
+      {completed.length>0 && (
         <>
-          <Typography variant="h6" sx={{ marginTop: '2rem' }}>
-            Completed Tasks
-          </Typography>
-          <TableContainer component={Paper} sx={{ marginTop: '0.5rem' }}>
-            <Table>
-              <TableHead sx={{ backgroundColor: '#C74634' }}>
+          <Typography variant="h6" sx={{mt:4}}>Completed</Typography>
+          <TableContainer component={Paper} sx={{mt:1}}>
+            <Table size="small">
+              <TableHead sx={{bgcolor:'#C74634'}}>
                 <TableRow>
-                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>#</TableCell>
-                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Title</TableCell>
-                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Status</TableCell>
-                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Deadline</TableCell>
-                  <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
+                  {['#','Title','Assignee','Status','Deadline','Actions'].map(h=>(
+                    <TableCell key={h} sx={{color:'white',fontWeight:'bold'}}>{h}</TableCell>
+                  ))}
                 </TableRow>
               </TableHead>
               <TableBody>
-                {completedTasks.map((t, index) => (
+                {completed.map((t,i)=>(
                   <TableRow key={t.tareaId}>
-                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{i+1}</TableCell>
                     <TableCell>{t.titulo}</TableCell>
+                    <TableCell>{renderAssignee(t)}</TableCell>
                     <TableCell>Done</TableCell>
                     <TableCell>
-                      <Moment format="MMM Do YYYY, hh:mm A" utc>
-                        {t.deadline}
-                      </Moment>
+                      <Moment format="DD/MM/YYYY HH:mm" utc>{t.deadline}</Moment>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="contained"
-                        startIcon={<DeleteIcon />}
-                        color="error"
-                        onClick={() => deleteItem(t.tareaId)}
-                      >
+                      <Button startIcon={<DeleteIcon/>} color="error"
+                              onClick={()=>deleteTask(t.tareaId)}>
                         Delete
                       </Button>
                     </TableCell>
@@ -510,67 +237,39 @@ function DevTasksPage() {
         </>
       )}
 
-      {/* ───────── DIALOGS ───────────────── */}
-
-      {/* Add Task Dialog + “NewItem” component inside */}
-      <Dialog
-        open={newTaskDialogOpen}
-        onClose={() => setNewTaskDialogOpen(false)}
-      >
-        <DialogTitle>Add New Task</DialogTitle>
+      {/* ---------- Dialogs ---------- */}
+      <Dialog open={newDlgOpen} onClose={()=>setNewDlgOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Nueva Tarea</DialogTitle>
         <DialogContent>
-          <NewItem addItem={addItem} isInserting={isInserting} />
+          <NewItem addItem={addItem} isInserting={inserting} users={users}/>
         </DialogContent>
       </Dialog>
 
-      {/* Set Deadline Dialog */}
-      <Dialog open={!!selectedTask} onClose={closeDeadlineDialog}>
+      <Dialog open={deadlineDlg.open} onClose={()=>setDeadlineDlg({open:false,task:null,value:''})}>
         <DialogTitle>Set Deadline</DialogTitle>
         <DialogContent>
-          <TextField
-            type="datetime-local"
-            value={deadline}
-            onChange={(e) => setDeadline(e.target.value)}
-            fullWidth
-          />
+          <TextField type="datetime-local" fullWidth
+                     value={deadlineDlg.value}
+                     onChange={e=>setDeadlineDlg({...deadlineDlg,value:e.target.value})}/>
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeDeadlineDialog} color="secondary">
-            Cancel
-          </Button>
-          <Button onClick={saveDeadline} color="primary">
-            Save
-          </Button>
+          <Button onClick={()=>setDeadlineDlg({open:false,task:null,value:''})}>Cancel</Button>
+          <Button onClick={saveDeadline}>Save</Button>
         </DialogActions>
       </Dialog>
 
-      {/* Complete Task Dialog */}
-      <Dialog
-        open={completeDialogOpen}
-        onClose={closeCompleteDialog}
-      >
+      <Dialog open={completeDlg.open} onClose={()=>setCompleteDlg({open:false,task:null,hours:''})}>
         <DialogTitle>Complete Task</DialogTitle>
         <DialogContent>
-          <TextField
-            autoFocus
-            label="Real Hours Worked"
-            type="number"
-            fullWidth
-            value={realHours}
-            onChange={(e) => setRealHours(e.target.value)}
-          />
+          <TextField type="number" fullWidth label="Real hours"
+                     value={completeDlg.hours}
+                     onChange={e=>setCompleteDlg({...completeDlg,hours:e.target.value})}/>
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeCompleteDialog} color="secondary">
-            Cancel
-          </Button>
-          <Button onClick={confirmCompleteTask} color="primary">
-            Confirm
-          </Button>
+          <Button onClick={()=>setCompleteDlg({open:false,task:null,hours:''})}>Cancel</Button>
+          <Button onClick={confirmComplete}>Confirm</Button>
         </DialogActions>
       </Dialog>
     </div>
   );
 }
-
-export default DevTasksPage;

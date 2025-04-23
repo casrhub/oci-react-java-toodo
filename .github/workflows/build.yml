@@ -1,4 +1,4 @@
-name: Backend CI
+name: Backend + Frontend CI
 
 on:
   push:
@@ -6,12 +6,12 @@ on:
   pull_request:
 
 jobs:
-  build:
+  # ---------- BACKEND ----------
+  backend:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up JDK 11
         uses: actions/setup-java@v4
@@ -24,9 +24,43 @@ jobs:
         working-directory: MtdrSpring/backend
         run: mvn --batch-mode clean package -DskipTests
 
-      # Opcional – subir el artefacto para descargarlo
-      - name: Upload JAR
+      - name: Upload JAR Artifact
         uses: actions/upload-artifact@v4
         with:
           name: MyTodoList-jar
           path: MtdrSpring/backend/target/MyTodoList-0.0.1-SNAPSHOT.jar
+
+  # ---------- FRONTEND ----------
+  frontend:
+    runs-on: ubuntu-22.04
+    needs: backend # espera a que el backend termine OK
+
+    defaults:
+      run:
+        working-directory: MtdrSpring/backend/src/main/frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 16
+        uses: actions/setup-node@v4
+        with:
+          node-version: 16
+          cache: npm
+
+      - name: Install dependencies (npm ci)
+        run: npm ci
+
+      - name: Lint (ESLint) & Prettier check
+        run: |
+          npm run lint
+          npm run format    # solo verifica, no re-escribe
+
+      - name: Build React app
+        run: npm run build
+
+      - name: Upload React build
+        uses: actions/upload-artifact@v4
+        with:
+          name: react-build
+          path: MtdrSpring/backend/src/main/frontend/build

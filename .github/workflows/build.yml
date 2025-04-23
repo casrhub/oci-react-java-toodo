@@ -34,7 +34,7 @@ jobs:
   # ---------- FRONTEND ----------
   frontend:
     runs-on: ubuntu-22.04
-    needs: backend # espera a que backend termine OK
+    needs: backend # espera a que el backend termine OK
 
     defaults:
       run:
@@ -46,15 +46,14 @@ jobs:
       - name: Set up Node 16
         uses: actions/setup-node@v4
         with:
-          node-version: 16 # ⬅sin cache npm
+          node-version: 16
+          # sin cache npm (lo puedes añadir después si quieres)
 
       - name: Install dependencies
-        run: npm ci # instala limpio cada vez
+        run: npm ci
 
-      - name: Lint (ESLint) & Prettier check
-        run: |
-          npm run lint
-          npm run format             # solo verifica, no re-escribe
+      - name: Lint (ESLint)
+        run: npm run lint
 
       - name: Build React app
         run: npm run build

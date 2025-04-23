@@ -11,6 +11,8 @@ import Home from '../pages/Home';
 import DevTasksPage from '../pages/DevTasksPage';
 import ManagerTasksPage from '../pages/ManagerTasksPage';
 import ManagerKpisPage from '../pages/ManagerKpisPage';
+import UserKpisPage from '../pages/UserKpisPage';
+import TeamKpisPage from "../pages/TeamKpisPage";
 
 function AppRouter() {
   return (
@@ -32,6 +34,8 @@ function AppRouter() {
         <Route path="/dev/tasks" element={<DevTasksPage />} />
         <Route path="/manager/tasks" element={<ManagerTasksPage />} />
         <Route path="/manager/kpis" element={<ManagerKpisPage />} />
+        <Route path="/manager/kpis/user/:usuarioId" element={<UserKpisPage />} />
+        <Route path="/manager/kpis/team/:equipoId" element={<TeamKpisPage />} />
       </Routes>
     </Router>
   );

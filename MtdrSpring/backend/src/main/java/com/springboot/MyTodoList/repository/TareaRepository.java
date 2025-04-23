@@ -49,6 +49,41 @@ BigDecimal sumHorasRealesByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
     Long countCompletedTareasByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
                                 @Param("sprintId") Long sprintId);
 
+<<<<<<< HEAD
+    @Query(value = "SELECT COUNT(*) FROM ADMIN.TAREAS WHERE USUARIO_ID = :usuarioId", nativeQuery = true)
+    Long countByUsuario(@Param("usuarioId") Long usuarioId);
+
+    @Query(value = "SELECT COUNT(*) FROM ADMIN.TAREAS " +
+            "WHERE USUARIO_ID = :usuarioId " +
+            "AND ESTADO = 'completado' " +
+            "AND DEADLINE IS NOT NULL " +
+            "AND DEADLINE >= SYSTIMESTAMP", nativeQuery = true)
+    Long countCompletedBeforeDeadline(@Param("usuarioId") Long usuarioId);
+
+    @Query(value = "SELECT COUNT(*) FROM ADMIN.TAREAS " +
+            "WHERE USUARIO_ID = :usuarioId " +
+            "AND ESTADO = 'completado' " +
+            "AND DEADLINE IS NOT NULL " +
+            "AND DEADLINE < SYSTIMESTAMP", nativeQuery = true)
+    Long countCompletedAfterDeadline(@Param("usuarioId") Long usuarioId);
+
+    @Query(value = "SELECT COUNT(*) FROM ADMIN.TAREAS WHERE EQUIPO_ID = :equipoId", nativeQuery = true)
+    Long countByEquipo(@Param("equipoId") Long equipoId);
+
+    @Query(value = "SELECT COUNT(*) FROM ADMIN.TAREAS " +
+            "WHERE EQUIPO_ID = :equipoId " +
+            "AND ESTADO = 'completado' " +
+            "AND DEADLINE IS NOT NULL " +
+            "AND DEADLINE >= SYSTIMESTAMP", nativeQuery = true)
+    Long countCompletedBeforeDeadlineTeam(@Param("equipoId") Long equipoId);
+
+    @Query(value = "SELECT COUNT(*) FROM ADMIN.TAREAS " +
+            "WHERE EQUIPO_ID = :equipoId " +
+            "AND ESTADO = 'completado' " +
+            "AND DEADLINE IS NOT NULL " +
+            "AND DEADLINE < SYSTIMESTAMP", nativeQuery = true)
+    Long countCompletedAfterDeadlineTeam(@Param("equipoId") Long equipoId);
+=======
 
     // Horas estimadas por usuario en un sprint (de tareas completadas)
     @Query(value = "SELECT COALESCE(SUM(t.horas_estimadas), 0) " +
@@ -91,4 +126,5 @@ BigDecimal sumHorasEstimadasByUsuarioAndSprint(@Param("usuarioId") Long usuarioI
    nativeQuery = true)
    Long countAsignedTareasByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
                                @Param("sprintId") Long sprintId);
+>>>>>>> 42367d30ce84e0e77888a86ca579d782c95677a8
 }

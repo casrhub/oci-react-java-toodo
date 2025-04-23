@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 
 @Service
 public class TareaService {
@@ -127,6 +128,32 @@ public class TareaService {
     public Long countCompletedTareasByUsuarioAndSprint(Long usuarioId, Long sprintId) {
         return tareaRepository.countCompletedTareasByUsuarioAndSprint(usuarioId, sprintId);
     }
+<<<<<<< HEAD
+
+    public Map<String, Long> resumenPorEquipo(Long equipoId) {
+        long asignadas   = tareaRepository.countByEquipo(equipoId);
+        long antes       = tareaRepository.countCompletedBeforeDeadlineTeam(equipoId);
+        long despues     = tareaRepository.countCompletedAfterDeadlineTeam(equipoId);
+
+        return Map.of(
+                "asignadas", asignadas,
+                "completadasAntes", antes,
+                "completadasDespues", despues
+        );
+    }
+
+    public Map<String, Long> resumenPorUsuario(Long usuarioId) {
+        long asignadas   = tareaRepository.countByUsuario(usuarioId);
+        long antes       = tareaRepository.countCompletedBeforeDeadline(usuarioId);
+        long despues     = tareaRepository.countCompletedAfterDeadline(usuarioId);
+
+        return Map.of(
+                "asignadas", asignadas,
+                "completadasAntes", antes,
+                "completadasDespues", despues
+        );
+    }
+=======
     
     // Horas estimadas por usuario en un sprint    
     public BigDecimal sumHorasEstimadasByUsuarioAndSprint(Long usuarioId, Long sprintId) {
@@ -148,4 +175,5 @@ public class TareaService {
         return tareaRepository.countAsignedTareasByUsuarioAndSprint(usuarioId, sprintId);
     }
 
+>>>>>>> 42367d30ce84e0e77888a86ca579d782c95677a8
 } 

@@ -1,38 +1,49 @@
 import React from 'react';
-import '../styles/ManagerKpisPage.css'; 
+import '../styles/ManagerKpisPage.css';
 import MemberCard from '../components/Pages/MemberCard';
 import { useNavigate } from 'react-router-dom';
 
 function ManagerKpisPage() {
-  const history = useNavigate();
+  const navigate = useNavigate();
 
-  // Hardcoded team members (replace later with dynamic data)
   const teamMembers = [
-    { id: 1, name: 'Cesar' },
-    { id: 2, name: 'Jose María' },
-    { id: 3, name: 'Miguel Ángel' },
-    { id: 4, name: 'Diego' },
-    { id: 5, name: 'Fernanda' },
+    { id: 102, name: 'Cesar Alan Silva Ramos' },
+    { id: 1,   name: 'Jose Maria' },
+    { id: 104, name: 'Miguel Angel Barrientos Ballesteros' },
+    { id: 100, name: 'Diego Iván Morales Gallardo' },
+    { id: 103, name: 'Fernanda Díaz Gutiérrez' }
   ];
 
   const handleMemberClick = (member) => {
     console.log(`Clicked on ${member.name}`);
-    history(`/home`); // Navigate to the member's KPIs page
+    navigate(`/manager/kpis/user/${member.id}`);
+  };
+
+  const handleTeamClick = () => {
+    console.log("Clicked on Equipo 1");
+    navigate(`/manager/kpis/team/1`);
   };
 
   return (
-    <div className="manager-kpis-page">
-      <h1 className="title">Team Members</h1>
-      <div className="members-container">
-        {teamMembers.map(member => (
+      <div className="manager-kpis-page">
+        <h1 className="title">Team Members</h1>
+        <div className="members-container">
+          {teamMembers.map(member => (
+              <MemberCard
+                  key={member.id}
+                  name={member.name}
+                  onClick={() => handleMemberClick(member)}
+              />
+          ))}
+
+          {/* Nueva card para el equipo */}
           <MemberCard
-            key={member.id}
-            name={member.name}
-            onClick={() => handleMemberClick(member)}
+              key="team-1"
+              name="Equipo 1"
+              onClick={handleTeamClick}
           />
-        ))}
+        </div>
       </div>
-    </div>
   );
 }
 

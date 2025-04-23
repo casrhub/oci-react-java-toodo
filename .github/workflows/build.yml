@@ -1,3 +1,4 @@
+# .github/workflows/build.yml
 name: Backend + Frontend CI
 
 on:
@@ -24,7 +25,7 @@ jobs:
         working-directory: MtdrSpring/backend
         run: mvn --batch-mode clean package -DskipTests
 
-      - name: Upload JAR Artifact
+      - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
           name: MyTodoList-jar
@@ -33,7 +34,7 @@ jobs:
   # ---------- FRONTEND ----------
   frontend:
     runs-on: ubuntu-22.04
-    needs: backend # espera a que el backend termine OK
+    needs: backend # espera a que backend termine OK
 
     defaults:
       run:
@@ -45,16 +46,15 @@ jobs:
       - name: Set up Node 16
         uses: actions/setup-node@v4
         with:
-          node-version: 16
-          cache: npm
+          node-version: 16 # ⬅sin cache npm
 
-      - name: Install dependencies (npm ci)
-        run: npm ci
+      - name: Install dependencies
+        run: npm ci # instala limpio cada vez
 
       - name: Lint (ESLint) & Prettier check
         run: |
           npm run lint
-          npm run format    # solo verifica, no re-escribe
+          npm run format             # solo verifica, no re-escribe
 
       - name: Build React app
         run: npm run build

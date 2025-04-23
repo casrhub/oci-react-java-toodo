@@ -9,8 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -109,4 +107,25 @@ public class TareaService {
         }
         return null;
     }
+
+    // Horas trabajadas por equipo por sprint
+    public BigDecimal getHorasRealesByEquipoAndSprint(Long equipoId, Long sprintId) {
+        return tareaRepository.sumHorasRealesByEquipoAndSprint(equipoId, sprintId);
+    }    
+
+    // Tareas completadas por equipo por sprint
+    public Long countCompletedTareasByEquipoAndSprint(Long equipoId, Long sprintId) {
+        return tareaRepository.countCompletedTareasByEquipoAndSprint(equipoId, sprintId);
+    }  
+    
+    // Horas trabajadas por usuario en un sprint    
+    public BigDecimal sumHorasRealesByUsuarioAndSprint(Long usuarioId, Long sprintId) {
+        return tareaRepository.sumHorasRealesByUsuarioAndSprint(usuarioId, sprintId);
+    }
+    
+    // Tareas completadas por usuario en un sprint
+    public Long countCompletedTareasByUsuarioAndSprint(Long usuarioId, Long sprintId) {
+        return tareaRepository.countCompletedTareasByUsuarioAndSprint(usuarioId, sprintId);
+    }
+    
 } 

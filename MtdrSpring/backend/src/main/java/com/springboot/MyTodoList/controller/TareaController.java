@@ -89,7 +89,41 @@ public ResponseEntity<Tarea> updateDeadline(@PathVariable Long id, @RequestBody 
     }
 }
 
+// Horas trabajadas por equipo por sprint
+// RUTA EJEMPLO:
+// GET /tareas/equipo/1/sprint/3/horas-trabajadas
+@GetMapping("/equipo/{equipoId}/sprint/{sprintId}/horas-trabajadas")
+public ResponseEntity<BigDecimal> getHorasByEquipoAndSprint(@PathVariable Long equipoId,
+                                                             @PathVariable Long sprintId) {
+    BigDecimal horas = tareaService.getHorasRealesByEquipoAndSprint(equipoId, sprintId);
+    return ResponseEntity.ok(horas != null ? horas : BigDecimal.ZERO);
+}
 
+// Tareas completadas por equipo por sprint
+// RUTA EJEMPLO:
+// GET /tareas/equipo/1/sprint/2/tareas-completadas
+@GetMapping("/equipo/{equipoId}/sprint/{sprintId}/tareas-completadas")
+public ResponseEntity<Long> getCompletedTareasByEquipoAndSprint(@PathVariable Long equipoId,
+                                                                 @PathVariable Long sprintId) {
+    Long count = tareaService.countCompletedTareasByEquipoAndSprint(equipoId, sprintId);
+    return ResponseEntity.ok(count != null ? count : 0L);
+}
 
-    
+// Horas trabajadas por usuario en un sprint   
+// RUTA EJEMPLO:
+// GET /tareas/usuario/7/sprint/2/horas-trabajadas 
+@GetMapping("/usuario/{usuarioId}/sprint/{sprintId}/horas-trabajadas")
+public ResponseEntity<BigDecimal> getHorasByUsuarioAndSprint(@PathVariable Long usuarioId,
+                                                              @PathVariable Long sprintId) {
+    BigDecimal horas = tareaService.sumHorasRealesByUsuarioAndSprint(usuarioId, sprintId);
+    return ResponseEntity.ok(horas != null ? horas : BigDecimal.ZERO);
+}
+
+// Tareas completadas por usuario en un sprint
+@GetMapping("/usuario/{usuarioId}/sprint/{sprintId}/tareas-completadas")
+public ResponseEntity<Long> getCompletedTareasByUsuarioAndSprint(@PathVariable Long usuarioId,
+                                                                 @PathVariable Long sprintId) {
+    Long count = tareaService.countCompletedTareasByUsuarioAndSprint(usuarioId, sprintId);
+    return ResponseEntity.ok(count != null ? count : 0L);
+}
 }

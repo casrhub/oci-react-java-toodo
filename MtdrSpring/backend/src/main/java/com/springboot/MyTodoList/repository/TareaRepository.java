@@ -49,4 +49,46 @@ BigDecimal sumHorasRealesByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
     Long countCompletedTareasByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
                                 @Param("sprintId") Long sprintId);
 
+
+    // Horas estimadas por usuario en un sprint (de tareas completadas)
+    @Query(value = "SELECT COALESCE(SUM(t.horas_estimadas), 0) " +
+               "FROM ADMIN.TAREAS t " +
+               "WHERE t.estado = 'completado' " +
+               "AND t.usuario_id = :usuarioId " +
+               "AND t.sprint_id = :sprintId", 
+       nativeQuery = true)
+BigDecimal sumHorasEstimadasByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
+                                            @Param("sprintId") Long sprintId);
+
+    // Tareas completadas despues del deadline por usuario en un sprint
+    @Query(value = "SELECT COUNT(*) " +
+    "FROM ADMIN.TAREAS t " +
+    "WHERE t.estado = 'completado' " +
+    "AND t.usuario_id = :usuarioId " +
+    "AND t.sprint_id = :sprintId " +
+    "AND t.fecha_finalizacion > t.deadline", 
+    nativeQuery = true)
+    Long countCompletedTareasAfterDeadlineByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
+                                @Param("sprintId") Long sprintId);
+
+    // Tareas completadas antes del deadline por usuario en un sprint
+    @Query(value = "SELECT COUNT(*) " +
+    "FROM ADMIN.TAREAS t " +
+    "WHERE t.estado = 'completado' " +
+    "AND t.usuario_id = :usuarioId " +
+    "AND t.sprint_id = :sprintId " +
+    "AND t.fecha_finalizacion < t.deadline", 
+    nativeQuery = true)
+    Long countCompletedTareasBeforeDeadlineByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
+                                @Param("sprintId") Long sprintId);
+
+
+   // Tareas asignadas por usuario en un sprint
+   @Query(value = "SELECT COUNT(*) " +
+   "FROM ADMIN.TAREAS t " +
+   "WHERE t.usuario_id = :usuarioId " +
+   "AND t.sprint_id = :sprintId", 
+   nativeQuery = true)
+   Long countAsignedTareasByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
+                               @Param("sprintId") Long sprintId);
 }

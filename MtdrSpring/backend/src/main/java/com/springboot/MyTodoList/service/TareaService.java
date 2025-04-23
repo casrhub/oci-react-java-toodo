@@ -128,4 +128,24 @@ public class TareaService {
         return tareaRepository.countCompletedTareasByUsuarioAndSprint(usuarioId, sprintId);
     }
     
+    // Horas estimadas por usuario en un sprint    
+    public BigDecimal sumHorasEstimadasByUsuarioAndSprint(Long usuarioId, Long sprintId) {
+        return tareaRepository.sumHorasEstimadasByUsuarioAndSprint(usuarioId, sprintId);
+    }
+
+    // Tareas completadas antes del deadline por usuario en un sprint
+    public Long countCompletedTareasBeforeDeadlineByUsuarioAndSprint(Long usuarioId, Long sprintId) {
+        return tareaRepository.countCompletedTareasBeforeDeadlineByUsuarioAndSprint(usuarioId, sprintId);
+    }
+
+    // Tareas completadas despues del deadline por usuario en un sprint
+    public Long countCompletedTareasAfterDeadlineByUsuarioAndSprint(Long usuarioId, Long sprintId) {
+        return tareaRepository.countCompletedTareasAfterDeadlineByUsuarioAndSprint(usuarioId, sprintId);
+    }
+
+    // Tareas asignadas por usuario en un sprint
+    public Long countAsignedTareasByUsuarioAndSprint(Long usuarioId, Long sprintId) {
+        return tareaRepository.countAsignedTareasByUsuarioAndSprint(usuarioId, sprintId);
+    }
+
 } 

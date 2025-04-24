@@ -105,4 +105,11 @@ public class TareaController {
       return ResponseEntity.badRequest().build();
     }
   }
+
+  /* ---------- Get tasks by user ---------- */
+  @GetMapping("/user/{usuarioId}")
+  public ResponseEntity<List<Tarea>> getTareasByUsuario(@PathVariable Long usuarioId) {
+    List<Tarea> tareas = tareaService.findByUsuarioId(usuarioId);
+    return ResponseEntity.ok(tareas);
+  }
 }

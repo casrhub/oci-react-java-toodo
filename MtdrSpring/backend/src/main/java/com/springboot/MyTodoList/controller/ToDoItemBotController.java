@@ -628,6 +628,130 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
           BotHelper.sendMessageToTelegram(
               chatId, "❌ Something went wrong assigning the sprint.", this);
         }
+      } else if (messageTextFromTelegram.startsWith("/mytasks")) {
+        try {
+          String[] parts = messageTextFromTelegram.split(" ");
+          Long userId;
+          
+          if (parts.length > 1) {
+            // User ID provided in command
+            userId = Long.parseLong(parts[1]);
+          } else {
+            // Ask for user ID
+            BotHelper.sendMessageToTelegram(chatId, "Please provide your user ID: /mytasks <USER_ID>", this);
+            return;
+          }
+
+          List<Tarea> userTasks = tareaService.findByUsuarioId(userId);
+          
+          if (userTasks.isEmpty()) {
+            BotHelper.sendMessageToTelegram(chatId, "No tasks found for user " + userId, this);
+            return;
+          }
+
+          StringBuilder message = new StringBuilder();
+          message.append("📋 Tasks for user ").append(userId).append(":\n\n");
+
+          // Group tasks by status
+          Map<String, List<Tarea>> tasksByStatus = userTasks.stream()
+              .collect(Collectors.groupingBy(Tarea::getEstado));
+
+          // Show pending tasks first
+          if (tasksByStatus.containsKey("pendiente")) {
+            message.append("⏳ PENDING:\n");
+            tasksByStatus.get("pendiente").forEach(t -> 
+              message.append(String.format("  • ID %d: %s (%s hrs)\n", 
+                t.getTareaId(), t.getTitulo(), t.getHorasEstimadas()))
+            );
+            message.append("\n");
+          }
+
+          // Then in progress
+          if (tasksByStatus.containsKey("en progreso")) {
+            message.append("🔄 IN PROGRESS:\n");
+            tasksByStatus.get("en progreso").forEach(t -> 
+              message.append(String.format("  • ID %d: %s (%s hrs)\n", 
+                t.getTareaId(), t.getTitulo(), t.getHorasEstimadas()))
+            );
+            message.append("\n");
+          }
+
+          // Finally completed
+          if (tasksByStatus.containsKey("completado")) {
+            message.append("✅ COMPLETED:\n");
+            tasksByStatus.get("completado").forEach(t -> 
+              message.append(String.format("  • ID %d: %s (%s/%s hrs)\n", 
+                t.getTareaId(), t.getTitulo(), t.getHorasReales(), t.getHorasEstimadas()))
+            );
+          }
+
+          BotHelper.sendMessageToTelegram(chatId, message.toString(), this);
+        } catch (NumberFormatException e) {
+          BotHelper.sendMessageToTelegram(chatId, "❌ Invalid user ID format. Use: /mytasks <USER_ID>", this);
+        } catch (Exception e) {
+          logger.error("Error fetching user tasks", e);
+          BotHelper.sendMessageToTelegram(chatId, "❌ Error fetching tasks: " + e.getMessage(), this);
+        }
+      } else if (messageTextFromTelegram.startsWith("/kpi")) {
+        try {
+          String[] parts = messageTextFromTelegram.split(" ");
+          Long userId;
+          
+          if (parts.length > 1) {
+            // User ID provided in command
+            userId = Long.parseLong(parts[1]);
+          } else {
+            // Ask for user ID
+            BotHelper.sendMessageToTelegram(chatId, "Please provide your user ID: /kpi <USER_ID>", this);
+            return;
+          }
+
+          Map<String, Object> kpis = tareaService.calculateUserKPIs(userId);
+          
+          if ((Long)kpis.get("totalTasks") == 0) {
+            BotHelper.sendMessageToTelegram(chatId, "No tasks found for user " + userId, this);
+            return;
+          }
+
+          StringBuilder message = new StringBuilder();
+          message.append("📊 KPI Report for User ").append(userId).append("\n\n");
+          
+          // Task Statistics
+          message.append("📈 TASK STATISTICS\n");
+          message.append(String.format("Total Tasks: %d\n", kpis.get("totalTasks")));
+          message.append(String.format("├─ Completed: %d\n", kpis.get("completedTasks")));
+          message.append(String.format("├─ In Progress: %d\n", kpis.get("inProgressTasks")));
+          message.append(String.format("└─ Pending: %d\n", kpis.get("pendingTasks")));
+          message.append("\n");
+
+          // Time Statistics
+          message.append("⏱ TIME STATISTICS\n");
+          message.append(String.format("Total Estimated Hours: %.1f\n", ((BigDecimal)kpis.get("totalEstimatedHours")).doubleValue()));
+          message.append(String.format("Total Real Hours: %.1f\n", ((BigDecimal)kpis.get("totalRealHours")).doubleValue()));
+          
+          // For completed tasks
+          BigDecimal completedEstimated = (BigDecimal)kpis.get("completedEstimatedHours");
+          BigDecimal completedReal = (BigDecimal)kpis.get("completedRealHours");
+          message.append("\n📝 COMPLETED TASKS METRICS\n");
+          message.append(String.format("Estimated Hours: %.1f\n", completedEstimated.doubleValue()));
+          message.append(String.format("Real Hours: %.1f\n", completedReal.doubleValue()));
+          
+          // Efficiency calculation
+          if (completedEstimated.compareTo(BigDecimal.ZERO) > 0) {
+            double efficiency = (completedEstimated.doubleValue() / completedReal.doubleValue()) * 100;
+            message.append(String.format("Efficiency Rate: %.1f%%\n", efficiency));
+          }
+
+          // Completion Rate
+          message.append(String.format("\n✅ Completion Rate: %.1f%%\n", kpis.get("completionRate")));
+
+          BotHelper.sendMessageToTelegram(chatId, message.toString(), this);
+        } catch (NumberFormatException e) {
+          BotHelper.sendMessageToTelegram(chatId, "❌ Invalid user ID format. Use: /kpi <USER_ID>", this);
+        } catch (Exception e) {
+          logger.error("Error calculating KPIs", e);
+          BotHelper.sendMessageToTelegram(chatId, "❌ Error calculating KPIs: " + e.getMessage(), this);
+        }
       } else {
         try {
           ToDoItem newItem = new ToDoItem();

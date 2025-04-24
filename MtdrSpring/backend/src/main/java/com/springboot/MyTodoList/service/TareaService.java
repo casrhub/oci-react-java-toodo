@@ -8,7 +8,9 @@ import com.springboot.MyTodoList.repository.TareaRepository;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.HashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,10 @@ public class TareaService {
 
   public List<Tarea> findAll() {
     return tareaRepository.findAll();
+  }
+
+  public List<Tarea> findByUsuarioId(Long usuarioId) {
+    return tareaRepository.findByUsuarioId(usuarioId);
   }
 
   public Optional<Tarea> findById(Long id) {
@@ -131,5 +137,62 @@ public class TareaService {
               return tareaRepository.save(t);
             })
         .orElse(null);
+  }
+
+  /* ---------------- KPIs ---------------- */
+  public Map<String, Object> calculateUserKPIs(Long usuarioId) {
+    List<Tarea> userTasks = findByUsuarioId(usuarioId);
+    Map<String, Object> kpis = new HashMap<>();
+
+    // Basic counts
+    long totalTasks = userTasks.size();
+    long completedTasks = userTasks.stream()
+        .filter(t -> "completado".equalsIgnoreCase(t.getEstado()))
+        .count();
+    long inProgressTasks = userTasks.stream()
+        .filter(t -> "en progreso".equalsIgnoreCase(t.getEstado()))
+        .count();
+    long pendingTasks = userTasks.stream()
+        .filter(t -> "pendiente".equalsIgnoreCase(t.getEstado()))
+        .count();
+
+    // Time calculations
+    BigDecimal totalEstimatedHours = userTasks.stream()
+        .map(t -> t.getHorasEstimadas() != null ? t.getHorasEstimadas() : BigDecimal.ZERO)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    BigDecimal totalRealHours = userTasks.stream()
+        .filter(t -> t.getHorasReales() != null)
+        .map(Tarea::getHorasReales)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    // Calculate completion rate
+    double completionRate = totalTasks > 0 
+        ? (completedTasks * 100.0) / totalTasks 
+        : 0.0;
+
+    // Calculate efficiency (estimated vs real hours) for completed tasks
+    BigDecimal completedEstimatedHours = userTasks.stream()
+        .filter(t -> "completado".equalsIgnoreCase(t.getEstado()))
+        .map(t -> t.getHorasEstimadas() != null ? t.getHorasEstimadas() : BigDecimal.ZERO)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    BigDecimal completedRealHours = userTasks.stream()
+        .filter(t -> "completado".equalsIgnoreCase(t.getEstado()))
+        .map(t -> t.getHorasReales() != null ? t.getHorasReales() : BigDecimal.ZERO)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    // Store all calculations
+    kpis.put("totalTasks", totalTasks);
+    kpis.put("completedTasks", completedTasks);
+    kpis.put("inProgressTasks", inProgressTasks);
+    kpis.put("pendingTasks", pendingTasks);
+    kpis.put("completionRate", Math.round(completionRate * 100.0) / 100.0); // Round to 2 decimals
+    kpis.put("totalEstimatedHours", totalEstimatedHours);
+    kpis.put("totalRealHours", totalRealHours);
+    kpis.put("completedEstimatedHours", completedEstimatedHours);
+    kpis.put("completedRealHours", completedRealHours);
+
+    return kpis;
   }
 }

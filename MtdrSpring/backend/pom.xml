@@ -3,11 +3,12 @@
         xmlns="http://maven.apache.org/POM/4.0.0"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                        https://maven.apache.org/xsd/maven-4.0.0.xsd">
+                      https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
+    <!-- ──────────────────── META ──────────────────── -->
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Parent: Spring Boot starter -->
+    <!-- Spring-Boot BOM -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -15,25 +16,26 @@
         <relativePath/>
     </parent>
 
-    <!-- Basic project info -->
     <groupId>com.springboot</groupId>
     <artifactId>MyTodoList</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>MyTodoList</name>
     <description>Demo project for Spring Boot</description>
 
-    <!-- Properties -->
+    <!-- ─────────────────── PROPERTIES ────────────────── -->
     <properties>
         <java.version>11</java.version>
         <version.lib.ojdbc>21.1.0.0</version.lib.ojdbc>
+
+        <!-- frontend build -->
         <frontend-src-dir>${project.basedir}/src/main/frontend</frontend-src-dir>
         <node.version>v16.13.2</node.version>
         <npm.version>8.1.2</npm.version>
     </properties>
 
-    <!-- Dependencies -->
+    <!-- ────────────────── DEPENDENCIES ───────────────── -->
     <dependencies>
-        <!-- JPA, Web, Swagger, etc. -->
+        <!-- Spring Boot starters -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -42,6 +44,8 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+
+        <!-- Swagger (Springfox 2.x) -->
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger2</artifactId>
@@ -52,22 +56,28 @@
             <artifactId>springfox-swagger-ui</artifactId>
             <version>2.6.1</version>
         </dependency>
+
+        <!-- Otros -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
         </dependency>
+
+        <!-- Oracle JDBC -->
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
             <artifactId>ojdbc11-production</artifactId>
             <version>21.3.0.0</version>
+            <type>pom</type>
             <exclusions>
                 <exclusion>
                     <groupId>com.oracle.database.ha</groupId>
                     <artifactId>simplefan</artifactId>
                 </exclusion>
             </exclusions>
-            <type>pom</type>
         </dependency>
+
+        <!-- Tests / Security -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -80,6 +90,8 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
         </dependency>
+
+        <!-- Telegram bot -->
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots</artifactId>
@@ -87,67 +99,49 @@
         </dependency>
     </dependencies>
 
-    <!-- Build config -->
+    <!-- ───────────────────── BUILD ───────────────────── -->
     <build>
         <plugins>
-            <!-- Frontend Maven Plugin -->
+
+            <!-- Front-end build (sin cambios) -->
             <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
-                <version>1.15.0</version>
+                <version>1.9.1</version>
                 <configuration>
                     <nodeVersion>${node.version}</nodeVersion>
                     <npmVersion>${npm.version}</npmVersion>
                     <workingDirectory>${frontend-src-dir}</workingDirectory>
+                    <installDirectory>${project.build.directory}</installDirectory>
                 </configuration>
                 <executions>
-                    <!-- Install Node & NPM -->
                     <execution>
                         <id>install-frontend-tools</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>install-node-and-npm</goal>
-                        </goals>
+                        <goals><goal>install-node-and-npm</goal></goals>
                     </execution>
-
-                    <!-- NPM Install -->
                     <execution>
                         <id>npm install</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>install</arguments>
-                        </configuration>
+                        <goals><goal>npm</goal></goals>
+                        <configuration><arguments>install</arguments></configuration>
                     </execution>
-
-                    <!-- NPM Build -->
                     <execution>
                         <id>npm run build</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>run build</arguments>
-                        </configuration>
+                        <goals><goal>npm</goal></goals>
+                        <configuration><arguments>run build</arguments></configuration>
                     </execution>
                 </executions>
             </plugin>
 
-            <!-- Copy React build to /static -->
+            <!-- Copiar build de React a /static -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>3.2.0</version>
                 <executions>
                     <execution>
-                        <id>copy-frontend-build</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
+                        <id>position-react-build</id>
+                        <phase>prepare-package</phase>
+                        <goals><goal>copy-resources</goal></goals>
                         <configuration>
                             <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
                             <resources>
@@ -161,22 +155,59 @@
                 </executions>
             </plugin>
 
-            <!-- Spring Boot Maven Plugin -->
+            <!-- Spring Boot repackage -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${project.parent.version}</version>
                 <configuration>
                     <mainClass>com.springboot.MyTodoList.MyTodoListApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
+                        <goals><goal>repackage</goal></goals>
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- ─────────── Spotless: formato de código ─────────── -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.44.2</version>
+                <configuration>
+                    <java>
+                        <googleJavaFormat version="1.18"/>
+                    </java>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>spotless-check</id>
+                        <phase>verify</phase>
+                        <goals><goal>check</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- ─────────── Checkstyle: reglas Google ─────────── -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <configLocation>google_checks.xml</configLocation>
+                    <encoding>UTF-8</encoding>
+                    <consoleOutput>true</consoleOutput>
+                    <failOnViolation>true</failOnViolation>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>checkstyle-verify</id>
+                        <phase>verify</phase>
+                        <goals><goal>check</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 </project>

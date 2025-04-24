@@ -241,6 +241,3 @@ public class TareaService {
     return kpis;
   }
 }
-
-
-

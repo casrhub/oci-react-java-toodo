@@ -156,14 +156,16 @@ public class TareaController {
   @GetMapping("/usuario/{usuarioId}/sprint/{sprintId}/tareas-completadas-antes-deadline")
   public ResponseEntity<Long> getCompletedTareasBeforeDeadlineByUsuarioAndSprint(
       @PathVariable Long usuarioId, @PathVariable Long sprintId) {
-    Long count = tareaService.countCompletedTareasBeforeDeadlineByUsuarioAndSprint(usuarioId, sprintId);
+    Long count =
+        tareaService.countCompletedTareasBeforeDeadlineByUsuarioAndSprint(usuarioId, sprintId);
     return ResponseEntity.ok(count != null ? count : 0L);
   }
 
   @GetMapping("/usuario/{usuarioId}/sprint/{sprintId}/tareas-completadas-despues-deadline")
   public ResponseEntity<Long> getCompletedTareasAfterDeadlineByUsuarioAndSprint(
       @PathVariable Long usuarioId, @PathVariable Long sprintId) {
-    Long count = tareaService.countCompletedTareasAfterDeadlineByUsuarioAndSprint(usuarioId, sprintId);
+    Long count =
+        tareaService.countCompletedTareasAfterDeadlineByUsuarioAndSprint(usuarioId, sprintId);
     return ResponseEntity.ok(count != null ? count : 0L);
   }
 

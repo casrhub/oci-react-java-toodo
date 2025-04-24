@@ -20,219 +20,227 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 /**
- * Ejemplo de test para TareaController con @SpringBootTest y @AutoConfigureMockMvc. Las referencias
- * a getId() se han sustituido por getTareaId(), para coincidir con el método de tu clase Tarea.
+ * Tests for TareaController covering CRUD, assign, complete, deadline, KPIs,
+ * summaries, and user-specific fetch.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 class TareaControllerTest {
 
-  @Autowired private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-  @Autowired private ObjectMapper objectMapper;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-  private Tarea testTarea;
+    private Tarea testTarea;
 
-  @BeforeEach
-  void setUp() {
-    testTarea = new Tarea();
-    testTarea.setTitulo("Tarea de prueba");
-    testTarea.setDescripcion("Descripción inicial de prueba");
-  }
+    @BeforeEach
+    void setUp() {
+        testTarea = new Tarea();
+        testTarea.setTitulo("Tarea de prueba");
+        testTarea.setDescripcion("Descripción inicial de prueba");
+    }
 
-  /** Test para GET /tareas. Verifica simplemente que se obtenga HTTP 200 (OK). */
-  @Test
-  void testGetAllTareas() throws Exception {
-    mockMvc
-        .perform(get("/tareas").contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk());
-  }
+    @Test
+    void testGetAllTareas() throws Exception {
+        mockMvc.perform(get("/tareas").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
 
-  /** Test para POST /tareas. Crea una Tarea y verifica que contenga un tareaId. */
-  @Test
-  void testCreateTarea() throws Exception {
-    String tareaJson = objectMapper.writeValueAsString(testTarea);
+    @Test
+    void testCreateTarea() throws Exception {
+        String tareaJson = objectMapper.writeValueAsString(testTarea);
+        MvcResult mvcResult = mockMvc.perform(post("/tareas")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(tareaJson)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
 
-    MvcResult mvcResult =
-        mockMvc
-            .perform(
-                post("/tareas")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(tareaJson)
-                    .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk()) // O .isCreated(), depende de tu implementación
-            .andReturn();
+        Tarea created = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Tarea.class);
+        assertNotNull(created.getTareaId());
+        assertEquals(testTarea.getTitulo(), created.getTitulo());
+    }
 
-    String responseBody = mvcResult.getResponse().getContentAsString();
-    Tarea created = objectMapper.readValue(responseBody, Tarea.class);
+    @Test
+    void testGetTareaById_NotFound() throws Exception {
+        mockMvc.perform(get("/tareas/9999").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
 
-    assertNotNull(created.getTareaId(), "La Tarea creada debe tener un tareaId autogenerado");
-    assertEquals(
-        testTarea.getTitulo(), created.getTitulo(), "El título debe coincidir con el enviado");
-  }
+    @Test
+    void testUpdateTarea() throws Exception {
+        // Create
+        String tareaJson = objectMapper.writeValueAsString(testTarea);
+        MvcResult createResult = mockMvc.perform(post("/tareas")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(tareaJson))
+                .andExpect(status().isOk())
+                .andReturn();
+        Tarea created = objectMapper.readValue(createResult.getResponse().getContentAsString(), Tarea.class);
 
-  /** Test para GET /tareas/{id} con un ID no existente. Espera un HTTP 404 (Not Found). */
-  @Test
-  void testGetTareaById_NotFound() throws Exception {
-    mockMvc
-        .perform(get("/tareas/9999").accept(MediaType.APPLICATION_JSON))
-        .andExpect(status().isNotFound());
-  }
+        // Update
+        created.setTitulo("Titulo actualizado");
+        String updatedJson = objectMapper.writeValueAsString(created);
+        MvcResult updateResult = mockMvc.perform(put("/tareas/" + created.getTareaId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updatedJson))
+                .andExpect(status().isOk())
+                .andReturn();
 
-  /**
-   * Test para PUT /tareas/{id}. Crea primero la Tarea, luego la modifica y confirma la
-   * actualización.
-   */
-  @Test
-  void testUpdateTarea() throws Exception {
-    // 1) Crear la Tarea
-    String tareaJson = objectMapper.writeValueAsString(testTarea);
-    MvcResult createResult =
-        mockMvc
-            .perform(post("/tareas").contentType(MediaType.APPLICATION_JSON).content(tareaJson))
-            .andExpect(status().isOk())
-            .andReturn();
+        Tarea updated = objectMapper.readValue(updateResult.getResponse().getContentAsString(), Tarea.class);
+        assertEquals("Titulo actualizado", updated.getTitulo());
+    }
 
-    Tarea created =
-        objectMapper.readValue(createResult.getResponse().getContentAsString(), Tarea.class);
+    @Test
+    void testDeleteTarea() throws Exception {
+        // Create
+        String tareaJson = objectMapper.writeValueAsString(testTarea);
+        MvcResult createResult = mockMvc.perform(post("/tareas")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(tareaJson))
+                .andExpect(status().isOk())
+                .andReturn();
+        Tarea created = objectMapper.readValue(createResult.getResponse().getContentAsString(), Tarea.class);
 
-    // 2) Actualizar campo
-    created.setTitulo("Titulo actualizado");
-    String updatedJson = objectMapper.writeValueAsString(created);
+        // Delete
+        mockMvc.perform(delete("/tareas/" + created.getTareaId()))
+                .andExpect(status().isOk());
 
-    // 3) PUT /tareas/{id} usando getTareaId()
-    MvcResult updateResult =
-        mockMvc
-            .perform(
-                put("/tareas/" + created.getTareaId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(updatedJson))
-            .andExpect(status().isOk())
-            .andReturn();
+        // Verify gone
+        mockMvc.perform(get("/tareas/" + created.getTareaId()))
+                .andExpect(status().isNotFound());
+    }
 
-    // 4) Comprobar la respuesta
-    Tarea updated =
-        objectMapper.readValue(updateResult.getResponse().getContentAsString(), Tarea.class);
-    assertEquals("Titulo actualizado", updated.getTitulo(), "El titulo debe haberse actualizado");
-  }
+    @Test
+    void testMarkAsComplete() throws Exception {
+        // Create
+        String tareaJson = objectMapper.writeValueAsString(testTarea);
+        MvcResult createResult = mockMvc.perform(post("/tareas")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(tareaJson))
+                .andExpect(status().isOk())
+                .andReturn();
+        Tarea created = objectMapper.readValue(createResult.getResponse().getContentAsString(), Tarea.class);
 
-  /**
-   * Test para DELETE /tareas/{id}. Crea la Tarea, la elimina, y verifica que GET posterior devuelva
-   * 404.
-   */
-  @Test
-  void testDeleteTarea() throws Exception {
-    // 1) Crear la Tarea
-    String tareaJson = objectMapper.writeValueAsString(testTarea);
-    MvcResult createResult =
-        mockMvc
-            .perform(post("/tareas").contentType(MediaType.APPLICATION_JSON).content(tareaJson))
-            .andExpect(status().isOk())
-            .andReturn();
+        // Complete payload
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("estado", "COMPLETADO");
+        payload.put("horasReales", new BigDecimal("3.5"));
+        String payloadJson = objectMapper.writeValueAsString(payload);
 
-    Tarea created =
-        objectMapper.readValue(createResult.getResponse().getContentAsString(), Tarea.class);
-
-    // 2) DELETE /tareas/{id}
-    mockMvc.perform(delete("/tareas/" + created.getTareaId())).andExpect(status().isOk());
-
-    // 3) Intentar recuperar la misma Tarea (404)
-    mockMvc.perform(get("/tareas/" + created.getTareaId())).andExpect(status().isNotFound());
-  }
-
-  /** Test para PUT /tareas/{id}/complete. Marca la tarea como COMPLETADO y asigna horasReales. */
-  @Test
-  void testMarkAsComplete() throws Exception {
-    // 1) Crear la Tarea
-    String tareaJson = objectMapper.writeValueAsString(testTarea);
-    MvcResult createResult =
-        mockMvc
-            .perform(post("/tareas").contentType(MediaType.APPLICATION_JSON).content(tareaJson))
-            .andExpect(status().isOk())
-            .andReturn();
-
-    Tarea created =
-        objectMapper.readValue(createResult.getResponse().getContentAsString(), Tarea.class);
-
-    // 2) Armar el payload
-    Map<String, Object> payload = new HashMap<>();
-    payload.put("estado", "COMPLETADO");
-    payload.put("horasReales", new BigDecimal("3.5"));
-    String payloadJson = objectMapper.writeValueAsString(payload);
-
-    // 3) PUT /tareas/{id}/complete
-    MvcResult completeResult =
-        mockMvc
-            .perform(
-                put("/tareas/" + created.getTareaId() + "/complete")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(payloadJson))
-            .andExpect(status().isOk())
-            .andReturn();
-
-    // 4) Validar la respuesta
-    Tarea updated =
-        objectMapper.readValue(completeResult.getResponse().getContentAsString(), Tarea.class);
-    assertEquals(
-        "COMPLETADO", updated.getEstado(), "La tarea debe haberse marcado como COMPLETADO");
-    assertEquals(
-        new BigDecimal("3.5"), updated.getHorasReales(), "Debe reflejar las horas reales enviadas");
-  }
-
-  /** Test para PUT /tareas/{id}/deadline. Cambia la fecha límite (deadline). */
-  @Test
-  void testUpdateDeadline() throws Exception {
-    // 1) Crear la Tarea
-    String tareaJson = objectMapper.writeValueAsString(testTarea);
-    MvcResult createResult =
-        mockMvc
-            .perform(post("/tareas").contentType(MediaType.APPLICATION_JSON).content(tareaJson))
-            .andExpect(status().isOk())
-            .andReturn();
-
-    Tarea created =
-        objectMapper.readValue(createResult.getResponse().getContentAsString(), Tarea.class);
-
-    // 2) Payload con nueva fecha
-    OffsetDateTime newDeadline = OffsetDateTime.now().plusDays(3);
-    Map<String, String> payload = new HashMap<>();
-    payload.put("deadline", newDeadline.toString());
-    String payloadJson = objectMapper.writeValueAsString(payload);
-
-    // 3) PUT /tareas/{id}/deadline
-    MvcResult deadlineResult =
-        mockMvc
-            .perform(
-                put("/tareas/" + created.getTareaId() + "/deadline")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(payloadJson))
-            .andExpect(status().isOk())
-            .andReturn();
-
-    // 4) Validar la respuesta
-    Tarea updated =
-        objectMapper.readValue(deadlineResult.getResponse().getContentAsString(), Tarea.class);
-    assertEquals(
-        newDeadline.toInstant(),
-        updated.getDeadline().toInstant(),
-        "La fecha límite debe haberse actualizado correctamente");
-  }
-
-  /**
-   * Test para PUT /tareas/{id}/deadline con fecha en formato inválido... Esperamos HTTP 400 (Bad
-   * Request).
-   */
-  @Test
-  void testUpdateDeadline_BadRequest() throws Exception {
-    Map<String, String> payload = new HashMap<>();
-    payload.put("deadline", "fecha-invalida");
-    String payloadJson = objectMapper.writeValueAsString(payload);
-
-    mockMvc
-        .perform(
-            put("/tareas/9999/deadline")
+        // Complete endpoint
+        MvcResult completeResult = mockMvc.perform(put("/tareas/" + created.getTareaId() + "/complete")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payloadJson))
-        .andExpect(status().isBadRequest());
-  }
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Tarea updated = objectMapper.readValue(completeResult.getResponse().getContentAsString(), Tarea.class);
+        assertEquals("COMPLETADO", updated.getEstado());
+        assertEquals(new BigDecimal("3.5"), updated.getHorasReales());
+    }
+
+    @Test
+    void testUpdateDeadline() throws Exception {
+        // Create
+        String tareaJson = objectMapper.writeValueAsString(testTarea);
+        MvcResult createResult = mockMvc.perform(post("/tareas")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(tareaJson))
+                .andExpect(status().isOk())
+                .andReturn();
+        Tarea created = objectMapper.readValue(createResult.getResponse().getContentAsString(), Tarea.class);
+
+        // Deadline payload
+        OffsetDateTime newDeadline = OffsetDateTime.now().plusDays(3);
+        Map<String, String> payload = Map.of("deadline", newDeadline.toString());
+        String payloadJson = objectMapper.writeValueAsString(payload);
+
+        // Update deadline
+        MvcResult dlResult = mockMvc.perform(put("/tareas/" + created.getTareaId() + "/deadline")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payloadJson))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Tarea updated = objectMapper.readValue(dlResult.getResponse().getContentAsString(), Tarea.class);
+        assertEquals(newDeadline.toInstant(), updated.getDeadline().toInstant());
+    }
+
+    @Test
+    void testUpdateDeadline_BadRequest() throws Exception {
+        String badJson = objectMapper.writeValueAsString(Map.of("deadline", "not-a-date"));
+        mockMvc.perform(put("/tareas/1234/deadline")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(badJson))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testUpdateAssignee() throws Exception {
+        // Create
+        String tareaJson = objectMapper.writeValueAsString(testTarea);
+        MvcResult createResult = mockMvc.perform(post("/tareas")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(tareaJson))
+                .andExpect(status().isOk())
+                .andReturn();
+        Tarea created = objectMapper.readValue(createResult.getResponse().getContentAsString(), Tarea.class);
+
+        // Assignee payload
+        Map<String, Long> payload = Map.of("usuarioId", 42L);
+        String payloadJson = objectMapper.writeValueAsString(payload);
+
+        // PATCH assignee
+        mockMvc.perform(patch("/tareas/" + created.getTareaId() + "/assignee")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payloadJson))
+                .andExpect(status().isOk());
+
+        // Verify change
+        MvcResult getResult = mockMvc.perform(get("/tareas/" + created.getTareaId())
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        Tarea updated = objectMapper.readValue(getResult.getResponse().getContentAsString(), Tarea.class);
+        assertEquals(42L, updated.getUsuarioId());
+    }
+
+    @Test
+    void testUpdateAssignee_BadRequest() throws Exception {
+        mockMvc.perform(patch("/tareas/1/assignee")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testGetHorasByEquipoAndSprint_Empty() throws Exception {
+        mockMvc.perform(get("/tareas/equipo/99/sprint/88/horas-trabajadas"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("0"));
+    }
+
+    @Test
+    void testGetCompletedTareasByEquipoAndSprint_Empty() throws Exception {
+        mockMvc.perform(get("/tareas/equipo/77/sprint/66/tareas-completadas"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("0"));
+    }
+
+    @Test
+    void testResumenPorUsuario_Empty() throws Exception {
+        mockMvc.perform(get("/tareas/usuario/55/summary"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{}"));
+    }
+
+    @Test
+    void testGetTareasByUsuario_Empty() throws Exception {
+        mockMvc.perform(get("/tareas/user/123"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+    }
 }

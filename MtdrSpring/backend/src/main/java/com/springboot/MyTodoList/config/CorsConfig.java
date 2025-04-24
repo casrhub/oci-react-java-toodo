@@ -10,33 +10,33 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 /**
- * Configuración de CORS para permitir peticiones del frontend local y producción.
- * Also includes setup for development environment testing (author: peter.song@oracle.com)
+ * Configuración de CORS para permitir peticiones del frontend local y producción. Also includes
+ * setup for development environment testing (author: peter.song@oracle.com)
  */
 @Configuration
 public class CorsConfig {
-    Logger logger = LoggerFactory.getLogger(CorsConfig.class);
+  Logger logger = LoggerFactory.getLogger(CorsConfig.class);
 
-    @Bean
-    public CorsFilter corsFilter() {
-        CorsConfiguration config = new CorsConfiguration();
-        
-        // Secure and explicit origins (only these allowed)
-        config.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "https://objectstorage.us-phoenix-1.oraclecloud.com",
-                "https://petstore.swagger.io"
-        ));
-        
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "OPTIONS", "DELETE", "PATCH"));
-        config.addAllowedHeader("*");
-        config.addExposedHeader("location");
-        config.setAllowCredentials(true); // allows sending cookies/auth headers
+  @Bean
+  public CorsFilter corsFilter() {
+    CorsConfiguration config = new CorsConfiguration();
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+    // Secure and explicit origins (only these allowed)
+    config.setAllowedOrigins(
+        List.of(
+            "http://localhost:3000",
+            "https://objectstorage.us-phoenix-1.oraclecloud.com",
+            "https://petstore.swagger.io"));
 
-        logger.info("✅ CORS configurado correctamente");
-        return new CorsFilter(source);
-    }
+    config.setAllowedMethods(List.of("GET", "POST", "PUT", "OPTIONS", "DELETE", "PATCH"));
+    config.addAllowedHeader("*");
+    config.addExposedHeader("location");
+    config.setAllowCredentials(true); // allows sending cookies/auth headers
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+
+    logger.info("✅ CORS configurado correctamente");
+    return new CorsFilter(source);
+  }
 }

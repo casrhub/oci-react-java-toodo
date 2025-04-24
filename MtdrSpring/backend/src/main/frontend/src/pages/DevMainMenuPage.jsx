@@ -9,9 +9,10 @@ function MainMenuPage() {
     <div className="main-menu-page">
       <h1 className="main-menu-title">Project Management Tool</h1>
       <div className="button-group">
-        <button className="main-menu-button" onClick={() => history('/kpis')}>
-          KPIs
-        </button>
+      <button className="main-menu-button" onClick={() => history('/kpis')}>
+  KPIs (Coming Soon)
+</button>
+
         <button className="main-menu-button" onClick={() => history('/dev/tasks')}>
           Tasks
         </button>

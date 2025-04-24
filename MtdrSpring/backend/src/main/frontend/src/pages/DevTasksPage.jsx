@@ -143,6 +143,7 @@ export default function DevTasksPage() {
   const toggleExpand = (id) => {
     if (expanded === id) { setExpanded(null); return; }
     fetchSubs(id).then(subs => {
+      console.log('Task details:', tasks.find(t => t.tareaId === id));  // Debug log
       setTasks(p => p.map(t => t.tareaId === id ? { ...t, subTareas: subs } : t));
       setExpanded(id);
     }).catch(setError);
@@ -220,35 +221,88 @@ export default function DevTasksPage() {
                     {/* expanded row */}
                     {expanded===t.tareaId && (
                       <TableRow>
-                        <TableCell colSpan={6} sx={{ bgcolor:'#fafafa' }}>
-                          <Typography variant="subtitle2">Description</Typography>
-                          <Typography sx={{ whiteSpace:'pre-wrap' }}>
-                            {t.descripcion || '—'}
-                          </Typography>
+                        <TableCell colSpan={6} sx={{ bgcolor:'#f5f5f5', p: 3 }}>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {/* Description Section */}
+                            <Box>
+                              <Typography variant="subtitle1" fontWeight="bold" color="primary">
+                                Description
+                              </Typography>
+                              <Typography sx={{ whiteSpace:'pre-wrap', mt: 1 }}>
+                                {t.descripcion || '—'}
+                              </Typography>
+                            </Box>
 
-                          <Typography mt={2} variant="subtitle2">Sub-tasks</Typography>
-                          {t.subTareas?.length
-                            ? <ul>{t.subTareas.map(s=>(
-                                <li key={s.subTareaId}>
-                                  {s.titulo} — {s.horasEstimadas}h ({s.estado})
-                                </li>
-                              ))}</ul>
-                            : <Typography>No subtasks</Typography>}
+                            {/* Time Information Section */}
+                            <Box sx={{ display: 'flex', gap: 4, mt: 2 }}>
+                              <Box sx={{ minWidth: 200 }}>
+                                <Typography variant="subtitle1" fontWeight="bold" color="primary">
+                                  Time Information
+                                </Typography>
+                                <Box sx={{ mt: 1 }}>
+                                  <Typography><strong>Estimated Hours:</strong> {t.horasEstimadas || '—'}</Typography>
+                                  <Typography><strong>Real Hours:</strong> {t.horasReales || '—'}</Typography>
+                                  <Typography><strong>Status:</strong> {t.estado || '—'}</Typography>
+                                </Box>
+                              </Box>
 
-                          {/* add subtask */}
-                          <Box component="form"
-                               sx={{ display:'flex', gap:1, mt:1, maxWidth:400 }}
-                               onSubmit={e=>{
-                                 e.preventDefault();
-                                 addSub(t.tareaId,newSubTitle,newSubHours);
-                                 setNewSubTitle(''); setNewSubHours('');
-                               }}>
-                            <TextField size="small" label="Title" value={newSubTitle}
-                                       onChange={e=>setNewSubTitle(e.target.value)}/>
-                            <TextField size="small" label="Hours" type="number"
-                                       value={newSubHours}
-                                       onChange={e=>setNewSubHours(e.target.value)}/>
-                            <Button type="submit" variant="contained">Add</Button>
+                              <Box sx={{ minWidth: 200 }}>
+                                <Typography variant="subtitle1" fontWeight="bold" color="primary">
+                                  Dates
+                                </Typography>
+                                <Box sx={{ mt: 1 }}>
+                                  <Typography>
+                                    <strong>Created:</strong>{' '}
+                                    {t.fechaCreacion ? (
+                                      <Moment format="DD/MM/YYYY HH:mm" utc>{t.fechaCreacion}</Moment>
+                                    ) : '—'}
+                                  </Typography>
+                                  <Typography>
+                                    <strong>Deadline:</strong>{' '}
+                                    {t.deadline ? (
+                                      <Moment format="DD/MM/YYYY HH:mm" utc>{t.deadline}</Moment>
+                                    ) : '—'}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Box>
+
+                            {/* Subtasks Section */}
+                            <Box sx={{ mt: 2 }}>
+                              <Typography variant="subtitle1" fontWeight="bold" color="primary">
+                                Sub-tasks
+                              </Typography>
+                              {t.subTareas?.length ? (
+                                <Box component="ul" sx={{ mt: 1, pl: 2 }}>
+                                  {t.subTareas.map(s => (
+                                    <li key={s.subTareaId}>
+                                      <Typography>
+                                        {s.titulo} — {s.horasEstimadas}h ({s.estado})
+                                      </Typography>
+                                    </li>
+                                  ))}
+                                </Box>
+                              ) : (
+                                <Typography sx={{ mt: 1 }}>No subtasks</Typography>
+                              )}
+
+                              {/* Add subtask form */}
+                              <Box component="form"
+                                   sx={{ display: 'flex', gap: 1, mt: 2, maxWidth: 400 }}
+                                   onSubmit={e => {
+                                     e.preventDefault();
+                                     addSub(t.tareaId, newSubTitle, newSubHours);
+                                     setNewSubTitle('');
+                                     setNewSubHours('');
+                                   }}>
+                                <TextField size="small" label="Title" value={newSubTitle}
+                                         onChange={e => setNewSubTitle(e.target.value)} />
+                                <TextField size="small" label="Hours" type="number"
+                                         value={newSubHours}
+                                         onChange={e => setNewSubHours(e.target.value)} />
+                                <Button type="submit" variant="contained">Add</Button>
+                              </Box>
+                            </Box>
                           </Box>
                         </TableCell>
                       </TableRow>

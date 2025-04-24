@@ -8,7 +8,7 @@ function ManagerKpisPage() {
 
   const teamMembers = [
     { id: 102, name: 'Cesar Alan Silva Ramos' },
-    { id: 1,   name: 'Jose Maria' },
+    { id: 101,   name: 'Jose Maria' },
     { id: 104, name: 'Miguel Angel Barrientos Ballesteros' },
     { id: 100, name: 'Diego Iván Morales Gallardo' },
     { id: 103, name: 'Fernanda Díaz Gutiérrez' }

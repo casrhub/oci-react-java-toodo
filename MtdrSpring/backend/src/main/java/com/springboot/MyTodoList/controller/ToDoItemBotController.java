@@ -233,14 +233,22 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
         for (Tarea item : activeTareas) {
           KeyboardRow currentRow = new KeyboardRow();
-          currentRow.add(item.getTitulo());
+          String title = item.getTitulo();
+          if (title == null || title.trim().isEmpty()) {
+            title = "Untitled Task";
+          }
+          currentRow.add(title);
           currentRow.add(item.getTareaId() + BotLabels.DASH.getLabel() + BotLabels.DONE.getLabel());
           keyboard.add(currentRow);
         }
 
         for (Tarea item : doneItems) {
           KeyboardRow currentRow = new KeyboardRow();
-          currentRow.add(item.getDescripcion());
+          String description = item.getDescripcion();
+          if (description == null || description.trim().isEmpty()) {
+            description = "No description";
+          }
+          currentRow.add(description);
           currentRow.add(item.getTareaId() + BotLabels.DASH.getLabel() + BotLabels.UNDO.getLabel());
           currentRow.add(
               item.getTareaId() + BotLabels.DASH.getLabel() + BotLabels.DELETE.getLabel());
@@ -544,10 +552,43 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
           Long tareaId = Long.parseLong(parts[1]);
           pendingSprintTareaId.put(chatId, tareaId);
           sessionState.put(chatId, "AWAITING_SPRINT_ID");
-          BotHelper.sendMessageToTelegram(
-              chatId, "📦 Please enter the SPRINT_ID to assign this task to:", this);
+          BotHelper.sendMessageToTelegram(chatId, "📦 Please enter the SPRINT_ID to assign this task to:", this);
         } catch (NumberFormatException e) {
           BotHelper.sendMessageToTelegram(chatId, "❌ Invalid TAREA_ID format.", this);
+        }
+      } else if (messageTextFromTelegram.startsWith("/assign")) {
+        String[] parts = messageTextFromTelegram.split(" ");
+        if (parts.length != 2) {
+          BotHelper.sendMessageToTelegram(chatId, "⚠️ Usage: /assign <TAREA_ID>", this);
+          return;
+        }
+
+        try {
+          Long tareaId = Long.parseLong(parts[1]);
+          pendingTaskIdTwo.put(chatId, tareaId);
+          sessionState.put(chatId, "AWAITING_USER_ID");
+          BotHelper.sendMessageToTelegram(chatId, "👤 Please enter the USER_ID to assign this task to:", this);
+        } catch (NumberFormatException e) {
+          BotHelper.sendMessageToTelegram(chatId, "❌ Invalid TAREA_ID format.", this);
+        }
+      } else if ("AWAITING_USER_ID".equals(sessionState.get(chatId))) {
+        try {
+          Long userId = Long.parseLong(messageTextFromTelegram);
+          Long tareaId = pendingTaskIdTwo.get(chatId);
+
+          Tarea updated = tareaService.updateAssignee(tareaId, userId);
+          if (updated != null) {
+            BotHelper.sendMessageToTelegram(chatId, "✅ Task " + tareaId + " assigned to user " + userId, this);
+          } else {
+            BotHelper.sendMessageToTelegram(chatId, "❌ Task not found.", this);
+          }
+
+          // Clear session state
+          sessionState.remove(chatId);
+          pendingTaskIdTwo.remove(chatId);
+        } catch (Exception e) {
+          logger.error("❌ Error assigning task", e);
+          BotHelper.sendMessageToTelegram(chatId, "❌ Invalid USER_ID format. Please try again.", this);
         }
       } else if ("AWAITING_SPRINT_ID".equals(sessionState.get(chatId))) {
         try {

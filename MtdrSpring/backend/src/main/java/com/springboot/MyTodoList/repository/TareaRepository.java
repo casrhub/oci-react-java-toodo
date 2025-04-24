@@ -49,7 +49,6 @@ BigDecimal sumHorasRealesByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
     Long countCompletedTareasByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
                                 @Param("sprintId") Long sprintId);
 
-<<<<<<< HEAD
     @Query(value = "SELECT COUNT(*) FROM ADMIN.TAREAS WHERE USUARIO_ID = :usuarioId", nativeQuery = true)
     Long countByUsuario(@Param("usuarioId") Long usuarioId);
 
@@ -83,7 +82,6 @@ BigDecimal sumHorasRealesByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
             "AND DEADLINE IS NOT NULL " +
             "AND DEADLINE < SYSTIMESTAMP", nativeQuery = true)
     Long countCompletedAfterDeadlineTeam(@Param("equipoId") Long equipoId);
-=======
 
     // Horas estimadas por usuario en un sprint (de tareas completadas)
     @Query(value = "SELECT COALESCE(SUM(t.horas_estimadas), 0) " +
@@ -126,5 +124,4 @@ BigDecimal sumHorasEstimadasByUsuarioAndSprint(@Param("usuarioId") Long usuarioI
    nativeQuery = true)
    Long countAsignedTareasByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
                                @Param("sprintId") Long sprintId);
->>>>>>> 42367d30ce84e0e77888a86ca579d782c95677a8
 }

@@ -2,6 +2,7 @@ import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Box, Button, Typography } from "@mui/material";
 import UserTaskCharts from "./UserTaskCharts";
+import UserKpiReport from "./UserKpiReport";
 
 function UserKpisPage() {
     const { usuarioId } = useParams();
@@ -15,7 +16,11 @@ function UserKpisPage() {
                 KPIs del usuario #{usuarioId}
             </Typography>
 
+            {/* Chart */}
             <UserTaskCharts usuarioId={parseInt(usuarioId, 10)} />
+
+            {/* Report below the chart */}
+            <UserKpiReport usuarioId={parseInt(usuarioId, 10)} />
         </Box>
     );
 }

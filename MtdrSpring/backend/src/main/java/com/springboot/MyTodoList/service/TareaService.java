@@ -128,7 +128,6 @@ public class TareaService {
     public Long countCompletedTareasByUsuarioAndSprint(Long usuarioId, Long sprintId) {
         return tareaRepository.countCompletedTareasByUsuarioAndSprint(usuarioId, sprintId);
     }
-<<<<<<< HEAD
 
     public Map<String, Long> resumenPorEquipo(Long equipoId) {
         long asignadas   = tareaRepository.countByEquipo(equipoId);
@@ -153,8 +152,7 @@ public class TareaService {
                 "completadasDespues", despues
         );
     }
-=======
-    
+
     // Horas estimadas por usuario en un sprint    
     public BigDecimal sumHorasEstimadasByUsuarioAndSprint(Long usuarioId, Long sprintId) {
         return tareaRepository.sumHorasEstimadasByUsuarioAndSprint(usuarioId, sprintId);
@@ -175,5 +173,4 @@ public class TareaService {
         return tareaRepository.countAsignedTareasByUsuarioAndSprint(usuarioId, sprintId);
     }
 
->>>>>>> 42367d30ce84e0e77888a86ca579d782c95677a8
-} 
+}

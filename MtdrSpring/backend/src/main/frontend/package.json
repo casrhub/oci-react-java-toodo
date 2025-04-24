@@ -2,8 +2,9 @@
     "name": "todolistapp-react",
     "version": "0.1.0",
     "private": true,
+  
     "dependencies": {
-        "@emotion/react": "^11.9.0",
+      "@emotion/react": "^11.9.0",
         "@emotion/styled": "^11.8.1",
         "@mui/icons-material": "^5.8.0",
         "@mui/material": "^5.8.0",
@@ -18,18 +19,45 @@
         "recharts": "^2.15.3",
         "typescript": "^4.6.4"
     },
+  
     "scripts": {
-        "start": "react-scripts start",
-        "build": "react-scripts build"
+      "start": "react-scripts start",
+      "build": "react-scripts build",
+  
+      "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
+      "format": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
+      "format:fix": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\""
     },
+  
     "eslintConfig": {
-        "extends": "react-app"
+      "extends": [
+        "react-app",
+        "react-app/jest",
+        "plugin:react/recommended",
+        "plugin:@typescript-eslint/recommended",
+        "prettier"
+      ]
     },
-    "browserslist": [
-        "last 5 versions"
-    ],
-    "homepage": ".",
+  
+    "prettier": {
+      "singleQuote": true,
+      "printWidth": 100,
+      "trailingComma": "es5",
+      "semi": true
+    },
+  
+    "browserslist": ["last 5 versions"],
+  
     "devDependencies": {
-        "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+      "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+  
+      "eslint": "8.57.0",
+      "eslint-config-prettier": "9.1.0",
+      "eslint-plugin-react": "7.34.1",
+      "@typescript-eslint/eslint-plugin": "5.62.0",
+      "@typescript-eslint/parser": "5.62.0",
+  
+      "prettier": "3.2.5"
     }
-}
+  }
+  

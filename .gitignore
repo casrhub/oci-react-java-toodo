@@ -50,5 +50,7 @@ frontend/npm-debug.log*
 frontend/yarn-debug.log*
 frontend/yarn-error.log*
 
-# Spring Boot config
+
+
 src/main/resources/application.properties
+Wallet_FATDATABASE/

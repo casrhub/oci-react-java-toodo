@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SprintRepository extends JpaRepository<Sprint, Long> {
-    // You can add custom queries here if needed later
+  // You can add custom queries here if needed later
 }

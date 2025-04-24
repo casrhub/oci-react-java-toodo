@@ -129,3 +129,4 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
     // 🔹 ADDED FROM `dev`: find tareas by usuario
     List<Tarea> findByUsuarioId(Long usuarioId);
 }
+

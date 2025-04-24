@@ -1,70 +1,67 @@
 package com.springboot.MyTodoList.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.springboot.MyTodoList.model.Usuarios;
 import com.springboot.MyTodoList.repository.UsuariosRepository;
+import java.util.List;
+import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.List;
-
-import java.util.Optional;
 
 @Service
 public class UsuarioService {
 
-    private static final Logger logger = LoggerFactory.getLogger(UsuarioService.class);
+  private static final Logger logger = LoggerFactory.getLogger(UsuarioService.class);
 
-    @Autowired
-    private UsuariosRepository usuarioRepository;
+  @Autowired private UsuariosRepository usuarioRepository;
 
-    public Optional<Usuarios> findByEmail(String email) {
-        return usuarioRepository.findByEmail(email);
-    }
+  public Optional<Usuarios> findByEmail(String email) {
+    return usuarioRepository.findByEmail(email);
+  }
 
-    public Optional<Usuarios> findByTelegramChatId(Long telegramChatId) {
-        return usuarioRepository.findByTelegramChatId(telegramChatId);
-    }
+  public Optional<Usuarios> findByTelegramChatId(Long telegramChatId) {
+    return usuarioRepository.findByTelegramChatId(telegramChatId);
+  }
 
-    public boolean linkTelegramUser(Long telegramId, Integer usuarioId) {
-        logger.info("Looking for user with ID: {}", usuarioId);
-        Optional<Usuarios> userOpt = usuarioRepository.findById(usuarioId);
-    
-        if (userOpt.isPresent()) {
-            Usuarios user = userOpt.get();
-            user.setTelegramChatId(telegramId);
-            usuarioRepository.save(user);
-            logger.info("User {} linked to Telegram ID {}", usuarioId, telegramId);
-            return true;
-        }
-    
-        logger.warn("User ID {} not found", usuarioId);
-        return false;
+  public boolean linkTelegramUser(Long telegramId, Integer usuarioId) {
+    logger.info("Looking for user with ID: {}", usuarioId);
+    Optional<Usuarios> userOpt = usuarioRepository.findById(usuarioId);
+
+    if (userOpt.isPresent()) {
+      Usuarios user = userOpt.get();
+      user.setTelegramChatId(telegramId);
+      usuarioRepository.save(user);
+      logger.info("User {} linked to Telegram ID {}", usuarioId, telegramId);
+      return true;
     }
 
-    public Optional<Usuarios> findById(Integer id) {
-        return usuarioRepository.findById(id);
-    }
-    public Usuarios save(Usuarios usuario) {
-        return usuarioRepository.save(usuario);
-    }
+    logger.warn("User ID {} not found", usuarioId);
+    return false;
+  }
 
-    // nuevos para usar todos los atributos de la tabla y tener tests completos
-    public List<Usuarios> findAll() {
-        return usuarioRepository.findAll(); 
-    }
-    
-    public void deleteById(Integer id) {
-        usuarioRepository.deleteById(id);
-    }    
-    
-    public List<Usuarios> findByEquipoId(Integer equipoId) {
-        return usuarioRepository.findByEquipoId(equipoId); // para el get all users por team id
-    }
+  public Optional<Usuarios> findById(Integer id) {
+    return usuarioRepository.findById(id);
+  }
 
-    public List<Usuarios> findByRol(String rol) {
-        return usuarioRepository.findByRol(rol); // para el get users by role
-    }
-    
+  public Usuarios save(Usuarios usuario) {
+    return usuarioRepository.save(usuario);
+  }
+
+  // nuevos para usar todos los atributos de la tabla y tener tests completos
+  public List<Usuarios> findAll() {
+    return usuarioRepository.findAll();
+  }
+
+  public void deleteById(Integer id) {
+    usuarioRepository.deleteById(id);
+  }
+
+  public List<Usuarios> findByEquipoId(Integer equipoId) {
+    return usuarioRepository.findByEquipoId(equipoId); // para el get all users por team id
+  }
+
+  public List<Usuarios> findByRol(String rol) {
+    return usuarioRepository.findByRol(rol); // para el get users by role
+  }
 }

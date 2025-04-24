@@ -20,3 +20,4 @@ const API_LIST = '/todolist';
 export default API_LIST;
 export const API_TAREAS = '/tareas';
 export const API_SUBTAREAS = '/subtareas';
+export const API_USUARIOS = '/usuarios';

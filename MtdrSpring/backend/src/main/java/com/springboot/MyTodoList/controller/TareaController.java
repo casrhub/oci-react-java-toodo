@@ -106,7 +106,75 @@ public class TareaController {
     }
   }
 
-  /* ---------- Get tasks by user ---------- */
+  /* ---------- KPIs ---------- */
+
+  @GetMapping("/equipo/{equipoId}/sprint/{sprintId}/horas-trabajadas")
+  public ResponseEntity<BigDecimal> getHorasByEquipoAndSprint(
+      @PathVariable Long equipoId, @PathVariable Long sprintId) {
+    BigDecimal horas = tareaService.getHorasRealesByEquipoAndSprint(equipoId, sprintId);
+    return ResponseEntity.ok(horas != null ? horas : BigDecimal.ZERO);
+  }
+
+  @GetMapping("/equipo/{equipoId}/sprint/{sprintId}/tareas-completadas")
+  public ResponseEntity<Long> getCompletedTareasByEquipoAndSprint(
+      @PathVariable Long equipoId, @PathVariable Long sprintId) {
+    Long count = tareaService.countCompletedTareasByEquipoAndSprint(equipoId, sprintId);
+    return ResponseEntity.ok(count != null ? count : 0L);
+  }
+
+  @GetMapping("/usuario/{usuarioId}/sprint/{sprintId}/tareas-completadas")
+  public ResponseEntity<Long> getCompletedTareasByUsuarioAndSprint(
+      @PathVariable Long usuarioId, @PathVariable Long sprintId) {
+    Long count = tareaService.countCompletedTareasByUsuarioAndSprint(usuarioId, sprintId);
+    return ResponseEntity.ok(count != null ? count : 0L);
+  }
+
+  @GetMapping("/usuario/{usuarioId}/summary")
+  public Map<String, Long> resumenPorUsuario(@PathVariable Long usuarioId) {
+    return tareaService.resumenPorUsuario(usuarioId);
+  }
+
+  @GetMapping("/equipo/{equipoId}/summary")
+  public Map<String, Long> resumenPorEquipo(@PathVariable Long equipoId) {
+    return tareaService.resumenPorEquipo(equipoId);
+  }
+
+  @GetMapping("/usuario/{usuarioId}/sprint/{sprintId}/horas-trabajadas")
+  public ResponseEntity<BigDecimal> getHorasByUsuarioAndSprint(
+      @PathVariable Long usuarioId, @PathVariable Long sprintId) {
+    BigDecimal horas = tareaService.sumHorasRealesByUsuarioAndSprint(usuarioId, sprintId);
+    return ResponseEntity.ok(horas != null ? horas : BigDecimal.ZERO);
+  }
+
+  @GetMapping("/usuario/{usuarioId}/sprint/{sprintId}/horas-estimadas")
+  public ResponseEntity<BigDecimal> getHorasEstimadasByUsuarioAndSprint(
+      @PathVariable Long usuarioId, @PathVariable Long sprintId) {
+    BigDecimal horas = tareaService.sumHorasEstimadasByUsuarioAndSprint(usuarioId, sprintId);
+    return ResponseEntity.ok(horas != null ? horas : BigDecimal.ZERO);
+  }
+
+  @GetMapping("/usuario/{usuarioId}/sprint/{sprintId}/tareas-completadas-antes-deadline")
+  public ResponseEntity<Long> getCompletedTareasBeforeDeadlineByUsuarioAndSprint(
+      @PathVariable Long usuarioId, @PathVariable Long sprintId) {
+    Long count = tareaService.countCompletedTareasBeforeDeadlineByUsuarioAndSprint(usuarioId, sprintId);
+    return ResponseEntity.ok(count != null ? count : 0L);
+  }
+
+  @GetMapping("/usuario/{usuarioId}/sprint/{sprintId}/tareas-completadas-despues-deadline")
+  public ResponseEntity<Long> getCompletedTareasAfterDeadlineByUsuarioAndSprint(
+      @PathVariable Long usuarioId, @PathVariable Long sprintId) {
+    Long count = tareaService.countCompletedTareasAfterDeadlineByUsuarioAndSprint(usuarioId, sprintId);
+    return ResponseEntity.ok(count != null ? count : 0L);
+  }
+
+  @GetMapping("/usuario/{usuarioId}/sprint/{sprintId}/tareas-asignadas")
+  public ResponseEntity<Long> getAsignedTareasByUsuarioAndSprint(
+      @PathVariable Long usuarioId, @PathVariable Long sprintId) {
+    Long count = tareaService.countAsignedTareasByUsuarioAndSprint(usuarioId, sprintId);
+    return ResponseEntity.ok(count != null ? count : 0L);
+  }
+
+  /* ---------- Get tasks by user (from dev) ---------- */
   @GetMapping("/user/{usuarioId}")
   public ResponseEntity<List<Tarea>> getTareasByUsuario(@PathVariable Long usuarioId) {
     List<Tarea> tareas = tareaService.findByUsuarioId(usuarioId);

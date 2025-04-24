@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 public class TareaService {
 
   @Autowired private TareaRepository tareaRepository;
-
   @Autowired private SubTareaRepository subTareaRepository;
 
   /* ---------------- Lectura / creación ---------------- */
@@ -84,67 +83,119 @@ public class TareaService {
 
   /* ---------------- Actualizaciones ---------------- */
 
-  /** PUT completo */
   public Tarea update(Long id, Tarea newData) {
     return tareaRepository
         .findById(id)
-        .map(
-            t -> {
-              t.setTitulo(newData.getTitulo());
-              t.setDescripcion(newData.getDescripcion());
-              t.setEstado(newData.getEstado());
-              t.setUsuarioId(newData.getUsuarioId()); // ← aseguramos que no se pierda
-              t.setHorasEstimadas(newData.getHorasEstimadas());
-              t.setHorasReales(newData.getHorasReales());
-              t.setDeadline(newData.getDeadline());
-              t.setEquipoId(newData.getEquipoId());
-              t.setProyectoId(newData.getProyectoId());
-              return tareaRepository.save(t);
-            })
+        .map(t -> {
+          t.setTitulo(newData.getTitulo());
+          t.setDescripcion(newData.getDescripcion());
+          t.setEstado(newData.getEstado());
+          t.setUsuarioId(newData.getUsuarioId());
+          t.setHorasEstimadas(newData.getHorasEstimadas());
+          t.setHorasReales(newData.getHorasReales());
+          t.setDeadline(newData.getDeadline());
+          t.setEquipoId(newData.getEquipoId());
+          t.setProyectoId(newData.getProyectoId());
+          return tareaRepository.save(t);
+        })
         .orElse(null);
   }
 
-  /** PATCH: sólo cambia el desarrollador asignado */
   public Tarea updateAssignee(Long id, Long usuarioId) {
     return tareaRepository
         .findById(id)
-        .map(
-            t -> {
-              t.setUsuarioId(usuarioId);
-              return tareaRepository.save(t);
-            })
+        .map(t -> {
+          t.setUsuarioId(usuarioId);
+          return tareaRepository.save(t);
+        })
         .orElse(null);
   }
 
   public Tarea markAsComplete(Long id, String estado, BigDecimal horasReales) {
     return tareaRepository
         .findById(id)
-        .map(
-            t -> {
-              t.setEstado(estado);
-              t.setHorasReales(horasReales);
-              return tareaRepository.save(t);
-            })
+        .map(t -> {
+          t.setEstado(estado);
+          t.setHorasReales(horasReales);
+          return tareaRepository.save(t);
+        })
         .orElse(null);
   }
 
   public Tarea updateDeadline(Long id, OffsetDateTime deadline) {
     return tareaRepository
         .findById(id)
-        .map(
-            t -> {
-              t.setDeadline(deadline);
-              return tareaRepository.save(t);
-            })
+        .map(t -> {
+          t.setDeadline(deadline);
+          return tareaRepository.save(t);
+        })
         .orElse(null);
   }
 
-  /* ---------------- KPIs ---------------- */
+  /* ---------------- KPIs: kpis-corregido ---------------- */
+
+  public BigDecimal getHorasRealesByEquipoAndSprint(Long equipoId, Long sprintId) {
+    return tareaRepository.sumHorasRealesByEquipoAndSprint(equipoId, sprintId);
+  }
+
+  public Long countCompletedTareasByEquipoAndSprint(Long equipoId, Long sprintId) {
+    return tareaRepository.countCompletedTareasByEquipoAndSprint(equipoId, sprintId);
+  }
+
+  public BigDecimal sumHorasRealesByUsuarioAndSprint(Long usuarioId, Long sprintId) {
+    return tareaRepository.sumHorasRealesByUsuarioAndSprint(usuarioId, sprintId);
+  }
+
+  public Long countCompletedTareasByUsuarioAndSprint(Long usuarioId, Long sprintId) {
+    return tareaRepository.countCompletedTareasByUsuarioAndSprint(usuarioId, sprintId);
+  }
+
+  public Map<String, Long> resumenPorEquipo(Long equipoId) {
+    long asignadas = tareaRepository.countByEquipo(equipoId);
+    long antes = tareaRepository.countCompletedBeforeDeadlineTeam(equipoId);
+    long despues = tareaRepository.countCompletedAfterDeadlineTeam(equipoId);
+
+    return Map.of(
+        "asignadas", asignadas,
+        "completadasAntes", antes,
+        "completadasDespues", despues
+    );
+  }
+
+  public Map<String, Long> resumenPorUsuario(Long usuarioId) {
+    long asignadas = tareaRepository.countByUsuario(usuarioId);
+    long antes = tareaRepository.countCompletedBeforeDeadline(usuarioId);
+    long despues = tareaRepository.countCompletedAfterDeadline(usuarioId);
+
+    return Map.of(
+        "asignadas", asignadas,
+        "completadasAntes", antes,
+        "completadasDespues", despues
+    );
+  }
+
+  public BigDecimal sumHorasEstimadasByUsuarioAndSprint(Long usuarioId, Long sprintId) {
+    return tareaRepository.sumHorasEstimadasByUsuarioAndSprint(usuarioId, sprintId);
+  }
+
+  public Long countCompletedTareasBeforeDeadlineByUsuarioAndSprint(Long usuarioId, Long sprintId) {
+    return tareaRepository.countCompletedTareasBeforeDeadlineByUsuarioAndSprint(usuarioId, sprintId);
+  }
+
+  public Long countCompletedTareasAfterDeadlineByUsuarioAndSprint(Long usuarioId, Long sprintId) {
+    return tareaRepository.countCompletedTareasAfterDeadlineByUsuarioAndSprint(usuarioId, sprintId);
+  }
+
+  public Long countAsignedTareasByUsuarioAndSprint(Long usuarioId, Long sprintId) {
+    return tareaRepository.countAsignedTareasByUsuarioAndSprint(usuarioId, sprintId);
+  }
+
+  /* ---------------- KPIs: extra from dev ---------------- */
+
   public Map<String, Object> calculateUserKPIs(Long usuarioId) {
     List<Tarea> userTasks = findByUsuarioId(usuarioId);
     Map<String, Object> kpis = new HashMap<>();
 
-    // Basic counts
     long totalTasks = userTasks.size();
     long completedTasks = userTasks.stream()
         .filter(t -> "completado".equalsIgnoreCase(t.getEstado()))
@@ -156,7 +207,6 @@ public class TareaService {
         .filter(t -> "pendiente".equalsIgnoreCase(t.getEstado()))
         .count();
 
-    // Time calculations
     BigDecimal totalEstimatedHours = userTasks.stream()
         .map(t -> t.getHorasEstimadas() != null ? t.getHorasEstimadas() : BigDecimal.ZERO)
         .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -166,12 +216,6 @@ public class TareaService {
         .map(Tarea::getHorasReales)
         .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-    // Calculate completion rate
-    double completionRate = totalTasks > 0 
-        ? (completedTasks * 100.0) / totalTasks 
-        : 0.0;
-
-    // Calculate efficiency (estimated vs real hours) for completed tasks
     BigDecimal completedEstimatedHours = userTasks.stream()
         .filter(t -> "completado".equalsIgnoreCase(t.getEstado()))
         .map(t -> t.getHorasEstimadas() != null ? t.getHorasEstimadas() : BigDecimal.ZERO)
@@ -182,12 +226,13 @@ public class TareaService {
         .map(t -> t.getHorasReales() != null ? t.getHorasReales() : BigDecimal.ZERO)
         .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-    // Store all calculations
+    double completionRate = totalTasks > 0 ? (completedTasks * 100.0) / totalTasks : 0.0;
+
     kpis.put("totalTasks", totalTasks);
     kpis.put("completedTasks", completedTasks);
     kpis.put("inProgressTasks", inProgressTasks);
     kpis.put("pendingTasks", pendingTasks);
-    kpis.put("completionRate", Math.round(completionRate * 100.0) / 100.0); // Round to 2 decimals
+    kpis.put("completionRate", Math.round(completionRate * 100.0) / 100.0);
     kpis.put("totalEstimatedHours", totalEstimatedHours);
     kpis.put("totalRealHours", totalRealHours);
     kpis.put("completedEstimatedHours", completedEstimatedHours);
@@ -196,3 +241,4 @@ public class TareaService {
     return kpis;
   }
 }
+

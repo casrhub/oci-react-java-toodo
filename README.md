@@ -14,6 +14,6 @@ The lab executes scripts that require the following software to run properly: (T
 * python 2.7^
 * terraform
 * kubectl
-* mvn (maven) 
+* mvn (mavenn)
 
 ## Expect more ...

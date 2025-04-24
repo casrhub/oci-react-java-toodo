@@ -2,6 +2,7 @@ import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Box, Button, Typography } from "@mui/material";
 import TeamTaskCharts from "./TeamTaskCharts";
+import TeamKpiReport from "./TeamKpiReport"; // ⬅️ New import
 
 function TeamKpisPage() {
     const { equipoId } = useParams();
@@ -15,7 +16,11 @@ function TeamKpisPage() {
                 KPIs del equipo #{equipoId}
             </Typography>
 
+            {/* Charts (existing) */}
             <TeamTaskCharts equipoId={Number(equipoId)} />
+
+            {/* Report (new) */}
+            <TeamKpiReport equipoId={Number(equipoId)} />
         </Box>
     );
 }

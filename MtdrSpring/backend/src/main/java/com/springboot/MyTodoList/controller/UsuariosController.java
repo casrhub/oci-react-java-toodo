@@ -117,4 +117,15 @@ public class UsuariosController {
       return ResponseEntity.notFound().build();
     }
   }
+
+  @GetMapping("/{id}/nombre")
+  public ResponseEntity<Map<String, String>> getNombreUsuario(@PathVariable Integer id) {
+    return usuarioService.findById(id)
+            .map(usuario -> {
+              Map<String, String> result = new HashMap<>();
+              result.put("nombre", usuario.getNombre());
+              return ResponseEntity.ok(result);
+            })
+            .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+  }
 }

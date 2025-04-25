@@ -3,6 +3,7 @@ import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
     Paper, CircularProgress, Typography
 } from '@mui/material';
+import { API_SPRINTS, API_USER_KPIS } from '../api';
 
 function UserKpiReport({ usuarioId }) {
     const [data, setData] = useState([]);
@@ -12,14 +13,14 @@ function UserKpiReport({ usuarioId }) {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const sprintRes = await fetch('http://localhost:8080/sprints');
+                const sprintRes = await fetch(API_SPRINTS);
                 const sprints = await sprintRes.json();
 
                 const results = await Promise.all(
                     sprints.map(async (sprint) => {
                         const [horasRes, tareasRes] = await Promise.all([
-                            fetch(`http://localhost:8080/tareas/usuario/${usuarioId}/sprint/${sprint.sprintId}/horas-trabajadas`),
-                            fetch(`http://localhost:8080/tareas/usuario/${usuarioId}/sprint/${sprint.sprintId}/tareas-completadas`)
+                            fetch(`${API_USER_KPIS}${usuarioId}/sprint/${sprint.sprintId}/horas-trabajadas`),
+                            fetch(`${API_USER_KPIS}${usuarioId}/sprint/${sprint.sprintId}/tareas-completadas`)
                         ]);
 
                         const horas = await horasRes.json();
@@ -43,7 +44,7 @@ function UserKpiReport({ usuarioId }) {
             }
         };
 
-        fetchData(); // don't prefix with `void`, that's more common in TS
+        fetchData();
     }, [usuarioId]);
 
     if (loading) return <CircularProgress />;

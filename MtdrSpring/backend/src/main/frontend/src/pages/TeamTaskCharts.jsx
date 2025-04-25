@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import TaskComparisonBar from '../components/charts/TaskComparisonBar';
 import { CircularProgress } from '@mui/material';
+import { API_TEAM_KPIS } from '../api';
 
 function TeamTaskCharts({ equipoId }) {
     const [summary, setSummary] = useState(null);
     const [err, setErr] = useState(null);
 
     useEffect(() => {
-        fetch(`http://localhost:8080/tareas/equipo/${equipoId}/summary`)
+        fetch(`${API_TEAM_KPIS}${equipoId}/summary`)
             .then(async (r) => {
                 if (!r.ok) {
                     const text = await r.text();

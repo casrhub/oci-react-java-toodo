@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import TaskComparisonBar from '../components/charts/TaskComparisonBar';
 import { CircularProgress } from '@mui/material';
+import { API_USER_KPIS } from '../api';
 
 function UserTaskCharts({ usuarioId }) {
     const [summary, setSummary] = useState(null);
     const [err, setErr] = useState(null);
 
     useEffect(() => {
-        fetch(`http://localhost:8080/tareas/usuario/${usuarioId}/summary`)
+        fetch(`${API_USER_KPIS}${usuarioId}/summary`)
             .then(async (r) => {
                 if (!r.ok) {
                     const text = await r.text();

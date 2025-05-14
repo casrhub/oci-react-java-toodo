@@ -15,6 +15,9 @@ function ManagerMainMenuPage() {
         <button className="main-menu-button" onClick={() => history('/manager/tasks')}>
           Tasks
         </button>
+        <button className="main-menu-button" onClick={() => history('/manager/insights')}>
+          Insights
+        </button>
       </div>
     </div>
   );

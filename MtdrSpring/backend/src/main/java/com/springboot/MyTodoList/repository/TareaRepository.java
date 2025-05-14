@@ -158,4 +158,17 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
 
   // 🔹 ADDED FROM `dev`: find tareas by usuario
   List<Tarea> findByUsuarioId(Long usuarioId);
+
+  // Horas trabajadas por usuario en un sprint y equipo
+  @Query(
+      value =
+          "SELECT COALESCE(SUM(t.horas_reales), 0) "
+              + "FROM ADMIN.TAREAS t "
+              + "WHERE t.estado = 'completado' "
+              + "AND t.equipo_id = :equipoId "
+              + "AND t.sprint_id = :sprintId "
+              + "AND t.usuario_id = :usuarioId",
+      nativeQuery = true)
+  BigDecimal sumHorasRealesByEquipoAndSprintAndUsuario(
+      @Param("equipoId") Long equipoId, @Param("sprintId") Long sprintId, @Param("usuarioId") Long usuarioId);
 }

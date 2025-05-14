@@ -244,4 +244,8 @@ public class TareaService {
 
     return kpis;
   }
+
+  public BigDecimal sumHorasRealesByEquipoAndSprintAndUsuario(Long equipoId, Long sprintId, Long usuarioId) {
+    return tareaRepository.sumHorasRealesByEquipoAndSprintAndUsuario(equipoId, sprintId, usuarioId);
+  }
 }

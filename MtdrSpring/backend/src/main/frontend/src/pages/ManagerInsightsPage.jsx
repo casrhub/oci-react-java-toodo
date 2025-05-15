@@ -3,6 +3,7 @@ import { Box, Typography, Paper, Grid } from '@mui/material';
 import TeamSprintHoursBarChart from '../components/charts/TeamSprintHoursBarChart';
 import TeamSprintDevHoursBarChart from '../components/charts/TeamSprintDevHoursBarChart';
 import LastSprintTaskReport from '../components/charts/LastSprintTaskReport';
+import TeamSprintCompletedTasksChart from '../components/charts/TeamSprintCompletedTasksChart';
 
 function ManagerInsightsPage() {
   return (
@@ -29,6 +30,12 @@ function ManagerInsightsPage() {
         <Grid item xs={12}>
           <Paper elevation={3} sx={{ p: 3 }}>
             <LastSprintTaskReport sprintId={2} />
+          </Paper>
+        </Grid>
+         {/* Second Row: Task Report */}
+         <Grid item xs={12}>
+          <Paper elevation={3} sx={{ p: 3 }}>
+            <TeamSprintCompletedTasksChart />
           </Paper>
         </Grid>
       </Grid>

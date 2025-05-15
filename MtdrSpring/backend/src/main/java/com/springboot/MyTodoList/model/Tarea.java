@@ -3,6 +3,7 @@ package com.springboot.MyTodoList.model;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import javax.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "TAREAS", schema = "ADMIN") // Replace schema if needed
@@ -49,6 +50,11 @@ public class Tarea {
 
   @Column(name = "DEADLINE")
   private OffsetDateTime deadline;
+
+  @ManyToOne
+  @JoinColumn(name = "SPRINT_ID")
+  @com.fasterxml.jackson.annotation.JsonBackReference
+  private Sprint sprint;
 
   // Constructors
   public Tarea() {}
@@ -142,16 +148,16 @@ public class Tarea {
     this.deadline = deadline;
   }
 
-  @ManyToOne
-  @JoinColumn(name = "SPRINT_ID")
-  @com.fasterxml.jackson.annotation.JsonBackReference
-  private Sprint sprint;
-
   public Sprint getSprint() {
     return sprint;
   }
 
   public void setSprint(Sprint sprint) {
     this.sprint = sprint;
+  }
+
+  @JsonProperty("sprintId")
+  public Long getSprintId() {
+    return sprint != null ? sprint.getSprintId() : null;
   }
 }

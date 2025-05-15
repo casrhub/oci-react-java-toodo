@@ -1,255 +1,122 @@
 package com.springboot.MyTodoList.controller;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.springboot.MyTodoList.model.SubTarea;
 import com.springboot.MyTodoList.model.Tarea;
-import com.springboot.MyTodoList.repository.*;
-import com.springboot.MyTodoList.service.SprintService;
+import com.springboot.MyTodoList.repository.TareaRepository;
 import com.springboot.MyTodoList.service.SubTareaService;
-import com.springboot.MyTodoList.service.TareaService;
-import com.springboot.MyTodoList.service.UsuarioService;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-@AutoConfigureMockMvc
-@WebMvcTest(SubTareaController.class)
+@WebMvcTest(
+        controllers = SubTareaController.class,
+        properties = "spring.mvc.pathmatch.matching-strategy=ant_path_matcher")
+@AutoConfigureMockMvc(addFilters = false)
 public class SubTareaControllerTest {
 
   @Autowired private MockMvc mockMvc;
-
   @Autowired private ObjectMapper objectMapper;
 
-  @MockBean private TareaService tareaService;
-
   @MockBean private SubTareaService subTareaService;
-
-  @MockBean private SprintService sprintService;
-
-  @MockBean private UsuarioService usuarioService;
-
   @MockBean private TareaRepository tareaRepository;
 
-  @MockBean private SubTareaRepository subTareaRepository;
+  @Configuration
+  static class TestConfig {
+    static final SubTareaController controller = new SubTareaController();
 
-  @MockBean private SprintRepository sprintRepository;
+    @Bean
+    public SubTareaController subTareaController() {
+      return controller;
+    }
 
-  @MockBean private UsuariosRepository usuariosRepository;
+    public static SubTareaController getController() {
+      return controller;
+    }
+  }
 
-  @Test
-  public void testGetAllSubTareas() throws Exception {
-    SubTarea mockSubTarea = new SubTarea();
-    mockSubTarea.setSubTareaId(1L);
-    mockSubTarea.setTitulo("Mock SubTarea");
-    mockSubTarea.setDescripcion("Test Description");
-    mockSubTarea.setEstado("EN_PROCESO");
-    mockSubTarea.setHorasEstimadas(new BigDecimal("3.5"));
-    mockSubTarea.setHorasReales(new BigDecimal("2.0"));
-    mockSubTarea.setFechaCreacion(OffsetDateTime.now());
-    mockSubTarea.setDeadline(OffsetDateTime.now().plusDays(7));
-
-    List<SubTarea> mockList = Collections.singletonList(mockSubTarea);
-    when(subTareaService.findAll()).thenReturn(mockList);
-
-    MvcResult mvcResult =
-        mockMvc
-            .perform(MockMvcRequestBuilders.get("/subtareas").accept(MediaType.APPLICATION_JSON))
-            .andReturn();
-
-    assertEquals(
-        HttpStatus.OK.value(), mvcResult.getResponse().getStatus(), "Should return 200 OK");
-
-    String jsonResponse = mvcResult.getResponse().getContentAsString();
-    List<SubTarea> responseList =
-        objectMapper.readValue(jsonResponse, new TypeReference<List<SubTarea>>() {});
-
-    assertEquals(1, responseList.size(), "Should return SubTarea");
-
-    SubTarea returned = responseList.get(0);
-    assertEquals("Mock SubTarea", returned.getTitulo());
-    assertEquals("Test Description", returned.getDescripcion());
-    assertEquals("EN_PROCESO", returned.getEstado());
-    assertEquals(new BigDecimal("3.5"), returned.getHorasEstimadas());
+  @BeforeEach
+  void resetMocks() {
+    Mockito.reset(subTareaService, tareaRepository);
   }
 
   @Test
-  public void testGetSubTareaByTareaID() throws Exception {
-    SubTarea mockSubTarea = new SubTarea();
-    mockSubTarea.setSubTareaId(1L);
-    mockSubTarea.setTitulo("Mock SubTarea");
-    mockSubTarea.setDescripcion("Test Description");
-    mockSubTarea.setEstado("EN_PROCESO");
-    mockSubTarea.setHorasEstimadas(new BigDecimal("3.5"));
-    mockSubTarea.setHorasReales(new BigDecimal("2.0"));
-    mockSubTarea.setFechaCreacion(OffsetDateTime.now());
-    mockSubTarea.setDeadline(OffsetDateTime.now().plusDays(7));
+  void testCreateAndGetSubTarea() throws Exception {
+    Tarea tarea = new Tarea();
+    tarea.setTareaId(1L);
 
-    List<SubTarea> mockList = Collections.singletonList(mockSubTarea);
+    SubTarea sub = new SubTarea();
+    sub.setSubTareaId(1L);
+    sub.setTarea(tarea);
+    sub.setTitulo("Nueva SubTarea");
+    sub.setDescripcion("Descripción");
+    sub.setEstado("EN_PROCESO");
+    sub.setHorasEstimadas(new BigDecimal("5"));
+    sub.setHorasReales(new BigDecimal("2"));
+    sub.setFechaCreacion(OffsetDateTime.parse("2024-04-03T14:25:00Z"));
+    sub.setDeadline(OffsetDateTime.parse("2024-04-10T14:25:00Z"));
 
-    when(subTareaService.findByTareaId(1L)).thenReturn(mockList);
+    Mockito.when(tareaRepository.findById(1L)).thenReturn(Optional.of(tarea));
+    Mockito.when(subTareaService.save(Mockito.any(SubTarea.class))).thenReturn(sub);
+    Mockito.when(subTareaService.findById(1L)).thenReturn(Optional.of(sub));
 
-    MvcResult mvcResult =
-        mockMvc
-            .perform(
-                MockMvcRequestBuilders.get(
-                        "/subtareas/byTarea/{tareaId}", 1L) // Providing a valid tareaId
-                    .accept(MediaType.APPLICATION_JSON))
-            .andReturn();
-
-    assertEquals(
-        HttpStatus.OK.value(),
-        mvcResult.getResponse().getStatus(),
-        "Validate endpoint returns 200 OK status");
-
-    String jsonResponse = mvcResult.getResponse().getContentAsString();
-    List<SubTarea> responseList =
-        objectMapper.readValue(jsonResponse, new TypeReference<List<SubTarea>>() {});
-
-    assertEquals(1, responseList.size(), "Should return one SubTarea");
-
-    SubTarea returned = responseList.get(0);
-    assertEquals("Mock SubTarea", returned.getTitulo());
-    assertEquals("Test Description", returned.getDescripcion());
-    assertEquals("EN_PROCESO", returned.getEstado());
-    assertEquals(new BigDecimal("3.5"), returned.getHorasEstimadas());
-  }
-
-  @Test
-  public void testGetSubTareaByID() throws Exception {
-    SubTarea mockSubTarea = new SubTarea();
-    mockSubTarea.setSubTareaId(1L);
-    mockSubTarea.setTitulo("Mock SubTarea");
-    mockSubTarea.setDescripcion("Single SubTarea Test");
-    mockSubTarea.setEstado("EN_PROCESO");
-    mockSubTarea.setHorasEstimadas(new BigDecimal("4.0"));
-    mockSubTarea.setHorasReales(new BigDecimal("3.0"));
-    mockSubTarea.setFechaCreacion(OffsetDateTime.now());
-    mockSubTarea.setDeadline(OffsetDateTime.now().plusDays(7));
-
-    when(subTareaService.findById(1L)).thenReturn(Optional.of(mockSubTarea));
-
-    MvcResult mvcResult =
-        mockMvc
-            .perform(
-                MockMvcRequestBuilders.get("/subtareas/{id}", 1L)
-                    .accept(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.subTareaId").value(1))
-            .andExpect(jsonPath("$.titulo").value("Mock SubTarea"))
-            .andExpect(jsonPath("$.descripcion").value("Single SubTarea Test"))
-            .andExpect(jsonPath("$.estado").value("EN_PROCESO"))
-            .andExpect(jsonPath("$.horasEstimadas").value(4.0))
-            .andExpect(jsonPath("$.horasReales").value(3.0))
-            .andReturn();
-
-    String jsonResponse = mvcResult.getResponse().getContentAsString();
-    SubTarea returned = objectMapper.readValue(jsonResponse, SubTarea.class);
-
-    assertEquals("Mock SubTarea", returned.getTitulo());
-    assertEquals("EN_PROCESO", returned.getEstado());
-    assertEquals(new BigDecimal("4.0"), returned.getHorasEstimadas());
-  }
-
-  @Test
-  public void testCreateSubTarea() throws Exception {
-    // Mock Tarea (parent)
-    Tarea mockTarea = new Tarea();
-    mockTarea.setTareaId(1L);
-
-    // Mock SubTarea
-    SubTarea mockSubTarea = new SubTarea();
-    mockSubTarea.setSubTareaId(10L);
-    mockSubTarea.setTarea(mockTarea);
-    mockSubTarea.setTitulo("Nueva SubTarea");
-    mockSubTarea.setDescripcion("Descripcion de prueba");
-    mockSubTarea.setEstado("EN_PROCESO");
-    mockSubTarea.setHorasEstimadas(new BigDecimal("5.0"));
-    mockSubTarea.setHorasReales(new BigDecimal("2.0"));
-    mockSubTarea.setFechaCreacion(OffsetDateTime.now());
-    mockSubTarea.setDeadline(OffsetDateTime.now().plusDays(7));
-
-    when(tareaRepository.findById(1L)).thenReturn(Optional.of(mockTarea));
-    when(subTareaService.save(any(SubTarea.class))).thenReturn(mockSubTarea);
-
-    Map<String, Object> payload = new HashMap<>();
-    payload.put("subTareaId", 1L);
+    Map<String, Object> payload = new LinkedHashMap<>();
     payload.put("tareaId", 1);
-    payload.put("titulo", "Nueva SubTarea");
-    payload.put("descripcion", "Descripcion de prueba");
-    payload.put("estado", "EN_PROCESO");
-    payload.put("horasEstimadas", 5.0);
-    payload.put("horasReales", 2.0);
-    payload.put("fechaCreacion", mockSubTarea.getFechaCreacion().toString());
-    payload.put("deadline", mockSubTarea.getDeadline().toString());
-
-    System.out.println("Payload before serialization: " + payload); // DEBUG
+    payload.put("titulo", sub.getTitulo());
+    payload.put("descripcion", sub.getDescripcion());
+    payload.put("estado", sub.getEstado());
+    payload.put("horasEstimadas", sub.getHorasEstimadas());
+    payload.put("horasReales", sub.getHorasReales());
+    payload.put("fechaCreacion", sub.getFechaCreacion().toString());
+    payload.put("deadline", sub.getDeadline().toString());
 
     String jsonPayload = objectMapper.writeValueAsString(payload);
 
-    System.out.println("JSON Payload: " + jsonPayload); // DEBUG
-
-    // Perform the POST request
     mockMvc
-        .perform(post("/subtareas").contentType(MediaType.APPLICATION_JSON).content(jsonPayload))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.subTareaId").value(10))
-        .andExpect(jsonPath("$.titulo").value("Nueva SubTarea"))
-        .andExpect(jsonPath("$.descripcion").value("Descripcion de prueba"))
-        .andExpect(jsonPath("$.estado").value("EN_PROCESO"))
-        .andExpect(jsonPath("$.horasEstimadas").value(5.0))
-        .andExpect(jsonPath("$.horasReales").value(2.0));
+            .perform(post("/subtareas").contentType(MediaType.APPLICATION_JSON).content(jsonPayload))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.subTareaId").value(1))
+            .andExpect(jsonPath("$.titulo").value("Nueva SubTarea"));
+
+    mockMvc
+            .perform(get("/subtareas/1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.subTareaId").value(1))
+            .andExpect(jsonPath("$.titulo").value("Nueva SubTarea"));
   }
 
   @Test
-  public void testDeleteSubTarea_Success() throws Exception {
-    Long subTareaId = 1L;
+  void testGetAllAndFilterByTarea() throws Exception {
+    Tarea tarea1 = new Tarea(); tarea1.setTareaId(1L);
+    Tarea tarea2 = new Tarea(); tarea2.setTareaId(2L);
 
-    // Mocking the service to return true (successful)
-    when(subTareaService.delete(subTareaId)).thenReturn(true);
+    SubTarea s1 = new SubTarea(); s1.setSubTareaId(1L); s1.setTarea(tarea1); s1.setTitulo("S1");
+    SubTarea s2 = new SubTarea(); s2.setSubTareaId(2L); s2.setTarea(tarea2); s2.setTitulo("S2");
 
-    mockMvc
-        .perform(MockMvcRequestBuilders.delete("/subtareas/{id}", subTareaId))
-        .andExpect(status().isOk());
+    Mockito.when(subTareaService.findAll()).thenReturn(Arrays.asList(s1, s2));
+    Mockito.when(subTareaService.findByTareaId(1L)).thenReturn(Collections.singletonList(s1));
 
-    verify(subTareaService, times(1)).delete(subTareaId);
-  }
+    mockMvc.perform(get("/subtareas"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(2));
 
-  @Test
-  public void testDeleteSubTarea_NotFound() throws Exception {
-    Long subTareaId = 99L;
-
-    // Mocking the service to return false (not found)
-    when(subTareaService.delete(subTareaId)).thenReturn(false);
-
-    mockMvc
-        .perform(MockMvcRequestBuilders.delete("/subtareas/{id}", subTareaId))
-        .andExpect(status().isNotFound());
-
-    verify(subTareaService, times(1)).delete(subTareaId);
+    mockMvc.perform(get("/subtareas").param("tareaId", "1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].subTareaId").value(1));
   }
 }

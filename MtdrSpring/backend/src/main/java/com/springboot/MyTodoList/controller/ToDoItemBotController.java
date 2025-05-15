@@ -786,6 +786,178 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
           BotHelper.sendMessageToTelegram(
               chatId, "❌ Error calculating KPIs: " + e.getMessage(), this);
         }
+      } else if (messageTextFromTelegram.startsWith("/teamsprintstats")) {
+        try {
+          String[] parts = messageTextFromTelegram.split(" ");
+          Integer equipoId;
+
+          if (parts.length > 1) {
+            // Team ID provided in command
+            equipoId = Integer.parseInt(parts[1]);
+          } else {
+            // Ask for team ID
+            BotHelper.sendMessageToTelegram(
+                chatId, "Please provide your team ID: /teamsprintstats <TEAM_ID>", this);
+            return;
+          }
+
+          // Debug: Log all tasks first
+          List<Tarea> allTasksFromDB = tareaService.findAll();
+          logger.info("Total tasks in DB: {}", allTasksFromDB.size());
+          
+          // Debug: Log tasks with equipoId
+          allTasksFromDB.forEach(task -> {
+            logger.info("Task ID: {}, EquipoId: {}, Estado: {}", 
+                task.getTareaId(), 
+                task.getEquipoId(), 
+                task.getEstado());
+          });
+
+          // Get all tasks and filter by team
+          List<Tarea> allTasks = allTasksFromDB.stream()
+              .filter(task -> {
+                  boolean matches = task.getEquipoId() != null && task.getEquipoId().intValue() == equipoId;
+                  if (matches) {
+                      logger.info("Found matching task: ID={}, EquipoId={}, Estado={}", 
+                          task.getTareaId(), 
+                          task.getEquipoId(), 
+                          task.getEstado());
+                  }
+                  return matches;
+              })
+              .collect(Collectors.toList());
+          
+          logger.info("Filtered tasks for team {}: {}", equipoId, allTasks.size());
+          
+          if (allTasks.isEmpty()) {
+            BotHelper.sendMessageToTelegram(
+                chatId, "No tasks found for team " + equipoId + ". Make sure the team ID is correct.", this);
+            return;
+          }
+
+          // Group tasks by sprint
+          Map<Integer, Map<Integer, Integer>> sprintStats = new HashMap<>();
+          Map<Integer, Map<Integer, Integer>> noSprintStats = new HashMap<>();
+          
+          // Initialize no sprint stats
+          noSprintStats.put(0, new HashMap<>());
+
+          for (Tarea task : allTasks) {
+            if (!"completado".equalsIgnoreCase(task.getEstado())) {
+              continue;
+            }
+
+            Integer sprintId = task.getSprint() != null ? task.getSprint().getSprintId().intValue() : 0;
+            Integer userId = task.getUsuarioId().intValue();
+            
+            Map<Integer, Map<Integer, Integer>> targetMap = (sprintId == 0) ? noSprintStats : sprintStats;
+            
+            targetMap.computeIfAbsent(sprintId, k -> new HashMap<>());
+            Map<Integer, Integer> userStats = targetMap.get(sprintId);
+            userStats.merge(userId, 1, Integer::sum);
+          }
+
+          // Build the message
+          StringBuilder message = new StringBuilder();
+          message.append("📊 Team Sprint Statistics\n\n");
+
+          // First show tasks with sprints
+          if (!sprintStats.isEmpty()) {
+            for (Map.Entry<Integer, Map<Integer, Integer>> sprintEntry : sprintStats.entrySet()) {
+              Integer sprintId = sprintEntry.getKey();
+              Map<Integer, Integer> userStats = sprintEntry.getValue();
+              
+              message.append("Sprint ").append(sprintId).append(":\n");
+              
+              for (Map.Entry<Integer, Integer> userEntry : userStats.entrySet()) {
+                Integer userId = userEntry.getKey();
+                Integer completedTasks = userEntry.getValue();
+                
+                Optional<Usuarios> userOpt = usuarioService.findById(userId);
+                String userName = userOpt.map(Usuarios::getNombre).orElse("Unknown User");
+                
+                message.append("  • ").append(userName)
+                      .append(": ").append(completedTasks)
+                      .append(" completed tasks\n");
+              }
+              message.append("\n");
+            }
+          }
+
+          // Then show tasks without sprint
+          if (!noSprintStats.isEmpty() && !noSprintStats.get(0).isEmpty()) {
+            message.append("No Sprint Assigned:\n");
+            Map<Integer, Integer> noSprintUserStats = noSprintStats.get(0);
+            
+            for (Map.Entry<Integer, Integer> userEntry : noSprintUserStats.entrySet()) {
+              Integer userId = userEntry.getKey();
+              Integer completedTasks = userEntry.getValue();
+              
+              Optional<Usuarios> userOpt = usuarioService.findById(userId);
+              String userName = userOpt.map(Usuarios::getNombre).orElse("Unknown User");
+              
+              message.append("  • ").append(userName)
+                    .append(": ").append(completedTasks)
+                    .append(" completed tasks\n");
+            }
+          }
+
+          if (message.length() == 0) {
+            message.append("No completed tasks found for team ").append(equipoId);
+          }
+
+          BotHelper.sendMessageToTelegram(chatId, message.toString(), this);
+        } catch (NumberFormatException e) {
+          BotHelper.sendMessageToTelegram(
+              chatId, "❌ Invalid team ID format. Use: /teamsprintstats <TEAM_ID>", this);
+        } catch (Exception e) {
+          logger.error("Error fetching team sprint statistics", e);
+          BotHelper.sendMessageToTelegram(
+              chatId, "❌ Error fetching statistics: " + e.getMessage(), this);
+        }
+      } else if (messageTextFromTelegram.startsWith("/sprintcompleted")) {
+        try {
+          String[] parts = messageTextFromTelegram.split(" ");
+          Integer sprintId;
+
+          if (parts.length > 1) {
+            sprintId = Integer.parseInt(parts[1]);
+          } else {
+            BotHelper.sendMessageToTelegram(
+                chatId, "Please provide the sprint ID: /sprintcompleted <SPRINT_ID>", this);
+            return;
+          }
+
+          List<Tarea> allTasks = tareaService.findAll();
+          List<Tarea> completedInSprint = allTasks.stream()
+              .filter(task ->
+                  task.getSprint() != null &&
+                  String.valueOf(task.getSprint().getSprintId()).trim().equals(String.valueOf(sprintId).trim()) &&
+                  "completado".equalsIgnoreCase(task.getEstado())
+              )
+              .collect(Collectors.toList());
+
+          if (completedInSprint.isEmpty()) {
+            BotHelper.sendMessageToTelegram(
+                chatId, "No completed tasks found for sprint " + sprintId, this);
+            return;
+          }
+
+          StringBuilder message = new StringBuilder();
+          message.append("✅ Completed tasks for Sprint ").append(sprintId).append(":\n\n");
+          for (Tarea tarea : completedInSprint) {
+            message.append("• ").append(tarea.getDescripcion()).append("\n");
+          }
+
+          BotHelper.sendMessageToTelegram(chatId, message.toString(), this);
+        } catch (NumberFormatException e) {
+          BotHelper.sendMessageToTelegram(
+              chatId, "❌ Invalid sprint ID format. Use: /sprintcompleted <SPRINT_ID>", this);
+        } catch (Exception e) {
+          logger.error("Error fetching completed tasks for sprint", e);
+          BotHelper.sendMessageToTelegram(
+              chatId, "❌ Error fetching completed tasks: " + e.getMessage(), this);
+        }
       } else {
         try {
           ToDoItem newItem = new ToDoItem();

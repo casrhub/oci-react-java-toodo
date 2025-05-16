@@ -27,8 +27,7 @@
    ```
 
 3. **Access the Application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8080
+   - http://localhost:8080
 
 ## Important Notes
 - Make sure the wallet files are properly placed in the `backend/src/main/resources/` directory

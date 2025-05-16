@@ -38,10 +38,12 @@ function TeamSprintDevHoursBarChart({ equipoId = 1 }) {
             const sprintData = memberHours.reduce((acc, cur) => ({ ...acc, ...cur }), {});
             return {
               sprint: sprint.nombre ?? `Sprint ${sprint.sprintId}`,
+              sprintId: sprint.sprintId,
               ...sprintData
             };
           })
         );
+        results.sort((a, b) => a.sprintId - b.sprintId);
         setData(results);
       } catch (err) {
         setError(err);

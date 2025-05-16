@@ -29,7 +29,7 @@ function ManagerInsightsPage() {
         {/* Second Row: Task Report */}
         <Grid item xs={12}>
           <Paper elevation={3} sx={{ p: 3 }}>
-            <LastSprintTaskReport sprintId={2} />
+            <LastSprintTaskReport sprintId={3} />
           </Paper>
         </Grid>
          {/* Second Row: Task Report */}

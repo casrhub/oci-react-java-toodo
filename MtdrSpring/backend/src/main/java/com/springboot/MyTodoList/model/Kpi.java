@@ -3,67 +3,68 @@ package com.springboot.MyTodoList.model;
 import java.time.OffsetDateTime;
 
 public class Kpi {
-  private Long kpiId;
-  private Long usuarioId;
-  private String nombreKpi;
-  private String descripcion;
-  private double valorActual;
-  private double meta;
-  private OffsetDateTime fechaRegistro;
 
-  public Long getKpiId() {
-    return kpiId;
-  }
+    private Long kpiId;
+    private Long usuarioId;
+    private String nombreKpi;
+    private String descripcion;
+    private double valorActual;
+    private double meta;
+    private OffsetDateTime fechaRegistro;
 
-  public void setKpiId(Long kpiId) {
-    this.kpiId = kpiId;
-  }
+    public Long getKpiId() {
+        return kpiId;
+    }
 
-  public Long getUsuarioId() {
-    return usuarioId;
-  }
+    public void setKpiId(Long kpiId) {
+        this.kpiId = kpiId;
+    }
 
-  public void setUsuarioId(Long usuarioId) {
-    this.usuarioId = usuarioId;
-  }
+    public Long getUsuarioId() {
+        return usuarioId;
+    }
 
-  public String getNombreKpi() {
-    return nombreKpi;
-  }
+    public void setUsuarioId(Long usuarioId) {
+        this.usuarioId = usuarioId;
+    }
 
-  public void setNombreKpi(String nombreKpi) {
-    this.nombreKpi = nombreKpi;
-  }
+    public String getNombreKpi() {
+        return nombreKpi;
+    }
 
-  public String getDescripcion() {
-    return descripcion;
-  }
+    public void setNombreKpi(String nombreKpi) {
+        this.nombreKpi = nombreKpi;
+    }
 
-  public void setDescripcion(String descripcion) {
-    this.descripcion = descripcion;
-  }
+    public String getDescripcion() {
+        return descripcion;
+    }
 
-  public double getValorActual() {
-    return valorActual;
-  }
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
 
-  public void setValorActual(double valorActual) {
-    this.valorActual = valorActual;
-  }
+    public double getValorActual() {
+        return valorActual;
+    }
 
-  public double getMeta() {
-    return meta;
-  }
+    public void setValorActual(double valorActual) {
+        this.valorActual = valorActual;
+    }
 
-  public void setMeta(double meta) {
-    this.meta = meta;
-  }
+    public double getMeta() {
+        return meta;
+    }
 
-  public OffsetDateTime getFechaRegistro() {
-    return fechaRegistro;
-  }
+    public void setMeta(double meta) {
+        this.meta = meta;
+    }
 
-  public void setFechaRegistro(OffsetDateTime fechaRegistro) {
-    this.fechaRegistro = fechaRegistro;
-  }
+    public OffsetDateTime getFechaRegistro() {
+        return fechaRegistro;
+    }
+
+    public void setFechaRegistro(OffsetDateTime fechaRegistro) {
+        this.fechaRegistro = fechaRegistro;
+    }
 }

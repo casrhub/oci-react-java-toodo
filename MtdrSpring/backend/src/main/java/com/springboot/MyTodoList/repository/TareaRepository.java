@@ -6,169 +6,140 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface TareaRepository extends JpaRepository<Tarea, Long> {
 
-  // Horas trabajadas por equipo por sprint
-  @Query(
-      value =
-          "SELECT COALESCE(SUM(t.horas_reales), 0) "
-              + "FROM ADMIN.TAREAS t "
-              + "WHERE t.estado = 'completado' "
-              + "AND t.equipo_id = :equipoId "
-              + "AND t.sprint_id = :sprintId",
-      nativeQuery = true)
-  BigDecimal sumHorasRealesByEquipoAndSprint(
-      @Param("equipoId") Long equipoId, @Param("sprintId") Long sprintId);
+    /* ---------- KPI QUERIES PER TEAM & SPRINT ---------- */
 
-  // Tareas completadas por equipo por sprint
-  @Query(
-      value =
-          "SELECT COUNT(*) "
-              + "FROM ADMIN.TAREAS t "
-              + "WHERE t.estado = 'completado' "
-              + "AND t.equipo_id = :equipoId "
-              + "AND t.sprint_id = :sprintId",
-      nativeQuery = true)
-  Long countCompletedTareasByEquipoAndSprint(
-      @Param("equipoId") Long equipoId, @Param("sprintId") Long sprintId);
+    // Total actual hours logged by a team in a sprint
+    @Query(value = "SELECT COALESCE(SUM(t.horas_reales), 0) " +
+            "FROM ADMIN.TAREAS t " +
+            "WHERE t.estado = 'completado' " +
+            "AND t.equipo_id = :equipoId " +
+            "AND t.sprint_id = :sprintId", nativeQuery = true)
+    BigDecimal sumHorasRealesByEquipoAndSprint(@Param("equipoId") Long equipoId,
+            @Param("sprintId") Long sprintId);
 
-  // Horas trabajadas por usuario en un sprint
-  @Query(
-      value =
-          "SELECT COALESCE(SUM(t.horas_reales), 0) "
-              + "FROM ADMIN.TAREAS t "
-              + "WHERE t.estado = 'completado' "
-              + "AND t.usuario_id = :usuarioId "
-              + "AND t.sprint_id = :sprintId",
-      nativeQuery = true)
-  BigDecimal sumHorasRealesByUsuarioAndSprint(
-      @Param("usuarioId") Long usuarioId, @Param("sprintId") Long sprintId);
+    // Completed tasks for a team in a sprint
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM ADMIN.TAREAS t " +
+            "WHERE t.estado = 'completado' " +
+            "AND t.equipo_id = :equipoId " +
+            "AND t.sprint_id = :sprintId", nativeQuery = true)
+    Long countCompletedTareasByEquipoAndSprint(@Param("equipoId") Long equipoId,
+            @Param("sprintId") Long sprintId);
 
-  // Tareas completadas por usuario en un sprint
-  @Query(
-      value =
-          "SELECT COUNT(*) "
-              + "FROM ADMIN.TAREAS t "
-              + "WHERE t.estado = 'completado' "
-              + "AND t.usuario_id = :usuarioId "
-              + "AND t.sprint_id = :sprintId",
-      nativeQuery = true)
-  Long countCompletedTareasByUsuarioAndSprint(
-      @Param("usuarioId") Long usuarioId, @Param("sprintId") Long sprintId);
+    /* ---------- KPI QUERIES PER USER & SPRINT ---------- */
 
-  @Query(
-      value = "SELECT COUNT(*) FROM ADMIN.TAREAS WHERE USUARIO_ID = :usuarioId",
-      nativeQuery = true)
-  Long countByUsuario(@Param("usuarioId") Long usuarioId);
+    // Total actual hours logged by a user in a sprint
+    @Query(value = "SELECT COALESCE(SUM(t.horas_reales), 0) " +
+            "FROM ADMIN.TAREAS t " +
+            "WHERE t.estado = 'completado' " +
+            "AND t.usuario_id = :usuarioId " +
+            "AND t.sprint_id = :sprintId", nativeQuery = true)
+    BigDecimal sumHorasRealesByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
+            @Param("sprintId") Long sprintId);
 
-  @Query(
-      value =
-          "SELECT COUNT(*) FROM ADMIN.TAREAS "
-              + "WHERE USUARIO_ID = :usuarioId "
-              + "AND ESTADO = 'completado' "
-              + "AND DEADLINE IS NOT NULL "
-              + "AND DEADLINE >= SYSTIMESTAMP",
-      nativeQuery = true)
-  Long countCompletedBeforeDeadline(@Param("usuarioId") Long usuarioId);
+    // Completed tasks by a user in a sprint
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM ADMIN.TAREAS t " +
+            "WHERE t.estado = 'completado' " +
+            "AND t.usuario_id = :usuarioId " +
+            "AND t.sprint_id = :sprintId", nativeQuery = true)
+    Long countCompletedTareasByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
+            @Param("sprintId") Long sprintId);
 
-  @Query(
-      value =
-          "SELECT COUNT(*) FROM ADMIN.TAREAS "
-              + "WHERE USUARIO_ID = :usuarioId "
-              + "AND ESTADO = 'completado' "
-              + "AND DEADLINE IS NOT NULL "
-              + "AND DEADLINE < SYSTIMESTAMP",
-      nativeQuery = true)
-  Long countCompletedAfterDeadline(@Param("usuarioId") Long usuarioId);
+    /* ---------- GLOBAL USER KPI QUERIES ---------- */
 
-  @Query(
-      value = "SELECT COUNT(*) FROM ADMIN.TAREAS WHERE EQUIPO_ID = :equipoId",
-      nativeQuery = true)
-  Long countByEquipo(@Param("equipoId") Long equipoId);
+    @Query(value = "SELECT COUNT(*) FROM ADMIN.TAREAS WHERE USUARIO_ID = :usuarioId", nativeQuery = true)
+    Long countByUsuario(@Param("usuarioId") Long usuarioId);
 
-  @Query(
-      value =
-          "SELECT COUNT(*) FROM ADMIN.TAREAS "
-              + "WHERE EQUIPO_ID = :equipoId "
-              + "AND ESTADO = 'completado' "
-              + "AND DEADLINE IS NOT NULL "
-              + "AND DEADLINE >= SYSTIMESTAMP",
-      nativeQuery = true)
-  Long countCompletedBeforeDeadlineTeam(@Param("equipoId") Long equipoId);
+    @Query(value = "SELECT COUNT(*) FROM ADMIN.TAREAS " +
+            "WHERE USUARIO_ID = :usuarioId " +
+            "AND ESTADO = 'completado' " +
+            "AND DEADLINE IS NOT NULL " +
+            "AND DEADLINE >= SYSTIMESTAMP", nativeQuery = true)
+    Long countCompletedBeforeDeadline(@Param("usuarioId") Long usuarioId);
 
-  @Query(
-      value =
-          "SELECT COUNT(*) FROM ADMIN.TAREAS "
-              + "WHERE EQUIPO_ID = :equipoId "
-              + "AND ESTADO = 'completado' "
-              + "AND DEADLINE IS NOT NULL "
-              + "AND DEADLINE < SYSTIMESTAMP",
-      nativeQuery = true)
-  Long countCompletedAfterDeadlineTeam(@Param("equipoId") Long equipoId);
+    @Query(value = "SELECT COUNT(*) FROM ADMIN.TAREAS " +
+            "WHERE USUARIO_ID = :usuarioId " +
+            "AND ESTADO = 'completado' " +
+            "AND DEADLINE IS NOT NULL " +
+            "AND DEADLINE < SYSTIMESTAMP", nativeQuery = true)
+    Long countCompletedAfterDeadline(@Param("usuarioId") Long usuarioId);
 
-  // Horas estimadas por usuario en un sprint (de tareas completadas)
-  @Query(
-      value =
-          "SELECT COALESCE(SUM(t.horas_estimadas), 0) "
-              + "FROM ADMIN.TAREAS t "
-              + "WHERE t.estado = 'completado' "
-              + "AND t.usuario_id = :usuarioId "
-              + "AND t.sprint_id = :sprintId",
-      nativeQuery = true)
-  BigDecimal sumHorasEstimadasByUsuarioAndSprint(
-      @Param("usuarioId") Long usuarioId, @Param("sprintId") Long sprintId);
+    /* ---------- GLOBAL TEAM KPI QUERIES ---------- */
 
-  // Tareas completadas despues del deadline por usuario en un sprint
-  @Query(
-      value =
-          "SELECT COUNT(*) "
-              + "FROM ADMIN.TAREAS t "
-              + "WHERE t.estado = 'completado' "
-              + "AND t.usuario_id = :usuarioId "
-              + "AND t.sprint_id = :sprintId "
-              + "AND t.fecha_finalizacion > t.deadline",
-      nativeQuery = true)
-  Long countCompletedTareasAfterDeadlineByUsuarioAndSprint(
-      @Param("usuarioId") Long usuarioId, @Param("sprintId") Long sprintId);
+    @Query(value = "SELECT COUNT(*) FROM ADMIN.TAREAS WHERE EQUIPO_ID = :equipoId", nativeQuery = true)
+    Long countByEquipo(@Param("equipoId") Long equipoId);
 
-  // Tareas completadas antes del deadline por usuario en un sprint
-  @Query(
-      value =
-          "SELECT COUNT(*) "
-              + "FROM ADMIN.TAREAS t "
-              + "WHERE t.estado = 'completado' "
-              + "AND t.usuario_id = :usuarioId "
-              + "AND t.sprint_id = :sprintId "
-              + "AND t.fecha_finalizacion < t.deadline",
-      nativeQuery = true)
-  Long countCompletedTareasBeforeDeadlineByUsuarioAndSprint(
-      @Param("usuarioId") Long usuarioId, @Param("sprintId") Long sprintId);
+    @Query(value = "SELECT COUNT(*) FROM ADMIN.TAREAS " +
+            "WHERE EQUIPO_ID = :equipoId " +
+            "AND ESTADO = 'completado' " +
+            "AND DEADLINE IS NOT NULL " +
+            "AND DEADLINE >= SYSTIMESTAMP", nativeQuery = true)
+    Long countCompletedBeforeDeadlineTeam(@Param("equipoId") Long equipoId);
 
-  // Tareas asignadas por usuario en un sprint
-  @Query(
-      value =
-          "SELECT COUNT(*) "
-              + "FROM ADMIN.TAREAS t "
-              + "WHERE t.usuario_id = :usuarioId "
-              + "AND t.sprint_id = :sprintId",
-      nativeQuery = true)
-  Long countAsignedTareasByUsuarioAndSprint(
-      @Param("usuarioId") Long usuarioId, @Param("sprintId") Long sprintId);
+    @Query(value = "SELECT COUNT(*) FROM ADMIN.TAREAS " +
+            "WHERE EQUIPO_ID = :equipoId " +
+            "AND ESTADO = 'completado' " +
+            "AND DEADLINE IS NOT NULL " +
+            "AND DEADLINE < SYSTIMESTAMP", nativeQuery = true)
+    Long countCompletedAfterDeadlineTeam(@Param("equipoId") Long equipoId);
 
-  // 🔹 ADDED FROM `dev`: find tareas by usuario
-  List<Tarea> findByUsuarioId(Long usuarioId);
+    /* ---------- ADDITIONAL USER-SPRINT KPI QUERIES ---------- */
 
-  // Horas trabajadas por usuario en un sprint y equipo
-  @Query(
-      value =
-          "SELECT COALESCE(SUM(t.horas_reales), 0) "
-              + "FROM ADMIN.TAREAS t "
-              + "WHERE t.estado = 'completado' "
-              + "AND t.equipo_id = :equipoId "
-              + "AND t.sprint_id = :sprintId "
-              + "AND t.usuario_id = :usuarioId",
-      nativeQuery = true)
-  BigDecimal sumHorasRealesByEquipoAndSprintAndUsuario(
-      @Param("equipoId") Long equipoId, @Param("sprintId") Long sprintId, @Param("usuarioId") Long usuarioId);
+    // Total estimated hours (completed tasks) for a user in a sprint
+    @Query(value = "SELECT COALESCE(SUM(t.horas_estimadas), 0) " +
+            "FROM ADMIN.TAREAS t " +
+            "WHERE t.estado = 'completado' " +
+            "AND t.usuario_id = :usuarioId " +
+            "AND t.sprint_id = :sprintId", nativeQuery = true)
+    BigDecimal sumHorasEstimadasByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
+            @Param("sprintId") Long sprintId);
+
+    // Completed tasks after deadline for a user in a sprint
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM ADMIN.TAREAS t " +
+            "WHERE t.estado = 'completado' " +
+            "AND t.usuario_id = :usuarioId " +
+            "AND t.sprint_id = :sprintId " +
+            "AND t.fecha_finalizacion > t.deadline", nativeQuery = true)
+    Long countCompletedTareasAfterDeadlineByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
+            @Param("sprintId") Long sprintId);
+
+    // Completed tasks before deadline for a user in a sprint
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM ADMIN.TAREAS t " +
+            "WHERE t.estado = 'completado' " +
+            "AND t.usuario_id = :usuarioId " +
+            "AND t.sprint_id = :sprintId " +
+            "AND t.fecha_finalizacion < t.deadline", nativeQuery = true)
+    Long countCompletedTareasBeforeDeadlineByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
+            @Param("sprintId") Long sprintId);
+
+    // Assigned tasks for a user in a sprint
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM ADMIN.TAREAS t " +
+            "WHERE t.usuario_id = :usuarioId " +
+            "AND t.sprint_id = :sprintId", nativeQuery = true)
+    Long countAsignedTareasByUsuarioAndSprint(@Param("usuarioId") Long usuarioId,
+            @Param("sprintId") Long sprintId);
+
+    /* ---------- SIMPLE FINDERS ---------- */
+
+    List<Tarea> findByUsuarioId(Long usuarioId);
+
+    // Total actual hours by team, sprint, and user
+    @Query(value = "SELECT COALESCE(SUM(t.horas_reales), 0) " +
+            "FROM ADMIN.TAREAS t " +
+            "WHERE t.estado = 'completado' " +
+            "AND t.equipo_id = :equipoId " +
+            "AND t.sprint_id = :sprintId " +
+            "AND t.usuario_id = :usuarioId", nativeQuery = true)
+    BigDecimal sumHorasRealesByEquipoAndSprintAndUsuario(@Param("equipoId") Long equipoId,
+            @Param("sprintId") Long sprintId,
+            @Param("usuarioId") Long usuarioId);
 }

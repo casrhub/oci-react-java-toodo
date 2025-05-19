@@ -9,4 +9,5 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Repository
 @Transactional
 @EnableTransactionManagement
-public interface ToDoItemRepository extends JpaRepository<ToDoItem, Integer> {}
+public interface ToDoItemRepository extends JpaRepository<ToDoItem, Integer> {
+}

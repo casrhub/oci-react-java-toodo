@@ -15,37 +15,30 @@ import org.mockito.*;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-/** Tests for ToDoItemBotController. */
 public class ToDoItemBotControllerTests {
 
   @Mock private TareaService tareaService;
 
-  @InjectMocks private ToDoItemBotController controller; // used in simple service test
+  @InjectMocks private ToDoItemBotController controller;
 
   @BeforeEach
   public void init() {
     MockitoAnnotations.openMocks(this);
   }
 
-  /* ----------------------------------------------------------------
-  Simple service test (no Telegram mocks)
-  -------------------------------------------------------------- */
   @Test
   public void testGetAllTareas_ReturnsListOfTareas() {
     Tarea t1 = new Tarea(1L, "Write tests", "Write unit tests", "pendiente");
     Tarea t2 = new Tarea(2L, "Fix bug", "Null‑pointer fix", "pendiente");
 
-    when(tareaService.findAll()).thenReturn(Arrays.asList(t1, t2));
+    when(tareaService.findAllTasks()).thenReturn(Arrays.asList(t1, t2));
 
     List<Tarea> result = controller.getAllTareas();
 
     assertEquals(2, result.size());
-    verify(tareaService, times(1)).findAll();
+    verify(tareaService, times(1)).findAllTasks();
   }
 
-  /* ----------------------------------------------------------------
-  Test for /done command
-  -------------------------------------------------------------- */
   @Test
   public void testDoneCommand_SetsPendingTaskIdAndSessionState() {
     long chatId = 123L;
@@ -68,9 +61,6 @@ public class ToDoItemBotControllerTests {
     assertEquals("AWAITING_HORAS_REALES", bot.getSessionState().get(chatId));
   }
 
-  /* ----------------------------------------------------------------
-  Test for /setdeadline command
-  -------------------------------------------------------------- */
   @Test
   public void testSetDeadlineCommand_SetsStateCorrectly() {
     long chatId = 555L;
@@ -93,21 +83,16 @@ public class ToDoItemBotControllerTests {
     assertEquals("AWAITING_DATE", bot.getSessionState().get(chatId));
   }
 
-  /* ----------------------------------------------------------------
-  Test for /link command
-  -------------------------------------------------------------- */
   @Test
   public void testLinkCommand_CallsSaveWithCorrectChatId() {
     long chatId = 999L;
     String email = "test@example.com";
 
-    // mock user & service
     Usuarios user = new Usuarios();
     user.setEmail(email);
     UsuarioService usuarioService = mock(UsuarioService.class);
-    when(usuarioService.findByEmail(email)).thenReturn(Optional.of(user));
+    when(usuarioService.findUserByEmail(email)).thenReturn(Optional.of(user));
 
-    // mock telegram update
     Message msg = mock(Message.class);
     when(msg.getText()).thenReturn("/link " + email);
     when(msg.getChatId()).thenReturn(chatId);
@@ -123,7 +108,7 @@ public class ToDoItemBotControllerTests {
     bot.onUpdateReceived(upd);
 
     ArgumentCaptor<Usuarios> captor = ArgumentCaptor.forClass(Usuarios.class);
-    verify(usuarioService).save(captor.capture());
+    verify(usuarioService).createUser(captor.capture());
 
     assertEquals(chatId, captor.getValue().getTelegramChatId());
   }

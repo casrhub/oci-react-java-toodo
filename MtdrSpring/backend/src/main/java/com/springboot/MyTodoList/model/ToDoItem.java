@@ -3,98 +3,86 @@ package com.springboot.MyTodoList.model;
 import java.time.OffsetDateTime;
 import javax.persistence.*;
 
-/*
-   Representation of the TODOITEM table that exists already
-   in the autonomous database.
-*/
 @Entity
 @Table(name = "TODOITEM")
 public class ToDoItem {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  int ID;
 
-  @Column(name = "DESCRIPTION")
-  String description;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
-  @Column(name = "CREATION_TS")
-  OffsetDateTime creation_ts;
+    @Column(name = "DESCRIPTION")
+    private String descripcion;
 
-  @Column(name = "DONE")
-  boolean done;
+    @Column(name = "CREATION_TS")
+    private OffsetDateTime fechaCreacion;
 
-  @Column(name = "DEADLINE", nullable = true)
-  OffsetDateTime deadline; // New deadline field
+    @Column(name = "DONE")
+    private boolean completado;
 
-  public ToDoItem() {}
+    @Column(name = "DEADLINE", nullable = true)
+    private OffsetDateTime fechaLimite;
 
-  public ToDoItem(
-      int ID,
-      String description,
-      OffsetDateTime creation_ts,
-      boolean done,
-      OffsetDateTime deadline) {
-    this.ID = ID;
-    this.description = description;
-    this.creation_ts = creation_ts;
-    this.done = done;
-    this.deadline = deadline;
-  }
+    // Constructor base (requerido por JPA)
+    public ToDoItem() {}
 
-  public int getID() {
-    return ID;
-  }
+    // Constructor completo
+    public ToDoItem(int id, String descripcion, OffsetDateTime fechaCreacion, boolean completado, OffsetDateTime fechaLimite) {
+        this.id = id;
+        this.descripcion = descripcion;
+        this.fechaCreacion = fechaCreacion;
+        this.completado = completado;
+        this.fechaLimite = fechaLimite;
+    }
 
-  public void setID(int ID) {
-    this.ID = ID;
-  }
+    public int getId() {
+        return id;
+    }
 
-  public String getDescription() {
-    return description;
-  }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-  public void setDescription(String description) {
-    this.description = description;
-  }
+    public String getDescripcion() {
+        return descripcion;
+    }
 
-  public OffsetDateTime getCreation_ts() {
-    return creation_ts;
-  }
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
 
-  public void setCreation_ts(OffsetDateTime creation_ts) {
-    this.creation_ts = creation_ts;
-  }
+    public OffsetDateTime getFechaCreacion() {
+        return fechaCreacion;
+    }
 
-  public boolean isDone() {
-    return done;
-  }
+    public void setFechaCreacion(OffsetDateTime fechaCreacion) {
+        this.fechaCreacion = fechaCreacion;
+    }
 
-  public void setDone(boolean done) {
-    this.done = done;
-  }
+    public boolean isCompletado() {
+        return completado;
+    }
 
-  public OffsetDateTime getDeadline() {
-    return deadline;
-  }
+    public void setCompletado(boolean completado) {
+        this.completado = completado;
+    }
 
-  public void setDeadline(OffsetDateTime deadline) {
-    this.deadline = deadline;
-  }
+    public OffsetDateTime getFechaLimite() {
+        return fechaLimite;
+    }
 
-  @Override
-  public String toString() {
-    return "ToDoItem{"
-        + "ID="
-        + ID
-        + ", description='"
-        + description
-        + '\''
-        + ", creation_ts="
-        + creation_ts
-        + ", done="
-        + done
-        + ", deadline="
-        + deadline
-        + '}';
-  }
+    public void setFechaLimite(OffsetDateTime fechaLimite) {
+        this.fechaLimite = fechaLimite;
+    }
+
+    @Override
+    public String toString() {
+        return "ToDoItem{" +
+                "id=" + id +
+                ", descripcion='" + descripcion + '\'' +
+                ", fechaCreacion=" + fechaCreacion +
+                ", completado=" + completado +
+                ", fechaLimite=" + fechaLimite +
+                '}';
+    }
 }

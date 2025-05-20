@@ -28,7 +28,7 @@ public class Usuarios {
   private Long telegramChatId;
 
   // Getters and Setters
-  @JsonProperty("usuario_id") // para que los tests lo mappeen a como lo regresa el json
+  @JsonProperty("usuario_id") // para compatibilidad con los tests y el JSON esperado
   public Integer getId() {
     return id;
   }

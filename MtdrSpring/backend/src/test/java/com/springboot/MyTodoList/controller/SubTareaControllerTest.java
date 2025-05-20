@@ -54,40 +54,86 @@ public class SubTareaControllerTest {
     Mockito.reset(subTareaService, tareaRepository);
   }
 
-  @Test
-  void testCreateAndGetSubTarea() throws Exception {
+  private Tarea buildTarea(Long id) {
     Tarea tarea = new Tarea();
-    tarea.setTareaId(1L);
+    tarea.setTareaId(id);
+    return tarea;
+  }
 
+  private SubTarea buildSubTarea(
+          Long subTareaId,
+          Tarea tarea,
+          String titulo,
+          String descripcion,
+          String estado,
+          BigDecimal horasEstimadas,
+          BigDecimal horasReales,
+          OffsetDateTime fechaCreacion,
+          OffsetDateTime deadline) {
     SubTarea sub = new SubTarea();
-    sub.setSubTareaId(1L);
+    sub.setSubTareaId(subTareaId);
     sub.setTarea(tarea);
-    sub.setTitulo("Nueva SubTarea");
-    sub.setDescripcion("Descripción");
-    sub.setEstado("EN_PROCESO");
-    sub.setHorasEstimadas(new BigDecimal("5"));
-    sub.setHorasReales(new BigDecimal("2"));
-    sub.setFechaCreacion(OffsetDateTime.parse("2024-04-03T14:25:00Z"));
-    sub.setDeadline(OffsetDateTime.parse("2024-04-10T14:25:00Z"));
+    sub.setTitulo(titulo);
+    sub.setDescripcion(descripcion);
+    sub.setEstado(estado);
+    sub.setHorasEstimadas(horasEstimadas);
+    sub.setHorasReales(horasReales);
+    sub.setFechaCreacion(fechaCreacion);
+    sub.setFechaLimite(deadline);
+    return sub;
+  }
 
-    Mockito.when(tareaRepository.findById(1L)).thenReturn(Optional.of(tarea));
-    Mockito.when(subTareaService.save(Mockito.any(SubTarea.class))).thenReturn(sub);
-    Mockito.when(subTareaService.findById(1L)).thenReturn(Optional.of(sub));
+  private SubTarea buildSubTarea(Long subTareaId, Long tareaId, String titulo) {
+    return buildSubTarea(
+            subTareaId,
+            buildTarea(tareaId),
+            titulo,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null);
+  }
 
+  private Map<String, Object> buildPayload(SubTarea sub) {
     Map<String, Object> payload = new LinkedHashMap<>();
-    payload.put("tareaId", 1);
+    payload.put("tareaId", sub.getTarea().getTareaId());
     payload.put("titulo", sub.getTitulo());
     payload.put("descripcion", sub.getDescripcion());
     payload.put("estado", sub.getEstado());
     payload.put("horasEstimadas", sub.getHorasEstimadas());
     payload.put("horasReales", sub.getHorasReales());
     payload.put("fechaCreacion", sub.getFechaCreacion().toString());
-    payload.put("deadline", sub.getDeadline().toString());
+    payload.put("deadline", sub.getFechaLimite().toString());
+    return payload;
+  }
 
-    String jsonPayload = objectMapper.writeValueAsString(payload);
+  @Test
+  void testCreateAndGetSubTarea() throws Exception {
+    Tarea tarea = buildTarea(1L);
+    SubTarea sub =
+            buildSubTarea(
+                    1L,
+                    tarea,
+                    "Nueva SubTarea",
+                    "Descripción",
+                    "EN_PROCESO",
+                    new BigDecimal("5"),
+                    new BigDecimal("2"),
+                    OffsetDateTime.parse("2024-04-03T14:25:00Z"),
+                    OffsetDateTime.parse("2024-04-10T14:25:00Z"));
+
+    Mockito.when(tareaRepository.findById(1L)).thenReturn(Optional.of(tarea));
+    Mockito.when(subTareaService.createSubtask(Mockito.any(SubTarea.class))).thenReturn(sub);
+    Mockito.when(subTareaService.findSubtaskById(1L)).thenReturn(Optional.of(sub));
+
+    String jsonPayload = objectMapper.writeValueAsString(buildPayload(sub));
 
     mockMvc
-            .perform(post("/subtareas").contentType(MediaType.APPLICATION_JSON).content(jsonPayload))
+            .perform(post("/subtareas")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonPayload))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.subTareaId").value(1))
             .andExpect(jsonPath("$.titulo").value("Nueva SubTarea"));
@@ -101,20 +147,19 @@ public class SubTareaControllerTest {
 
   @Test
   void testGetAllAndFilterByTarea() throws Exception {
-    Tarea tarea1 = new Tarea(); tarea1.setTareaId(1L);
-    Tarea tarea2 = new Tarea(); tarea2.setTareaId(2L);
+    SubTarea s1 = buildSubTarea(1L, 1L, "S1");
+    SubTarea s2 = buildSubTarea(2L, 2L, "S2");
 
-    SubTarea s1 = new SubTarea(); s1.setSubTareaId(1L); s1.setTarea(tarea1); s1.setTitulo("S1");
-    SubTarea s2 = new SubTarea(); s2.setSubTareaId(2L); s2.setTarea(tarea2); s2.setTitulo("S2");
+    Mockito.when(subTareaService.findAllSubtasks()).thenReturn(Arrays.asList(s1, s2));
+    Mockito.when(subTareaService.findSubtasksByTaskId(1L)).thenReturn(Collections.singletonList(s1));
 
-    Mockito.when(subTareaService.findAll()).thenReturn(Arrays.asList(s1, s2));
-    Mockito.when(subTareaService.findByTareaId(1L)).thenReturn(Collections.singletonList(s1));
-
-    mockMvc.perform(get("/subtareas"))
+    mockMvc
+            .perform(get("/subtareas"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(2));
 
-    mockMvc.perform(get("/subtareas").param("tareaId", "1"))
+    mockMvc
+            .perform(get("/subtareas").param("tareaId", "1"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].subTareaId").value(1));

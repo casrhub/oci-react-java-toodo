@@ -11,90 +11,93 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
+/**
+ * Service class for managing Tarea (Task) entities.
+ * Provides CRUD operations, task management, and KPI calculations.
+ */
 @Service
 public class TareaService {
 
-  @Autowired private TareaRepository tareaRepository;
-  @Autowired private SubTareaRepository subTareaRepository;
+  private static final BigDecimal MAX_ESTIMATED_HOURS = new BigDecimal("4");
+  private static final String STATUS_COMPLETED = "completado";
+  private static final String STATUS_IN_PROGRESS = "en progreso";
+  private static final String STATUS_PENDING = "pendiente";
 
-  /* ---------------- Lectura / creación ---------------- */
+  private final TareaRepository tareaRepository;
+  private final SubTareaRepository subTareaRepository;
 
-  public List<Tarea> findAll() {
+  /**
+   * Constructor for TareaService.
+   * @param tareaRepository Repository for Tarea entities
+   * @param subTareaRepository Repository for SubTarea entities
+   */
+  public TareaService(TareaRepository tareaRepository, SubTareaRepository subTareaRepository) {
+    this.tareaRepository = tareaRepository;
+    this.subTareaRepository = subTareaRepository;
+  }
+
+  /**
+   * Retrieves all tasks.
+   * @return List of all tasks
+   */
+  public List<Tarea> findAllTasks() {
     return tareaRepository.findAll();
   }
 
-  public List<Tarea> findByUsuarioId(Long usuarioId) {
+  /**
+   * Retrieves all tasks for a specific user.
+   * @param usuarioId The ID of the user
+   * @return List of tasks assigned to the user
+   */
+  public List<Tarea> findTasksByUserId(Long usuarioId) {
+    Assert.notNull(usuarioId, "User ID must not be null");
     return tareaRepository.findByUsuarioId(usuarioId);
   }
 
-  public Optional<Tarea> findById(Long id) {
+  /**
+   * Retrieves a task by its ID.
+   * @param id The ID of the task to find
+   * @return Optional containing the task if found
+   */
+  public Optional<Tarea> findTaskById(Long id) {
+    Assert.notNull(id, "Task ID must not be null");
     return tareaRepository.findById(id);
   }
 
-  public Tarea save(Tarea tarea) {
-    BigDecimal estimated = tarea.getHorasEstimadas();
-    if (estimated != null && estimated.compareTo(new BigDecimal("4")) > 0) {
-      tarea.setHorasEstimadas(new BigDecimal("4"));
+  /**
+   * Creates a new task.
+   * @param task The task to create
+   * @return The created task
+   */
+  public Tarea createTask(Tarea task) {
+    Assert.notNull(task, "Task must not be null");
+    validateTask(task);
+    
+    BigDecimal estimated = task.getHorasEstimadas();
+    if (estimated != null && estimated.compareTo(MAX_ESTIMATED_HOURS) > 0) {
+      task.setHorasEstimadas(MAX_ESTIMATED_HOURS);
     }
 
-    Tarea saved = tareaRepository.save(tarea);
-    createDefaultSubTareas(saved);
+    Tarea saved = tareaRepository.save(task);
+    createDefaultSubtasks(saved);
     return saved;
   }
 
-  /* ---------------- Sub-tareas por defecto ---------------- */
-
-  private void createDefaultSubTareas(Tarea tarea) {
-    BigDecimal estimated = tarea.getHorasEstimadas();
-    if (estimated == null || estimated.compareTo(new BigDecimal("4")) <= 0) return;
-
-    BigDecimal remaining = estimated.subtract(new BigDecimal("4"));
-    int number = remaining.divide(new BigDecimal("4"), 0, BigDecimal.ROUND_UP).intValue();
-
-    for (int i = 0; i < number; i++) {
-      BigDecimal subHours = remaining.subtract(new BigDecimal(i * 4));
-      if (subHours.compareTo(new BigDecimal("4")) > 0) subHours = new BigDecimal("4");
-
-      SubTarea sub = new SubTarea();
-      sub.setTarea(tarea);
-      sub.setTitulo("Subtarea " + (i + 1));
-      sub.setDescripcion("Descripción pendiente");
-      sub.setEstado("pendiente");
-      sub.setHorasEstimadas(subHours);
-      sub.setHorasReales(BigDecimal.ZERO);
-      sub.setFechaCreacion(OffsetDateTime.now());
-
-      subTareaRepository.save(sub);
-    }
-  }
-
-  /* ---------------- Borrado ---------------- */
-
-  public boolean deleteById(Long id) {
-    if (tareaRepository.existsById(id)) {
-      tareaRepository.deleteById(id);
-      return true;
-    }
-    return false;
-  }
-
-  /* ---------------- Actualizaciones ---------------- */
-
-  public Tarea update(Long id, Tarea newData) {
+  public Tarea updateTask(Long id, Tarea newData) {
     return tareaRepository
         .findById(id)
         .map(
             t -> {
               t.setTitulo(newData.getTitulo());
               t.setDescripcion(newData.getDescripcion());
-              t.setEstado(newData.getEstado());
+              t.setestadoTarea(newData.getestadoTarea());
               t.setUsuarioId(newData.getUsuarioId());
               t.setHorasEstimadas(newData.getHorasEstimadas());
               t.setHorasReales(newData.getHorasReales());
-              t.setDeadline(newData.getDeadline());
+              t.setFechaLimite(newData.getFechaLimite());
               t.setEquipoId(newData.getEquipoId());
               t.setProyectoId(newData.getProyectoId());
               return tareaRepository.save(t);
@@ -102,7 +105,8 @@ public class TareaService {
         .orElse(null);
   }
 
-  public Tarea updateAssignee(Long id, Long usuarioId) {
+
+  public Tarea updateTaskAssignee(Long id, Long usuarioId) {
     return tareaRepository
         .findById(id)
         .map(
@@ -113,122 +117,106 @@ public class TareaService {
         .orElse(null);
   }
 
-  public Tarea markAsComplete(Long id, String estado, BigDecimal horasReales) {
+  public Tarea markTaskAsComplete(Long id, String estado, BigDecimal horasReales) {
     return tareaRepository
         .findById(id)
         .map(
             t -> {
-              t.setEstado(estado);
+              t.setestadoTarea(estado);
               t.setHorasReales(horasReales);
               return tareaRepository.save(t);
             })
         .orElse(null);
   }
 
-  public Tarea updateDeadline(Long id, OffsetDateTime deadline) {
+  public Tarea updateTaskDeadline(Long id, OffsetDateTime deadline) {
     return tareaRepository
         .findById(id)
         .map(
             t -> {
-              t.setDeadline(deadline);
+              t.setFechaLimite(deadline);
               return tareaRepository.save(t);
             })
         .orElse(null);
   }
 
-  /* ---------------- KPIs: kpis-corregido ---------------- */
-
-  public BigDecimal getHorasRealesByEquipoAndSprint(Long equipoId, Long sprintId) {
-    return tareaRepository.sumHorasRealesByEquipoAndSprint(equipoId, sprintId);
+  /**
+   * Deletes a task by its ID.
+   * @param id The ID of the task to delete
+   * @return true if the task was deleted, false if it didn't exist
+   */
+  public boolean deleteTask(Long id) {
+    Assert.notNull(id, "Task ID must not be null");
+    if (tareaRepository.existsById(id)) {
+      tareaRepository.deleteById(id);
+      return true;
+    }
+    return false;
   }
 
-  public Long countCompletedTareasByEquipoAndSprint(Long equipoId, Long sprintId) {
-    return tareaRepository.countCompletedTareasByEquipoAndSprint(equipoId, sprintId);
+  /**
+   * Creates default subtasks for a task with more than 4 estimated hours.
+   * @param task The parent task
+   */
+  private void createDefaultSubtasks(Tarea task) {
+    BigDecimal estimated = task.getHorasEstimadas();
+    if (estimated == null || estimated.compareTo(MAX_ESTIMATED_HOURS) <= 0) {
+      return;
+    }
+
+    BigDecimal remaining = estimated.subtract(MAX_ESTIMATED_HOURS);
+    int numberOfSubtasks = remaining.divide(MAX_ESTIMATED_HOURS, 0, BigDecimal.ROUND_UP).intValue();
+
+    for (int i = 0; i < numberOfSubtasks; i++) {
+      BigDecimal subHours = remaining.subtract(new BigDecimal(i * 4));
+      if (subHours.compareTo(MAX_ESTIMATED_HOURS) > 0) {
+        subHours = MAX_ESTIMATED_HOURS;
+      }
+
+      SubTarea subtask = new SubTarea();
+      subtask.setTarea(task);
+      subtask.setTitulo("Subtarea " + (i + 1));
+      subtask.setDescripcion("Descripción pendiente");
+      subtask.setEstado(STATUS_PENDING);
+      subtask.setHorasEstimadas(subHours);
+      subtask.setHorasReales(BigDecimal.ZERO);
+      subtask.setFechaCreacion(OffsetDateTime.now());
+
+      subTareaRepository.save(subtask);
+    }
   }
 
-  public BigDecimal sumHorasRealesByUsuarioAndSprint(Long usuarioId, Long sprintId) {
-    return tareaRepository.sumHorasRealesByUsuarioAndSprint(usuarioId, sprintId);
+  /**
+   * Validates a task entity.
+   * @param task The task to validate
+   * @throws IllegalArgumentException if the task is invalid
+   */
+  private void validateTask(Tarea task) {
+    Assert.hasText(task.getTitulo(), "Task title must not be empty");
+    Assert.notNull(task.getestadoTarea(), "Task status must not be null");
+    Assert.notNull(task.getUsuarioId(), "User ID must not be null");
   }
 
-  public Long countCompletedTareasByUsuarioAndSprint(Long usuarioId, Long sprintId) {
-    return tareaRepository.countCompletedTareasByUsuarioAndSprint(usuarioId, sprintId);
-  }
-
-  public Map<String, Long> resumenPorEquipo(Long equipoId) {
-    long asignadas = tareaRepository.countByEquipo(equipoId);
-    long antes = tareaRepository.countCompletedBeforeDeadlineTeam(equipoId);
-    long despues = tareaRepository.countCompletedAfterDeadlineTeam(equipoId);
-
-    return Map.of(
-        "asignadas", asignadas,
-        "completadasAntes", antes,
-        "completadasDespues", despues);
-  }
-
-  public Map<String, Long> resumenPorUsuario(Long usuarioId) {
-    long asignadas = tareaRepository.countByUsuario(usuarioId);
-    long antes = tareaRepository.countCompletedBeforeDeadline(usuarioId);
-    long despues = tareaRepository.countCompletedAfterDeadline(usuarioId);
-
-    return Map.of(
-        "asignadas", asignadas,
-        "completadasAntes", antes,
-        "completadasDespues", despues);
-  }
-
-  public BigDecimal sumHorasEstimadasByUsuarioAndSprint(Long usuarioId, Long sprintId) {
-    return tareaRepository.sumHorasEstimadasByUsuarioAndSprint(usuarioId, sprintId);
-  }
-
-  public Long countCompletedTareasBeforeDeadlineByUsuarioAndSprint(Long usuarioId, Long sprintId) {
-    return tareaRepository.countCompletedTareasBeforeDeadlineByUsuarioAndSprint(
-        usuarioId, sprintId);
-  }
-
-  public Long countCompletedTareasAfterDeadlineByUsuarioAndSprint(Long usuarioId, Long sprintId) {
-    return tareaRepository.countCompletedTareasAfterDeadlineByUsuarioAndSprint(usuarioId, sprintId);
-  }
-
-  public Long countAsignedTareasByUsuarioAndSprint(Long usuarioId, Long sprintId) {
-    return tareaRepository.countAsignedTareasByUsuarioAndSprint(usuarioId, sprintId);
-  }
-
-  /* ---------------- KPIs: extra from dev ---------------- */
-
+  // KPI Methods
+  /**
+   * Calculates KPIs for a specific user.
+   * @param usuarioId The ID of the user
+   * @return Map containing various KPI metrics
+   */
   public Map<String, Object> calculateUserKPIs(Long usuarioId) {
-    List<Tarea> userTasks = findByUsuarioId(usuarioId);
+    Assert.notNull(usuarioId, "User ID must not be null");
+    List<Tarea> userTasks = findTasksByUserId(usuarioId);
     Map<String, Object> kpis = new HashMap<>();
 
     long totalTasks = userTasks.size();
-    long completedTasks =
-        userTasks.stream().filter(t -> "completado".equalsIgnoreCase(t.getEstado())).count();
-    long inProgressTasks =
-        userTasks.stream().filter(t -> "en progreso".equalsIgnoreCase(t.getEstado())).count();
-    long pendingTasks =
-        userTasks.stream().filter(t -> "pendiente".equalsIgnoreCase(t.getEstado())).count();
+    long completedTasks = countTasksByStatus(userTasks, STATUS_COMPLETED);
+    long inProgressTasks = countTasksByStatus(userTasks, STATUS_IN_PROGRESS);
+    long pendingTasks = countTasksByStatus(userTasks, STATUS_PENDING);
 
-    BigDecimal totalEstimatedHours =
-        userTasks.stream()
-            .map(t -> t.getHorasEstimadas() != null ? t.getHorasEstimadas() : BigDecimal.ZERO)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-    BigDecimal totalRealHours =
-        userTasks.stream()
-            .filter(t -> t.getHorasReales() != null)
-            .map(Tarea::getHorasReales)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-    BigDecimal completedEstimatedHours =
-        userTasks.stream()
-            .filter(t -> "completado".equalsIgnoreCase(t.getEstado()))
-            .map(t -> t.getHorasEstimadas() != null ? t.getHorasEstimadas() : BigDecimal.ZERO)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-    BigDecimal completedRealHours =
-        userTasks.stream()
-            .filter(t -> "completado".equalsIgnoreCase(t.getEstado()))
-            .map(t -> t.getHorasReales() != null ? t.getHorasReales() : BigDecimal.ZERO)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    BigDecimal totalEstimatedHours = calculateTotalHours(userTasks, Tarea::getHorasEstimadas);
+    BigDecimal totalRealHours = calculateTotalHours(userTasks, Tarea::getHorasReales);
+    BigDecimal completedEstimatedHours = calculateCompletedHours(userTasks, Tarea::getHorasEstimadas);
+    BigDecimal completedRealHours = calculateCompletedHours(userTasks, Tarea::getHorasReales);
 
     double completionRate = totalTasks > 0 ? (completedTasks * 100.0) / totalTasks : 0.0;
 
@@ -245,7 +233,102 @@ public class TareaService {
     return kpis;
   }
 
-  public BigDecimal sumHorasRealesByEquipoAndSprintAndUsuario(Long equipoId, Long sprintId, Long usuarioId) {
+  private long countTasksByStatus(List<Tarea> tasks, String status) {
+    return tasks.stream()
+        .filter(t -> status.equalsIgnoreCase(t.getestadoTarea()))
+        .count();
+  }
+
+  private BigDecimal calculateTotalHours(List<Tarea> tasks, java.util.function.Function<Tarea, BigDecimal> hoursExtractor) {
+    return tasks.stream()
+        .map(t -> hoursExtractor.apply(t) != null ? hoursExtractor.apply(t) : BigDecimal.ZERO)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+  }
+
+  private BigDecimal calculateCompletedHours(List<Tarea> tasks, java.util.function.Function<Tarea, BigDecimal> hoursExtractor) {
+    return tasks.stream()
+        .filter(t -> STATUS_COMPLETED.equalsIgnoreCase(t.getestadoTarea()))
+        .map(t -> hoursExtractor.apply(t) != null ? hoursExtractor.apply(t) : BigDecimal.ZERO)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+  }
+
+  // Team and Sprint KPI Methods
+  public BigDecimal getTeamSprintRealHours(Long equipoId, Long sprintId) {
+    Assert.notNull(equipoId, "Team ID must not be null");
+    Assert.notNull(sprintId, "Sprint ID must not be null");
+    return tareaRepository.sumHorasRealesByEquipoAndSprint(equipoId, sprintId);
+  }
+
+  public Long countTeamSprintCompletedTasks(Long equipoId, Long sprintId) {
+    Assert.notNull(equipoId, "Team ID must not be null");
+    Assert.notNull(sprintId, "Sprint ID must not be null");
+    return tareaRepository.countCompletedTareasByEquipoAndSprint(equipoId, sprintId);
+  }
+
+  public BigDecimal getUserSprintRealHours(Long usuarioId, Long sprintId) {
+    Assert.notNull(usuarioId, "User ID must not be null");
+    Assert.notNull(sprintId, "Sprint ID must not be null");
+    return tareaRepository.sumHorasRealesByUsuarioAndSprint(usuarioId, sprintId);
+  }
+
+  public Long countUserSprintCompletedTasks(Long usuarioId, Long sprintId) {
+    Assert.notNull(usuarioId, "User ID must not be null");
+    Assert.notNull(sprintId, "Sprint ID must not be null");
+    return tareaRepository.countCompletedTareasByUsuarioAndSprint(usuarioId, sprintId);
+  }
+
+  public Map<String, Long> getTeamSummary(Long equipoId) {
+    Assert.notNull(equipoId, "Team ID must not be null");
+    long assigned = tareaRepository.countByEquipo(equipoId);
+    long completedBefore = tareaRepository.countCompletedBeforeDeadlineTeam(equipoId);
+    long completedAfter = tareaRepository.countCompletedAfterDeadlineTeam(equipoId);
+
+    return Map.of(
+        "assigned", assigned,
+        "completedBefore", completedBefore,
+        "completedAfter", completedAfter);
+  }
+
+  public Map<String, Long> getUserSummary(Long usuarioId) {
+    Assert.notNull(usuarioId, "User ID must not be null");
+    long assigned = tareaRepository.countByUsuario(usuarioId);
+    long completedBefore = tareaRepository.countCompletedBeforeDeadline(usuarioId);
+    long completedAfter = tareaRepository.countCompletedAfterDeadline(usuarioId);
+
+    return Map.of(
+        "assigned", assigned,
+        "completedBefore", completedBefore,
+        "completedAfter", completedAfter);
+  }
+
+  public BigDecimal getUserSprintEstimatedHours(Long usuarioId, Long sprintId) {
+    Assert.notNull(usuarioId, "User ID must not be null");
+    Assert.notNull(sprintId, "Sprint ID must not be null");
+    return tareaRepository.sumHorasEstimadasByUsuarioAndSprint(usuarioId, sprintId);
+  }
+
+  public Long countUserSprintTasksBeforeDeadline(Long usuarioId, Long sprintId) {
+    Assert.notNull(usuarioId, "User ID must not be null");
+    Assert.notNull(sprintId, "Sprint ID must not be null");
+    return tareaRepository.countCompletedTareasBeforeDeadlineByUsuarioAndSprint(usuarioId, sprintId);
+  }
+
+  public Long countUserSprintTasksAfterDeadline(Long usuarioId, Long sprintId) {
+    Assert.notNull(usuarioId, "User ID must not be null");
+    Assert.notNull(sprintId, "Sprint ID must not be null");
+    return tareaRepository.countCompletedTareasAfterDeadlineByUsuarioAndSprint(usuarioId, sprintId);
+  }
+
+  public Long countUserSprintAssignedTasks(Long usuarioId, Long sprintId) {
+    Assert.notNull(usuarioId, "User ID must not be null");
+    Assert.notNull(sprintId, "Sprint ID must not be null");
+    return tareaRepository.countAsignedTareasByUsuarioAndSprint(usuarioId, sprintId);
+  }
+
+  public BigDecimal getTeamSprintUserRealHours(Long equipoId, Long sprintId, Long usuarioId) {
+    Assert.notNull(equipoId, "Team ID must not be null");
+    Assert.notNull(sprintId, "Sprint ID must not be null");
+    Assert.notNull(usuarioId, "User ID must not be null");
     return tareaRepository.sumHorasRealesByEquipoAndSprintAndUsuario(equipoId, sprintId, usuarioId);
   }
 }

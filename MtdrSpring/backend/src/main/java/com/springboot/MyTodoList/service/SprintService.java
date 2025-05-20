@@ -4,27 +4,55 @@ import com.springboot.MyTodoList.model.Sprint;
 import com.springboot.MyTodoList.repository.SprintRepository;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
+/**
+ * Service class for managing Sprint entities.
+ * Provides CRUD operations and business logic for Sprint management.
+ */
 @Service
 public class SprintService {
 
-  @Autowired private SprintRepository sprintRepository;
+  private final SprintRepository sprintRepository;
 
-  public List<Sprint> findAll() {
+  /**
+   * Constructor for SprintService.
+   * @param sprintRepository Repository for Sprint entities
+   */
+  public SprintService(SprintRepository sprintRepository) {
+    this.sprintRepository = sprintRepository;
+  }
+
+  /**
+   * Retrieves all sprints.
+   * @return List of all sprints
+   */
+  public List<Sprint> findAllSprints() {
     return sprintRepository.findAll();
   }
 
-  public Optional<Sprint> findById(Long id) {
+  /**
+   * Retrieves a sprint by its ID.
+   * @param id The ID of the sprint to find
+   * @return Optional containing the sprint if found
+   */
+  public Optional<Sprint> findSprintById(Long id) {
+    Assert.notNull(id, "Sprint ID must not be null");
     return sprintRepository.findById(id);
   }
 
-  public Sprint save(Sprint sprint) {
+  /**
+   * Creates a new sprint.
+   * @param sprint The sprint to create
+   * @return The created sprint
+   */
+  public Sprint createSprint(Sprint sprint) {
+    Assert.notNull(sprint, "Sprint must not be null");
     return sprintRepository.save(sprint);
   }
 
-  public Sprint update(Long id, Sprint updatedSprint) {
+  public Sprint updateSprint(Long id, Sprint updatedSprint) {
     return sprintRepository
         .findById(id)
         .map(
@@ -39,11 +67,19 @@ public class SprintService {
         .orElse(null);
   }
 
-  public boolean delete(Long id) {
+  /**
+   * Deletes a sprint by its ID.
+   * @param id The ID of the sprint to delete
+   * @return true if the sprint was deleted, false if it didn't exist
+   */
+  public boolean deleteSprint(Long id) {
+    Assert.notNull(id, "Sprint ID must not be null");
     if (sprintRepository.existsById(id)) {
       sprintRepository.deleteById(id);
       return true;
     }
     return false;
   }
+
+
 }

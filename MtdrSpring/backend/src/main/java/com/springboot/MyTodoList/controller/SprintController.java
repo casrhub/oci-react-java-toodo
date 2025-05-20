@@ -15,31 +15,31 @@ public class SprintController {
 
   @GetMapping
   public List<Sprint> getAllSprints() {
-    return sprintService.findAll();
+    return sprintService.findAllSprints();
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<Sprint> getById(@PathVariable Long id) {
+  public ResponseEntity<Sprint> getSprintById(@PathVariable Long id) {
     return sprintService
-        .findById(id)
+        .findSprintById(id)
         .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
   }
 
   @PostMapping
-  public Sprint create(@RequestBody Sprint sprint) {
-    return sprintService.save(sprint);
+  public Sprint createSprint(@RequestBody Sprint sprint) {
+    return sprintService.createSprint(sprint);
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<Sprint> update(@PathVariable Long id, @RequestBody Sprint updatedSprint) {
-    Sprint result = sprintService.update(id, updatedSprint);
+  public ResponseEntity<Sprint> updateSprint(@PathVariable Long id, @RequestBody Sprint updatedSprint) {
+    Sprint result = sprintService.updateSprint(id, updatedSprint);
     return result != null ? ResponseEntity.ok(result) : ResponseEntity.notFound().build();
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> delete(@PathVariable Long id) {
-    boolean deleted = sprintService.delete(id);
+  public ResponseEntity<Void> deleteSprint(@PathVariable Long id) {
+    boolean deleted = sprintService.deleteSprint(id);
     return deleted ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
   }
 }

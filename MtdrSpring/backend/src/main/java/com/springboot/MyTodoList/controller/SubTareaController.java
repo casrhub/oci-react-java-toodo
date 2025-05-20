@@ -27,28 +27,28 @@ public class SubTareaController {
   public List<SubTarea> getSubTareas(@RequestParam(required = false) Long tareaId) {
     if (tareaId != null) {
       logger.debug("Fetching subtareas for tareaId: {}", tareaId);
-      return subTareaService.findByTareaId(tareaId);
+      return subTareaService.findSubtasksByTaskId(tareaId);
     } else {
       logger.debug("Fetching all subtareas");
-      return subTareaService.findAll();
+      return subTareaService.findAllSubtasks();
     }
   }
 
   @GetMapping("/byTarea/{tareaId}")
-  public List<SubTarea> getByTarea(@PathVariable Long tareaId) {
-    return subTareaService.findByTareaId(tareaId);
+  public List<SubTarea> getByTareaID(@PathVariable Long tareaId) {
+    return subTareaService.findSubtasksByTaskId(tareaId);
   }
 
   @GetMapping("/{id}")
   public ResponseEntity<SubTarea> getById(@PathVariable Long id) {
     return subTareaService
-        .findById(id)
+        .findSubtaskById(id)
         .map(ResponseEntity::ok)
         .orElse(ResponseEntity.notFound().build());
   }
 
   @PostMapping
-  public SubTarea create(@RequestBody Map<String, Object> payload) {
+  public SubTarea createSubTarea(@RequestBody Map<String, Object> payload) {
     Long tareaId = Long.valueOf(payload.get("tareaId").toString());
     Tarea tarea =
         tareaRepository
@@ -67,14 +67,14 @@ public class SubTareaController {
       subTarea.setFechaCreacion(OffsetDateTime.parse((String) payload.get("fechaCreacion")));
 
     if (payload.get("deadline") != null)
-      subTarea.setDeadline(OffsetDateTime.parse((String) payload.get("deadline")));
+      subTarea.setFechaLimite(OffsetDateTime.parse((String) payload.get("deadline")));
 
-    return subTareaService.save(subTarea);
+    return subTareaService.createSubtask(subTarea);
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> delete(@PathVariable Long id) {
-    return subTareaService.delete(id)
+  public ResponseEntity<Void> deleteSubTarea(@PathVariable Long id) {
+    return subTareaService.deleteSubtask(id)
         ? ResponseEntity.ok().build()
         : ResponseEntity.notFound().build();
   }

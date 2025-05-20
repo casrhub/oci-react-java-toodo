@@ -81,9 +81,9 @@ public class UsuariosControllerTest {
             1
     );
 
-    Mockito.when(usuarioService.save(Mockito.any(Usuarios.class)))
+    Mockito.when(usuarioService.createUser(Mockito.any(Usuarios.class)))
             .thenReturn(saved);
-    Mockito.when(usuarioService.findById(1))
+    Mockito.when(usuarioService.findUserById(1))
             .thenReturn(Optional.of(saved));
 
     mockMvc.perform(post(BASE_URL)
@@ -123,9 +123,9 @@ public class UsuariosControllerTest {
             1
     );
 
-    Mockito.when(usuarioService.findById(1))
+    Mockito.when(usuarioService.findUserById(1))
             .thenReturn(Optional.of(existing));
-    Mockito.when(usuarioService.save(Mockito.any(Usuarios.class)))
+    Mockito.when(usuarioService.createUser(Mockito.any(Usuarios.class)))
             .thenReturn(updated);
 
     mockMvc.perform(put(BASE_URL + "/1")
@@ -145,11 +145,11 @@ public class UsuariosControllerTest {
     Usuarios u2 = buildUsuario(2, "Fernanda", "f@tec.mx", "developer", 1);
     Usuarios u3 = buildUsuario(3, "Cesar", "c@tec.mx", "manager", 2);
 
-    Mockito.when(usuarioService.findAll())
+    Mockito.when(usuarioService.findAllUsers())
             .thenReturn(Arrays.asList(u1, u2, u3));
-    Mockito.when(usuarioService.findByEquipoId(1))
+    Mockito.when(usuarioService.findUsersByTeamId(1))
             .thenReturn(Arrays.asList(u1, u2));
-    Mockito.when(usuarioService.findByRol("manager"))
+    Mockito.when(usuarioService.findUsersByRole("manager"))
             .thenReturn(Arrays.asList(u1, u3));
 
     mockMvc.perform(get(BASE_URL))

@@ -86,84 +86,58 @@ public class TareaService {
     return saved;
   }
 
-  /**
-   * Updates an existing task.
-   * @param id The ID of the task to update
-   * @param updatedTask The updated task data
-   * @return Optional containing the updated task if found
-   */
-  public Optional<Tarea> updateTask(Long id, Tarea updatedTask) {
-    Assert.notNull(id, "Task ID must not be null");
-    Assert.notNull(updatedTask, "Updated task must not be null");
-    validateTask(updatedTask);
-
-    return tareaRepository.findById(id)
-        .map(task -> {
-          task.setTitulo(updatedTask.getTitulo());
-          task.setDescripcion(updatedTask.getDescripcion());
-          task.setEstado(updatedTask.getEstado());
-          task.setUsuarioId(updatedTask.getUsuarioId());
-          task.setHorasEstimadas(updatedTask.getHorasEstimadas());
-          task.setHorasReales(updatedTask.getHorasReales());
-          task.setDeadline(updatedTask.getDeadline());
-          task.setEquipoId(updatedTask.getEquipoId());
-          task.setProyectoId(updatedTask.getProyectoId());
-          return tareaRepository.save(task);
-        });
+  public Tarea updateTask(Long id, Tarea newData) {
+    return tareaRepository
+        .findById(id)
+        .map(
+            t -> {
+              t.setTitulo(newData.getTitulo());
+              t.setDescripcion(newData.getDescripcion());
+              t.setestadoTarea(newData.getestadoTarea());
+              t.setUsuarioId(newData.getUsuarioId());
+              t.setHorasEstimadas(newData.getHorasEstimadas());
+              t.setHorasReales(newData.getHorasReales());
+              t.setFechaLimite(newData.getFechaLimite());
+              t.setEquipoId(newData.getEquipoId());
+              t.setProyectoId(newData.getProyectoId());
+              return tareaRepository.save(t);
+            })
+        .orElse(null);
   }
 
-  /**
-   * Updates the assignee of a task.
-   * @param id The ID of the task
-   * @param usuarioId The ID of the new assignee
-   * @return Optional containing the updated task if found
-   */
-  public Optional<Tarea> updateTaskAssignee(Long id, Long usuarioId) {
-    Assert.notNull(id, "Task ID must not be null");
-    Assert.notNull(usuarioId, "User ID must not be null");
 
-    return tareaRepository.findById(id)
-        .map(task -> {
-          task.setUsuarioId(usuarioId);
-          return tareaRepository.save(task);
-        });
+  public Tarea updateTaskAssignee(Long id, Long usuarioId) {
+    return tareaRepository
+        .findById(id)
+        .map(
+            t -> {
+              t.setUsuarioId(usuarioId);
+              return tareaRepository.save(t);
+            })
+        .orElse(null);
   }
 
-  /**
-   * Marks a task as complete.
-   * @param id The ID of the task
-   * @param estado The new status
-   * @param horasReales The actual hours spent
-   * @return Optional containing the updated task if found
-   */
-  public Optional<Tarea> markTaskAsComplete(Long id, String estado, BigDecimal horasReales) {
-    Assert.notNull(id, "Task ID must not be null");
-    Assert.notNull(estado, "Status must not be null");
-    Assert.notNull(horasReales, "Actual hours must not be null");
-
-    return tareaRepository.findById(id)
-        .map(task -> {
-          task.setEstado(estado);
-          task.setHorasReales(horasReales);
-          return tareaRepository.save(task);
-        });
+  public Tarea markTaskAsComplete(Long id, String estado, BigDecimal horasReales) {
+    return tareaRepository
+        .findById(id)
+        .map(
+            t -> {
+              t.setestadoTarea(estado);
+              t.setHorasReales(horasReales);
+              return tareaRepository.save(t);
+            })
+        .orElse(null);
   }
 
-  /**
-   * Updates the deadline of a task.
-   * @param id The ID of the task
-   * @param deadline The new deadline
-   * @return Optional containing the updated task if found
-   */
-  public Optional<Tarea> updateTaskDeadline(Long id, OffsetDateTime deadline) {
-    Assert.notNull(id, "Task ID must not be null");
-    Assert.notNull(deadline, "Deadline must not be null");
-
-    return tareaRepository.findById(id)
-        .map(task -> {
-          task.setDeadline(deadline);
-          return tareaRepository.save(task);
-        });
+  public Tarea updateTaskDeadline(Long id, OffsetDateTime deadline) {
+    return tareaRepository
+        .findById(id)
+        .map(
+            t -> {
+              t.setFechaLimite(deadline);
+              return tareaRepository.save(t);
+            })
+        .orElse(null);
   }
 
   /**
@@ -219,7 +193,7 @@ public class TareaService {
    */
   private void validateTask(Tarea task) {
     Assert.hasText(task.getTitulo(), "Task title must not be empty");
-    Assert.notNull(task.getEstado(), "Task status must not be null");
+    Assert.notNull(task.getestadoTarea(), "Task status must not be null");
     Assert.notNull(task.getUsuarioId(), "User ID must not be null");
   }
 
@@ -261,7 +235,7 @@ public class TareaService {
 
   private long countTasksByStatus(List<Tarea> tasks, String status) {
     return tasks.stream()
-        .filter(t -> status.equalsIgnoreCase(t.getEstado()))
+        .filter(t -> status.equalsIgnoreCase(t.getestadoTarea()))
         .count();
   }
 
@@ -273,7 +247,7 @@ public class TareaService {
 
   private BigDecimal calculateCompletedHours(List<Tarea> tasks, java.util.function.Function<Tarea, BigDecimal> hoursExtractor) {
     return tasks.stream()
-        .filter(t -> STATUS_COMPLETED.equalsIgnoreCase(t.getEstado()))
+        .filter(t -> STATUS_COMPLETED.equalsIgnoreCase(t.getestadoTarea()))
         .map(t -> hoursExtractor.apply(t) != null ? hoursExtractor.apply(t) : BigDecimal.ZERO)
         .reduce(BigDecimal.ZERO, BigDecimal::add);
   }

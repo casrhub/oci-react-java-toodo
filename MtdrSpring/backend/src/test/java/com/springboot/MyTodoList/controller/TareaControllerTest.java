@@ -59,11 +59,11 @@ public class TareaControllerTest {
         t.setUsuarioId(usuarioId);
         t.setTitulo(titulo);
         t.setDescripcion("Desc " + titulo);
-        t.setEstado("EN_PROCESO");
+        t.setestadoTarea("EN_PROCESO");
         t.setHorasEstimadas(new BigDecimal("4.0"));
         t.setHorasReales(new BigDecimal("2.0"));
         t.setFechaCreacion(OffsetDateTime.parse("2024-04-03T14:25:00Z"));
-        t.setDeadline(OffsetDateTime.parse("2024-04-10T14:25:00Z"));
+        t.setFechaLimite(OffsetDateTime.parse("2024-04-10T14:25:00Z"));
         return t;
     }
 
@@ -76,8 +76,8 @@ public class TareaControllerTest {
         Tarea nueva = buildTarea(null, 1L, "Nueva Tarea");
         Tarea creada = buildTarea(1L, 1L, "Nueva Tarea");
 
-        Mockito.when(tareaService.save(Mockito.any(Tarea.class))).thenReturn(creada);
-        Mockito.when(tareaService.findById(1L)).thenReturn(Optional.of(creada));
+        Mockito.when(tareaService.createTask(Mockito.any(Tarea.class))).thenReturn(creada);
+        Mockito.when(tareaService.findTaskById(1L)).thenReturn(Optional.of(creada));
 
         String jsonPayload = toJson(nueva);
 
@@ -99,8 +99,8 @@ public class TareaControllerTest {
         Tarea t1 = buildTarea(1L, 1L, "T1");
         Tarea t2 = buildTarea(2L, 2L, "T2");
 
-        Mockito.when(tareaService.findAll()).thenReturn(Arrays.asList(t1, t2));
-        Mockito.when(tareaService.findByUsuarioId(1L)).thenReturn(Collections.singletonList(t1));
+        Mockito.when(tareaService.findAllTasks()).thenReturn(Arrays.asList(t1, t2));
+        Mockito.when(tareaService.findTasksByUserId(1L)).thenReturn(Collections.singletonList(t1));
 
         mockMvc.perform(get(BASE_URL))
                 .andExpect(status().isOk())
@@ -116,7 +116,7 @@ public class TareaControllerTest {
     void testUpdateAssignee() throws Exception {
         Tarea actualizado = buildTarea(1L, 42L, "Titulo");
 
-        Mockito.when(tareaService.updateAssignee(1L, 42L)).thenReturn(actualizado);
+        Mockito.when(tareaService.updateTaskAssignee(1L, 42L)).thenReturn(actualizado);
 
         String patchPayload = toJson(Map.of("usuarioId", 42));
 
@@ -129,12 +129,12 @@ public class TareaControllerTest {
 
     @Test
     void testDeleteTarea() throws Exception {
-        Mockito.when(tareaService.deleteById(1L)).thenReturn(true);
+        Mockito.when(tareaService.deleteTask(1L)).thenReturn(true);
 
         mockMvc.perform(delete(BASE_URL + "/1"))
                 .andExpect(status().isOk());
 
-        Mockito.when(tareaService.findById(1L)).thenReturn(Optional.empty());
+        Mockito.when(tareaService.findTaskById(1L)).thenReturn(Optional.empty());
 
         mockMvc.perform(get(BASE_URL + "/1"))
                 .andExpect(status().isNotFound());

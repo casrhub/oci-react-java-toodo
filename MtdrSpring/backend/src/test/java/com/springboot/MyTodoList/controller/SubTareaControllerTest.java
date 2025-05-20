@@ -79,7 +79,7 @@ public class SubTareaControllerTest {
     sub.setHorasEstimadas(horasEstimadas);
     sub.setHorasReales(horasReales);
     sub.setFechaCreacion(fechaCreacion);
-    sub.setDeadline(deadline);
+    sub.setFechaLimite(deadline);
     return sub;
   }
 
@@ -105,7 +105,7 @@ public class SubTareaControllerTest {
     payload.put("horasEstimadas", sub.getHorasEstimadas());
     payload.put("horasReales", sub.getHorasReales());
     payload.put("fechaCreacion", sub.getFechaCreacion().toString());
-    payload.put("deadline", sub.getDeadline().toString());
+    payload.put("deadline", sub.getFechaLimite().toString());
     return payload;
   }
 
@@ -125,8 +125,8 @@ public class SubTareaControllerTest {
                     OffsetDateTime.parse("2024-04-10T14:25:00Z"));
 
     Mockito.when(tareaRepository.findById(1L)).thenReturn(Optional.of(tarea));
-    Mockito.when(subTareaService.save(Mockito.any(SubTarea.class))).thenReturn(sub);
-    Mockito.when(subTareaService.findById(1L)).thenReturn(Optional.of(sub));
+    Mockito.when(subTareaService.createSubtask(Mockito.any(SubTarea.class))).thenReturn(sub);
+    Mockito.when(subTareaService.findSubtaskById(1L)).thenReturn(Optional.of(sub));
 
     String jsonPayload = objectMapper.writeValueAsString(buildPayload(sub));
 
@@ -150,8 +150,8 @@ public class SubTareaControllerTest {
     SubTarea s1 = buildSubTarea(1L, 1L, "S1");
     SubTarea s2 = buildSubTarea(2L, 2L, "S2");
 
-    Mockito.when(subTareaService.findAll()).thenReturn(Arrays.asList(s1, s2));
-    Mockito.when(subTareaService.findByTareaId(1L)).thenReturn(Collections.singletonList(s1));
+    Mockito.when(subTareaService.findAllSubtasks()).thenReturn(Arrays.asList(s1, s2));
+    Mockito.when(subTareaService.findSubtasksByTaskId(1L)).thenReturn(Collections.singletonList(s1));
 
     mockMvc
             .perform(get("/subtareas"))

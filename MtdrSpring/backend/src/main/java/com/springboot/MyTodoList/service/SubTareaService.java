@@ -76,7 +76,7 @@ public class SubTareaService {
 
     return repository.findById(id)
         .map(existing -> {
-          existing.setNombre(updatedSubtask.getNombre());
+          existing.setTitulo(updatedSubtask.getTitulo());
           existing.setDescripcion(updatedSubtask.getDescripcion());
           existing.setEstado(updatedSubtask.getEstado());
           existing.setTarea(updatedSubtask.getTarea());
@@ -104,7 +104,7 @@ public class SubTareaService {
    * @throws IllegalArgumentException if the subtask is invalid
    */
   private void validateSubtask(SubTarea subtask) {
-    Assert.hasText(subtask.getNombre(), "Subtask name must not be empty");
+    Assert.hasText(subtask.getTitulo(), "Subtask name must not be empty");
     Assert.notNull(subtask.getTarea(), "Parent task must not be null");
     Assert.notNull(subtask.getEstado(), "Status must not be null");
   }

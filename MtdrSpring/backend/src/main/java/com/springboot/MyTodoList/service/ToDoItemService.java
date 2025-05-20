@@ -27,8 +27,8 @@ public class ToDoItemService {
   }
 
   public ToDoItem addToDoItem(ToDoItem toDoItem) {
-    if (toDoItem.getCreation_ts() == null) {
-      toDoItem.setCreation_ts(OffsetDateTime.now());
+    if (toDoItem.getFechaCreacion() == null) {
+      toDoItem.setFechaCreacion(OffsetDateTime.now());
     }
     // Optional: you can also check if deadline should be set
     return toDoItemRepository.save(toDoItem);
@@ -47,10 +47,10 @@ public class ToDoItemService {
     Optional<ToDoItem> toDoItemData = toDoItemRepository.findById(id);
     if (toDoItemData.isPresent()) {
       ToDoItem toDoItem = toDoItemData.get();
-      toDoItem.setDescription(td.getDescription());
-      toDoItem.setCreation_ts(td.getCreation_ts());
-      toDoItem.setDone(td.isDone());
-      toDoItem.setDeadline(td.getDeadline()); // Ensure deadline is updated
+      toDoItem.setDescripcion(td.getDescripcion());
+      toDoItem.setFechaCreacion(td.getFechaCreacion());
+      toDoItem.setCompletado(td.isCompletado());
+      toDoItem.setFechaLimite(td.getFechaLimite()); // Ensure deadline is updated
       return toDoItemRepository.save(toDoItem);
     }
     return null;
@@ -61,7 +61,7 @@ public class ToDoItemService {
     Optional<ToDoItem> toDoItemData = toDoItemRepository.findById(id);
     if (toDoItemData.isPresent()) {
       ToDoItem toDoItem = toDoItemData.get();
-      toDoItem.setDeadline(newDeadline);
+      toDoItem.setFechaLimite(newDeadline);
       return new ResponseEntity<>(toDoItemRepository.save(toDoItem), HttpStatus.OK);
     } else {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);

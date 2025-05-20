@@ -49,30 +49,22 @@ public class SprintService {
    */
   public Sprint createSprint(Sprint sprint) {
     Assert.notNull(sprint, "Sprint must not be null");
-    validateSprint(sprint);
     return sprintRepository.save(sprint);
   }
 
-  /**
-   * Updates an existing sprint.
-   * @param id The ID of the sprint to update
-   * @param updatedSprint The updated sprint data
-   * @return Optional containing the updated sprint if found
-   */
-  public Optional<Sprint> updateSprint(Long id, Sprint updatedSprint) {
-    Assert.notNull(id, "Sprint ID must not be null");
-    Assert.notNull(updatedSprint, "Updated sprint must not be null");
-    validateSprint(updatedSprint);
-    
-    return sprintRepository.findById(id)
-        .map(existing -> {
-          existing.setNombre(updatedSprint.getNombre());
-          existing.setProyectoId(updatedSprint.getProyectoId());
-          existing.setFechaInicio(updatedSprint.getFechaInicio());
-          existing.setFechaFin(updatedSprint.getFechaFin());
-          existing.setEstado(updatedSprint.getEstado());
-          return sprintRepository.save(existing);
-        });
+  public Sprint updateSprint(Long id, Sprint updatedSprint) {
+    return sprintRepository
+        .findById(id)
+        .map(
+            existing -> {
+              existing.setNombre(updatedSprint.getNombre());
+              existing.setProyectoId(updatedSprint.getProyectoId());
+              existing.setFechaInicio(updatedSprint.getFechaInicio());
+              existing.setFechaFin(updatedSprint.getFechaFin());
+              existing.setEstado(updatedSprint.getEstado());
+              return sprintRepository.save(existing);
+            })
+        .orElse(null);
   }
 
   /**
@@ -89,20 +81,5 @@ public class SprintService {
     return false;
   }
 
-  /**
-   * Validates a sprint entity.
-   * @param sprint The sprint to validate
-   * @throws IllegalArgumentException if the sprint is invalid
-   */
-  private void validateSprint(Sprint sprint) {
-    Assert.hasText(sprint.getNombre(), "Sprint name must not be empty");
-    Assert.notNull(sprint.getProyectoId(), "Project ID must not be null");
-    Assert.notNull(sprint.getFechaInicio(), "Start date must not be null");
-    Assert.notNull(sprint.getFechaFin(), "End date must not be null");
-    Assert.notNull(sprint.getEstado(), "Status must not be null");
-    
-    if (sprint.getFechaFin().before(sprint.getFechaInicio())) {
-      throw new IllegalArgumentException("End date must be after start date");
-    }
-  }
+
 }

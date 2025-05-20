@@ -38,12 +38,12 @@ public class KpiController {
   @PutMapping("/{kpiId}")
   public ResponseEntity<Kpi> updateKpi(
       @PathVariable("kpiId") Long kpiId, @RequestBody Kpi updatedKpi) {
-    Kpi existing = kpiStore.get(kpiId);
-    if (existing != null) {
+    Kpi existingKpi = kpiStore.get(kpiId);
+    if (existingKpi != null) {
       updatedKpi.setKpiId(kpiId);
       kpiStore.put(kpiId, updatedKpi);
       return ResponseEntity.ok(updatedKpi);
-    }
+    } 
     return ResponseEntity.notFound().build();
   }
 

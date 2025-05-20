@@ -31,12 +31,12 @@ public class ToDoItemBotControllerTests {
     Tarea t1 = new Tarea(1L, "Write tests", "Write unit tests", "pendiente");
     Tarea t2 = new Tarea(2L, "Fix bug", "Null‑pointer fix", "pendiente");
 
-    when(tareaService.findAll()).thenReturn(Arrays.asList(t1, t2));
+    when(tareaService.findAllTasks()).thenReturn(Arrays.asList(t1, t2));
 
     List<Tarea> result = controller.getAllTareas();
 
     assertEquals(2, result.size());
-    verify(tareaService, times(1)).findAll();
+    verify(tareaService, times(1)).findAllTasks();
   }
 
   @Test
@@ -91,7 +91,7 @@ public class ToDoItemBotControllerTests {
     Usuarios user = new Usuarios();
     user.setEmail(email);
     UsuarioService usuarioService = mock(UsuarioService.class);
-    when(usuarioService.findByEmail(email)).thenReturn(Optional.of(user));
+    when(usuarioService.findUserByEmail(email)).thenReturn(Optional.of(user));
 
     Message msg = mock(Message.class);
     when(msg.getText()).thenReturn("/link " + email);
@@ -108,7 +108,7 @@ public class ToDoItemBotControllerTests {
     bot.onUpdateReceived(upd);
 
     ArgumentCaptor<Usuarios> captor = ArgumentCaptor.forClass(Usuarios.class);
-    verify(usuarioService).save(captor.capture());
+    verify(usuarioService).createUser(captor.capture());
 
     assertEquals(chatId, captor.getValue().getTelegramChatId());
   }

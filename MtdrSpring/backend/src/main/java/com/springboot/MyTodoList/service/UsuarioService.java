@@ -73,13 +73,8 @@ public class UsuarioService {
     return false;
   }
 
-  /**
-   * Retrieves a user by their ID.
-   * @param id The ID of the user to find
-   * @return Optional containing the user if found
-   */
+
   public Optional<Usuarios> findUserById(Integer id) {
-    Assert.notNull(id, "User ID must not be null");
     return usuarioRepository.findById(id);
   }
 

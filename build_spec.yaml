@@ -26,6 +26,7 @@ steps:
 
   - type: Command
     name: Build Spring Boot JAR
+    timeoutInMinutes: 20
     command: |
       cd MtdrSpring/backend
       ./mvnw clean package spring-boot:repackage -DskipTests

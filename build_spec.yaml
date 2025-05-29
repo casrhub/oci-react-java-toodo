@@ -19,6 +19,11 @@ steps:
       cp -r MtdrSpring/Wallet_FATDATABASE MtdrSpring/backend/
 
   - type: Command
+    name: Set Execution Permission for mvnw
+    command: |
+      chmod +x MtdrSpring/backend/mvnw
+
+  - type: Command
     name: Build Spring Boot JAR
     command: |
       cd MtdrSpring/backend

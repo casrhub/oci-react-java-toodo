@@ -1,23 +1,23 @@
-# Stage 1: Use Java 11 + Maven to build the app
+# ───── Stage 1: Build with Maven ─────
 FROM maven:3.8.6-openjdk-11 AS builder
-
 WORKDIR /app
+
+# Copy only the Maven project (backend folder)
 COPY . .
 
-# Build the Spring Boot JAR
-RUN mvn -f MtdrSpring/backend/pom.xml clean package spring-boot:repackage -DskipTests
+# Build the Spring Boot app (adjust if you want tests)
+RUN mvn clean package spring-boot:repackage -DskipTests
 
-# Stage 2: Use smaller base image with only JRE to run the app
+# ───── Stage 2: Runtime ─────
 FROM openjdk:11-jre-slim
 WORKDIR /app
 
-# Copy the JAR from the builder stage
-COPY --from=builder /app/MtdrSpring/backend/target/MyTodoList-0.0.1-SNAPSHOT.jar app.jar
+# Copy only the final JAR
+COPY --from=builder /app/target/MyTodoList-0.0.1-SNAPSHOT.jar app.jar
 
-# Wallet files
-COPY MtdrSpring/backend/Wallet_FATDATABASE /app/src/main/resources/wallet/
+# Copy the wallet files (optional, adjust path)
+COPY Wallet_FATDATABASE /app/src/main/resources/wallet/
 
-# Set Oracle wallet path
 ENV TNS_ADMIN=/app/src/main/resources/wallet
 
 EXPOSE 8080

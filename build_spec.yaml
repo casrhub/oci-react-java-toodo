@@ -16,8 +16,7 @@ steps:
   - type: Command
     name: Build & Push Docker Image
     command: |
-      docker build \
-        -t ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} \
+      docker build -t ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} \
         -f MtdrSpring/backend/Dockerfile \
         MtdrSpring/backend
 

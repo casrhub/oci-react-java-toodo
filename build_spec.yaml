@@ -24,10 +24,12 @@ steps:
     command: |
       chmod +x MtdrSpring/backend/mvnw
 
-  - type: Command
+   - type: Command
     name: Build Spring Boot JAR
     timeoutInMinutes: 20
     command: |
+      export JAVA_HOME=/usr/lib/jvm/java-22-openjdk-amd64
+      export PATH=$JAVA_HOME/bin:$PATH
       cd MtdrSpring/backend
       ./mvnw clean package spring-boot:repackage -DskipTests
 

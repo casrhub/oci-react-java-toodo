@@ -27,10 +27,12 @@ steps:
     name: Build Spring Boot JAR
     timeoutInMinutes: 20
     command: |
-      export JAVA_HOME=/usr/lib/jvm/java-22-openjdk-amd64
+      export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+      echo "JAVA_HOME resolved to: $JAVA_HOME"
       export PATH=$JAVA_HOME/bin:$PATH
       cd MtdrSpring/backend
       ./mvnw clean package spring-boot:repackage -DskipTests
+
 
   - type: Command
     name: Build & Push Docker Image

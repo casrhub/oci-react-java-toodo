@@ -38,3 +38,4 @@ outputArtifacts:
   - name: todolist-image
     type: DOCKER_IMAGE
     location: ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
+#hear me out

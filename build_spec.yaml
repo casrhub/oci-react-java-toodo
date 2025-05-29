@@ -25,7 +25,7 @@ steps:
 
   - type: Command
     name: Build Spring Boot JAR
-    timeoutInMinutes: 20
+    timeoutInSeconds: 1000
     command: |
       export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
       echo "JAVA_HOME resolved to: $JAVA_HOME"

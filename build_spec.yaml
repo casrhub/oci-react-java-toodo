@@ -14,10 +14,9 @@ steps:
   - type: Command
     name: Set IMAGE_TAG
     command: |
-     IMAGE_TAG=$(echo "${OCI_PRIMARY_SOURCE_COMMIT_HASH:-$OCI_PRIMARY_SOURCE_REVISION}" | cut -c1-7)
-     echo "IMAGE_TAG=$IMAGE_TAG"   # log
-     # 👇 export for later steps / downstream pipeline
-     echo "IMAGE_TAG=$IMAGE_TAG" >> "$OCI_BUILD_RUN_EXPORT_VARIABLES_FILE"
+      # Toma los 7 primeros caracteres del commit del gatillo
+      export IMAGE_TAG=$(echo "${OCI_PRIMARY_SOURCE_COMMIT_HASH:-$OCI_PRIMARY_SOURCE_REVISION}" | cut -c1-7)
+      echo "IMAGE_TAG=$IMAGE_TAG"
 
 
   - type: Command

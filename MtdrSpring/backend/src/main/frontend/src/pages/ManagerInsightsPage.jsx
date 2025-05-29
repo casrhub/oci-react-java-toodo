@@ -9,7 +9,7 @@ function ManagerInsightsPage() {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold' }}>
-        Insights del Equipo
+        Insights del Equipoooo
       </Typography>
       
       <Grid container spacing={4}>

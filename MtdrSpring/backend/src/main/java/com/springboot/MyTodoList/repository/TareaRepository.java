@@ -170,5 +170,7 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
               + "AND t.usuario_id = :usuarioId",
       nativeQuery = true)
   BigDecimal sumHorasRealesByEquipoAndSprintAndUsuario(
-      @Param("equipoId") Long equipoId, @Param("sprintId") Long sprintId, @Param("usuarioId") Long usuarioId);
+      @Param("equipoId") Long equipoId,
+      @Param("sprintId") Long sprintId,
+      @Param("usuarioId") Long usuarioId);
 }

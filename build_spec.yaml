@@ -23,6 +23,18 @@ steps:
     command: |
       chmod +x MtdrSpring/backend/mvnw
 
+    - type: Command
+    name: Check Java Installations
+    command: |
+      java -version
+      ls -la /usr/lib/jvm
+
+  - type: Command
+    name: Set JAVA_HOME
+    command: |
+      export JAVA_HOME=/usr/lib/jvm/java-22-openjdk-amd64
+      echo "JAVA_HOME set to: $JAVA_HOME"
+
   - type: Command
     name: Build Spring Boot JAR
     command: |

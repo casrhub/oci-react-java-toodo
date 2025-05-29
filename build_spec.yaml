@@ -6,7 +6,6 @@ env:
     DOCKER_USERNAME: casrhub
     IMAGE_NAME: todolistapp-springboot
     IMAGE_TAG: 0.1
-    JAVA_HOME: /usr/lib/jvm/java-22-openjdk-amd64  # ✅ Declare here so it's available in all steps
 
 steps:
   - type: Command
@@ -24,7 +23,7 @@ steps:
     command: |
       chmod +x MtdrSpring/backend/mvnw
 
-   - type: Command
+  - type: Command
     name: Build Spring Boot JAR
     timeoutInMinutes: 20
     command: |
@@ -47,3 +46,6 @@ outputArtifacts:
   - name: todolist-image
     type: DOCKER_IMAGE
     location: ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
+
+
+

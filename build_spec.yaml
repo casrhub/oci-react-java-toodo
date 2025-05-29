@@ -6,18 +6,16 @@ env:
   variables:
     DOCKER_USERNAME: casrhub
     IMAGE_NAME: todolistapp-springboot
-  exportedVariables:            # 👈 so later steps can read it
+    REACT_APP_CLERK_PUBLISHABLE_KEY: pk_test_Z2FtZS13YWxydXMtMC5jbGVyay5hY2NvdW50cy5kZXYk  # 👈 define in OCI pipeline variables
+  exportedVariables:
     - IMAGE_TAG
 
 steps:
-  # 0. Compute an immutable tag (7-char Git SHA here)
   - type: Command
     name: Set IMAGE_TAG
     command: |
-      # Toma los 7 primeros caracteres del commit del gatillo
       export IMAGE_TAG=$(echo "${OCI_PRIMARY_SOURCE_COMMIT_HASH:-$OCI_PRIMARY_SOURCE_REVISION}" | cut -c1-7)
       echo "IMAGE_TAG=$IMAGE_TAG"
-
 
   - type: Command
     name: Docker Hub Login
@@ -31,7 +29,6 @@ steps:
       docker build -t ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} \
                    -f MtdrSpring/backend/Dockerfile \
                    MtdrSpring/backend
-      # optional convenience tag
       docker tag  ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} \
                   ${DOCKER_USERNAME}/${IMAGE_NAME}:latest
       docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}

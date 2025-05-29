@@ -4,7 +4,7 @@ import './index.css';
 import App from './App';
 import { ClerkProvider } from '@clerk/clerk-react';
 
-const clerkPubKey = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY;
+const clerkPubKey = "pk_test_Z2FtZS13YWxydXMtMC5jbGVyay5hY2NvdW50cy5kZXYk";
 
 ReactDOM.render(
   <React.StrictMode>

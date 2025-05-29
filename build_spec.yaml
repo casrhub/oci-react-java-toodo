@@ -25,9 +25,9 @@ steps:
       docker build \
         -t ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} \
         -f MtdrSpring/backend/Dockerfile \
-        MtdrSpring/backend
-
+        .
       docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
+
 
 outputArtifacts:
   - name: todolist-image

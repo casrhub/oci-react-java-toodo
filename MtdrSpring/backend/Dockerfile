@@ -1,5 +1,5 @@
 # Dockerfile
-FROM openjdk:8-jdk-alpine
+FROM openjdk:22
 WORKDIR /app
 
 # Copy the JAR file

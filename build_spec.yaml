@@ -24,20 +24,16 @@ steps:
       chmod +x MtdrSpring/backend/mvnw
 
   - type: Command
-    name: Check Java Version
-    command: java -version
-
-
-  - type: Command
-    name: Build Spring Boot JAR
+    name: Build Spring Boot JAR with Java 11
     timeoutInSeconds: 1000
     command: |
-      export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
-      echo "JAVA_HOME resolved to: $JAVA_HOME"
+      sudo apt-get update
+      sudo apt-get install -y openjdk-11-jdk
+      export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
       export PATH=$JAVA_HOME/bin:$PATH
+      java -version
       cd MtdrSpring/backend
       ./mvnw clean package spring-boot:repackage -DskipTests
-
 
   - type: Command
     name: Build & Push Docker Image
@@ -53,6 +49,3 @@ outputArtifacts:
   - name: todolist-image
     type: DOCKER_IMAGE
     location: ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
-
-
-

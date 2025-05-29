@@ -1,35 +1,17 @@
 version: 0.1
 component: build
-timeoutInSeconds: 3600
-
-env:
-  variables:
-    DOCKER_USERNAME: casrhub
-    IMAGE_NAME: todolistapp-springboot
-    IMAGE_TAG: 0.1
 
 steps:
   - type: Command
-    name: Login to Docker Hub
+    name: Docker Hub Login
     command: |
-      echo "🔑 Logging into Docker Hub..."
-      echo "${DOCKER_PASSWORD}" \
-        | docker login -u "${DOCKER_USERNAME}" --password-stdin
 
   - type: Command
-    name: Build & Push Image
+    name: Build & Push Docker Image
     command: |
-      echo "🔨 Building and pushing Docker image..."
-      cd MtdrSpring/backend
-
       docker build \
-        -f Dockerfile \
-        -t ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} \
-        .
+        -t casrhub/todolistapp-springboot:0.1 \
+        -f MtdrSpring/backend/Dockerfile \
+        MtdrSpring/backend
 
-      docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
-
-outputArtifacts:
-  - name: todolist-image
-    type: DOCKER_IMAGE
-    location: ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
+      docker push casrhub/todolistapp-springboot:0.1

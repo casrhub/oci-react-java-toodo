@@ -103,6 +103,15 @@
     <build>
         <plugins>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>   <!-- same as Boot’s default -->
+                <configuration>
+                    <release>11</release>  <!-- turns on source & target = 11 -->
+                </configuration>
+            </plugin>
+
             <!-- Front-end build (sin cambios) -->
             <plugin>
                 <groupId>com.github.eirslett</groupId>

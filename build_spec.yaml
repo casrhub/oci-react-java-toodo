@@ -1,6 +1,12 @@
 version: 0.1
 component: build
 
+env:
+  variables:
+    DOCKER_USERNAME: casrhub
+    IMAGE_NAME: todolistapp-springboot
+    IMAGE_TAG: 0.1
+
 steps:
   - type: Command
     name: Docker Hub Login
@@ -10,11 +16,9 @@ steps:
     name: Build & Push Docker Image
     command: |
       docker build \
-        -t casrhub/todolistapp-springboot:0.1 \
+        -t ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} \
         -f MtdrSpring/backend/Dockerfile \
         MtdrSpring/backend
 
-      docker push casrhub/todolistapp-springboot:0.1
-
-
+      docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
 #test

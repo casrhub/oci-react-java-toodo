@@ -1,6 +1,7 @@
 version: 0.1
 component: build
-shell: bash           # global default
+shell: bash
+
 env:
   variables:
     DOCKER_USERNAME: casrhub
@@ -8,16 +9,14 @@ env:
     IMAGE_TAG: 0.1
 
 steps:
-  # 1. Build the JAR
   - type: Command
     name: Build Spring Boot JAR
     image: maven:3.9.6-eclipse-temurin-11
-    timeoutInSeconds: 1800             # ⭐ Maven + JDK 11
-    workingDirectory: MtdrSpring/backend
+    timeoutInSeconds: 1800
     command: |
-      ./mvnw -B clean package spring-boot:repackage -DskipTests
+      mvn -f MtdrSpring/backend/pom.xml \
+          -B clean package spring-boot:repackage -DskipTests
 
-  # 2. Build & push the container (runner image already has Docker CLI)
   - type: Command
     name: Build & Push Docker image
     command: |

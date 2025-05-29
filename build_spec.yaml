@@ -14,6 +14,12 @@ steps:
       echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
 
   - type: Command
+    name: Build Spring Boot JAR
+    command: |
+      cd MtdrSpring/backend
+      ./mvnw clean package -DskipTests
+
+  - type: Command
     name: Build & Push Docker Image
     command: |
       docker build \
@@ -22,3 +28,8 @@ steps:
         MtdrSpring/backend
 
       docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
+
+outputArtifacts:
+  - name: todolist-image
+    type: DOCKER_IMAGE
+    location: ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}

@@ -1,6 +1,5 @@
 version: 0.1
 component: build
-shell: bash
 
 env:
   variables:
@@ -10,21 +9,12 @@ env:
 
 steps:
   - type: Command
-    name: Build Spring Boot JAR
-    timeoutInSeconds: 1800
+    name: Docker Hub Login
     command: |
-    microdnf install -y java-11-openjdk-devel   # ← works on Oracle Linux
-    export JAVA_HOME=/usr/lib/jvm/java-11
-    export PATH=$JAVA_HOME/bin:$PATH
-    java -version                                # sanity log
-    mvn -f MtdrSpring/backend/pom.xml \
-        -B clean package spring-boot:repackage -DskipTests
-
+      echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
 
   - type: Command
-    name: Build & Push Docker image
+    name: Build & Push Docker Image
     command: |
-      docker build -t ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} \
-                   -f MtdrSpring/backend/Dockerfile \
-                   MtdrSpring/backend
-      docker push  ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
+      docker build -t ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} .
+      docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}

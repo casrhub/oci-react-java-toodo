@@ -1,22 +1,23 @@
-# Dockerfile
-FROM openjdk:22
+# Stage 1: Use Java 11 + Maven to build the app
+FROM maven:3.8.6-openjdk-11 AS builder
+
+WORKDIR /app
+COPY . .
+
+# Build the Spring Boot JAR
+RUN mvn -f MtdrSpring/backend/pom.xml clean package spring-boot:repackage -DskipTests
+
+# Stage 2: Use smaller base image with only JRE to run the app
+FROM openjdk:11-jre-slim
 WORKDIR /app
 
-# Copy the JAR file
-COPY target/MyTodoList-0.0.1-SNAPSHOT.jar app.jar
+# Copy the JAR from the builder stage
+COPY --from=builder /app/MtdrSpring/backend/target/MyTodoList-0.0.1-SNAPSHOT.jar app.jar
 
-# Create wallet directory in the correct location for the application
-RUN mkdir -p /app/src/main/resources/wallet
-COPY Wallet_FATDATABASE/cwallet.sso /app/src/main/resources/wallet/
-COPY Wallet_FATDATABASE/ewallet.p12 /app/src/main/resources/wallet/
-COPY Wallet_FATDATABASE/ewallet.pem /app/src/main/resources/wallet/
-COPY Wallet_FATDATABASE/keystore.jks /app/src/main/resources/wallet/
-COPY Wallet_FATDATABASE/ojdbc.properties /app/src/main/resources/wallet/
-COPY Wallet_FATDATABASE/sqlnet.ora /app/src/main/resources/wallet/
-COPY Wallet_FATDATABASE/tnsnames.ora /app/src/main/resources/wallet/
-COPY Wallet_FATDATABASE/truststore.jks /app/src/main/resources/wallet/
+# Wallet files
+COPY MtdrSpring/backend/Wallet_FATDATABASE /app/src/main/resources/wallet/
 
-# Set TNS_ADMIN environment variable
+# Set Oracle wallet path
 ENV TNS_ADMIN=/app/src/main/resources/wallet
 
 EXPOSE 8080

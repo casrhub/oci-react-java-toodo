@@ -1,0 +1,12 @@
+fatdatabase_high = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.mx-queretaro-1.oraclecloud.com))(connect_data=(service_name=g13318455f68945_fatdatabase_high.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+fatdatabase_low = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.mx-queretaro-1.oraclecloud.com))(connect_data=(service_name=g13318455f68945_fatdatabase_low.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+fatdatabase_medium = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.mx-queretaro-1.oraclecloud.com))(connect_data=(service_name=g13318455f68945_fatdatabase_medium.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+fatdatabase_tp = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.mx-queretaro-1.oraclecloud.com))(connect_data=(service_name=g13318455f68945_fatdatabase_tp.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+fatdatabase_tpurgent = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.mx-queretaro-1.oraclecloud.com))(connect_data=(service_name=g13318455f68945_fatdatabase_tpurgent.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+
+

@@ -186,7 +186,8 @@ public class TareaController {
   @GetMapping("/equipo/{equipoId}/sprint/{sprintId}/usuario/{usuarioId}/horas-trabajadas")
   public ResponseEntity<BigDecimal> getHorasByEquipoSprintAndUsuario(
       @PathVariable Long equipoId, @PathVariable Long sprintId, @PathVariable Long usuarioId) {
-    BigDecimal horas = tareaService.sumHorasRealesByEquipoAndSprintAndUsuario(equipoId, sprintId, usuarioId);
+    BigDecimal horas =
+        tareaService.sumHorasRealesByEquipoAndSprintAndUsuario(equipoId, sprintId, usuarioId);
     return ResponseEntity.ok(horas != null ? horas : BigDecimal.ZERO);
   }
 }

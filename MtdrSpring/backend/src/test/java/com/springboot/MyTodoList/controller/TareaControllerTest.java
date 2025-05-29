@@ -22,105 +22,115 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(
-        controllers = TareaController.class,
-        properties = "spring.mvc.pathmatch.matching-strategy=ant_path_matcher")
+    controllers = TareaController.class,
+    properties = "spring.mvc.pathmatch.matching-strategy=ant_path_matcher")
 @AutoConfigureMockMvc(addFilters = false)
 public class TareaControllerTest {
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
+  @Autowired private MockMvc mockMvc;
+  @Autowired private ObjectMapper objectMapper;
 
-    @MockBean private TareaService tareaService;
+  @MockBean private TareaService tareaService;
 
-    @Configuration
-    static class TestConfig {
-        static final TareaController controller = new TareaController();
-        @Bean public TareaController tareaController() { return controller; }
-        public static TareaController getController() { return controller; }
+  @Configuration
+  static class TestConfig {
+    static final TareaController controller = new TareaController();
+
+    @Bean
+    public TareaController tareaController() {
+      return controller;
     }
 
-    @BeforeEach
-    void resetMocks() { Mockito.reset(tareaService); }
-
-    private Tarea build(Long id, Long usuarioId, String titulo) {
-        Tarea t = new Tarea();
-        t.setTareaId(id);
-        t.setUsuarioId(usuarioId);
-        t.setTitulo(titulo);
-        t.setDescripcion("Desc " + titulo);
-        t.setEstado("EN_PROCESO");
-        t.setHorasEstimadas(new BigDecimal("4.0"));
-        t.setHorasReales(new BigDecimal("2.0"));
-        t.setFechaCreacion(OffsetDateTime.parse("2024-04-03T14:25:00Z"));
-        t.setDeadline(OffsetDateTime.parse("2024-04-10T14:25:00Z"));
-        return t;
+    public static TareaController getController() {
+      return controller;
     }
+  }
 
-    @Test
-    void testCreateAndGetTarea() throws Exception {
-        Tarea nueva = build(null, 1L, "Nueva Tarea");
-        Tarea creada = build(1L, 1L, "Nueva Tarea");
+  @BeforeEach
+  void resetMocks() {
+    Mockito.reset(tareaService);
+  }
 
-        Mockito.when(tareaService.save(Mockito.any(Tarea.class))).thenReturn(creada);
-        Mockito.when(tareaService.findById(1L)).thenReturn(Optional.of(creada));
+  private Tarea build(Long id, Long usuarioId, String titulo) {
+    Tarea t = new Tarea();
+    t.setTareaId(id);
+    t.setUsuarioId(usuarioId);
+    t.setTitulo(titulo);
+    t.setDescripcion("Desc " + titulo);
+    t.setEstado("EN_PROCESO");
+    t.setHorasEstimadas(new BigDecimal("4.0"));
+    t.setHorasReales(new BigDecimal("2.0"));
+    t.setFechaCreacion(OffsetDateTime.parse("2024-04-03T14:25:00Z"));
+    t.setDeadline(OffsetDateTime.parse("2024-04-10T14:25:00Z"));
+    return t;
+  }
 
-        String jsonPayload = objectMapper.writeValueAsString(nueva);
+  @Test
+  void testCreateAndGetTarea() throws Exception {
+    Tarea nueva = build(null, 1L, "Nueva Tarea");
+    Tarea creada = build(1L, 1L, "Nueva Tarea");
 
-        mockMvc
-                .perform(post("/tareas").contentType(MediaType.APPLICATION_JSON).content(jsonPayload))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.tareaId").value(1))
-                .andExpect(jsonPath("$.titulo").value("Nueva Tarea"));
+    Mockito.when(tareaService.save(Mockito.any(Tarea.class))).thenReturn(creada);
+    Mockito.when(tareaService.findById(1L)).thenReturn(Optional.of(creada));
 
-        mockMvc
-                .perform(get("/tareas/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.tareaId").value(1))
-                .andExpect(jsonPath("$.titulo").value("Nueva Tarea"));
-    }
+    String jsonPayload = objectMapper.writeValueAsString(nueva);
 
-    @Test
-    void testGetAllTareasAndByUsuario() throws Exception {
-        Tarea t1 = build(1L, 1L, "T1");
-        Tarea t2 = build(2L, 2L, "T2");
+    mockMvc
+        .perform(post("/tareas").contentType(MediaType.APPLICATION_JSON).content(jsonPayload))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.tareaId").value(1))
+        .andExpect(jsonPath("$.titulo").value("Nueva Tarea"));
 
-        Mockito.when(tareaService.findAll()).thenReturn(Arrays.asList(t1, t2));
-        Mockito.when(tareaService.findByUsuarioId(1L)).thenReturn(Collections.singletonList(t1));
+    mockMvc
+        .perform(get("/tareas/1"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.tareaId").value(1))
+        .andExpect(jsonPath("$.titulo").value("Nueva Tarea"));
+  }
 
-        mockMvc.perform(get("/tareas"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2));
+  @Test
+  void testGetAllTareasAndByUsuario() throws Exception {
+    Tarea t1 = build(1L, 1L, "T1");
+    Tarea t2 = build(2L, 2L, "T2");
 
-        mockMvc.perform(get("/tareas/user/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].tareaId").value(1));
-    }
+    Mockito.when(tareaService.findAll()).thenReturn(Arrays.asList(t1, t2));
+    Mockito.when(tareaService.findByUsuarioId(1L)).thenReturn(Collections.singletonList(t1));
 
-    @Test
-    void testUpdateAssignee() throws Exception {
-        Tarea existente = build(1L, 1L, "Titulo");
-        Tarea actualizado = build(1L, 42L, "Titulo");
+    mockMvc
+        .perform(get("/tareas"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(2));
 
-        Mockito.when(tareaService.updateAssignee(1L, 42L)).thenReturn(actualizado);
+    mockMvc
+        .perform(get("/tareas/user/1"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$[0].tareaId").value(1));
+  }
 
-        String payload = objectMapper.writeValueAsString(Map.of("usuarioId", 42));
+  @Test
+  void testUpdateAssignee() throws Exception {
+    Tarea existente = build(1L, 1L, "Titulo");
+    Tarea actualizado = build(1L, 42L, "Titulo");
 
-        mockMvc
-                .perform(patch("/tareas/1/assignee").contentType(MediaType.APPLICATION_JSON).content(payload))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.usuarioId").value(42));
-    }
+    Mockito.when(tareaService.updateAssignee(1L, 42L)).thenReturn(actualizado);
 
-    @Test
-    void testDeleteTarea() throws Exception {
-        Mockito.when(tareaService.deleteById(1L)).thenReturn(true);
+    String payload = objectMapper.writeValueAsString(Map.of("usuarioId", 42));
 
-        mockMvc.perform(delete("/tareas/1"))
-                .andExpect(status().isOk());
+    mockMvc
+        .perform(
+            patch("/tareas/1/assignee").contentType(MediaType.APPLICATION_JSON).content(payload))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.usuarioId").value(42));
+  }
 
-        Mockito.when(tareaService.findById(1L)).thenReturn(Optional.empty());
-        mockMvc.perform(get("/tareas/1"))
-                .andExpect(status().isNotFound());
-    }
+  @Test
+  void testDeleteTarea() throws Exception {
+    Mockito.when(tareaService.deleteById(1L)).thenReturn(true);
+
+    mockMvc.perform(delete("/tareas/1")).andExpect(status().isOk());
+
+    Mockito.when(tareaService.findById(1L)).thenReturn(Optional.empty());
+    mockMvc.perform(get("/tareas/1")).andExpect(status().isNotFound());
+  }
 }

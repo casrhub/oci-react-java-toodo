@@ -22,3 +22,8 @@ steps:
         MtdrSpring/backend
 
       docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
+
+  - type: Command
+    name: Restart Kubernetes Deployment
+    command: |
+      kubectl rollout restart deployment todolistapp

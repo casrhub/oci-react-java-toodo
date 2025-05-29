@@ -11,11 +11,15 @@ env:
 steps:
   - type: Command
     name: Build Spring Boot JAR
-    image: maven:3.9.6-eclipse-temurin-11
     timeoutInSeconds: 1800
     command: |
-      mvn -f MtdrSpring/backend/pom.xml \
-          -B clean package spring-boot:repackage -DskipTests
+    microdnf install -y java-11-openjdk-devel   # ← works on Oracle Linux
+    export JAVA_HOME=/usr/lib/jvm/java-11
+    export PATH=$JAVA_HOME/bin:$PATH
+    java -version                                # sanity log
+    mvn -f MtdrSpring/backend/pom.xml \
+        -B clean package spring-boot:repackage -DskipTests
+
 
   - type: Command
     name: Build & Push Docker image

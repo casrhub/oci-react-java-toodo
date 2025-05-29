@@ -24,6 +24,11 @@ steps:
       chmod +x MtdrSpring/backend/mvnw
 
   - type: Command
+    name: Check Java Version
+    command: java -version
+
+
+  - type: Command
     name: Build Spring Boot JAR
     timeoutInSeconds: 1000
     command: |

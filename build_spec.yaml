@@ -11,6 +11,7 @@ steps:
   - type: Command
     name: Docker Hub Login
     command: |
+      echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
 
   - type: Command
     name: Build & Push Docker Image
@@ -21,4 +22,3 @@ steps:
         MtdrSpring/backend
 
       docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
-#test

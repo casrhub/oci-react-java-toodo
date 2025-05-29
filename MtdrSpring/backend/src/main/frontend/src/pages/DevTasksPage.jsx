@@ -11,6 +11,7 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Moment from 'react-moment';
+import { UserButton } from "@clerk/clerk-react"; // 👈 Importa esto arriba 
 
 import { useAuthFetch } from '../utils/authFetch';                   // 🔒 helper con JWT
 import { API_TAREAS, API_SUBTAREAS, API_USUARIOS } from '../api';
@@ -171,24 +172,26 @@ export default function DevTasksPage() {
   return (
     <div style={{ padding:16 }}>
       {/* header */}
-      <Toolbar sx={{ justifyContent:'space-between' }}>
-        <Typography variant="h5" fontWeight="bold">My Tasks</Typography>
-        <div>
-          <Button variant="outlined" startIcon={<FilterListIcon />}
-                  onClick={e => setAnchorEl(e.currentTarget)} sx={{ mr:2 }}>
-            Filter
-          </Button>
-          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)}
-                onClose={() => setAnchorEl(null)}>
-            <MenuItem onClick={() => setAnchorEl(null)}>No filters yet</MenuItem>
-          </Menu>
-          <Button startIcon={<AddIcon />} variant="contained"
-                  onClick={() => setNewDlg(true)}
-                  sx={{ bgcolor:'#C74634', '&:hover':{ bgcolor:'#b63f2e' } }}>
-            Add Task
-          </Button>
-        </div>
-      </Toolbar>
+      <Toolbar sx={{ justifyContent: 'space-between' }}>
+      <Typography variant="h5" fontWeight="bold">My Tasks</Typography>
+      <Box display="flex" alignItems="center" gap={2}>
+        <Button variant="outlined" startIcon={<FilterListIcon />}
+                onClick={e => setAnchorEl(e.currentTarget)}>
+          Filter
+        </Button>
+        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)}
+              onClose={() => setAnchorEl(null)}>
+          <MenuItem onClick={() => setAnchorEl(null)}>No filters yet</MenuItem>
+        </Menu>
+        <Button startIcon={<AddIcon />} variant="contained"
+                onClick={() => setNewDlg(true)}
+                sx={{ bgcolor:'#C74634', '&:hover':{ bgcolor:'#b63f2e' } }}>
+          Add Task
+        </Button>
+        <UserButton afterSignOutUrl="/" /> {/* 👈 Este es el botón de logout */}
+      </Box>
+    </Toolbar>
+
 
       {/* ---------------- Pending ---------------- */}
       {pending.length > 0 && (

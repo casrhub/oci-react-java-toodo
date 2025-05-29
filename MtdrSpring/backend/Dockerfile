@@ -3,7 +3,7 @@ FROM openjdk:22
 WORKDIR /app
 
 # Copy the JAR file
-COPY MtdrSpring/backend/target/MyTodoList-0.0.1-SNAPSHOT.jar app.jar
+COPY target/MyTodoList-0.0.1-SNAPSHOT.jar app.jar
 
 # Create wallet directory in the correct location for the application
 RUN mkdir -p /app/src/main/resources/wallet

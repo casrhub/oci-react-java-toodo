@@ -14,10 +14,15 @@ steps:
       echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
 
   - type: Command
+    name: Copy Wallet Files
+    command: |
+      cp -r MtdrSpring/Wallet_FATDATABASE MtdrSpring/backend/
+
+  - type: Command
     name: Build Spring Boot JAR
     command: |
       cd MtdrSpring/backend
-      ./mvnw clean package -DskipTests
+      ./mvnw clean package spring-boot:repackage -DskipTests
 
   - type: Command
     name: Build & Push Docker Image
@@ -25,9 +30,9 @@ steps:
       docker build \
         -t ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG} \
         -f MtdrSpring/backend/Dockerfile \
-        .
-      docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
+        MtdrSpring/backend
 
+      docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
 
 outputArtifacts:
   - name: todolist-image

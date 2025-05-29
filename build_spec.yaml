@@ -14,8 +14,11 @@ steps:
   - type: Command
     name: Set IMAGE_TAG
     command: |
+      # 1. crear tag único (7 chars del commit)
       export IMAGE_TAG=$(echo "${OCI_PRIMARY_SOURCE_REVISION}" | cut -c1-7)
-      echo "IMAGE_TAG=$IMAGE_TAG" >> $OCI_BUILD_RUN_EXPORT_VARIABLES_FILE
+      # 2. exportarlo para los siguientes pasos             ↓ nombre correcto
+      echo "IMAGE_TAG=$IMAGE_TAG" >> "$OCI_EXPORT_BUILD_RUN_VARIABLES_FILE"
+
 
   - type: Command
     name: Docker Hub Login

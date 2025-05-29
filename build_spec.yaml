@@ -6,6 +6,7 @@ env:
     DOCKER_USERNAME: casrhub
     IMAGE_NAME: todolistapp-springboot
     IMAGE_TAG: 0.1
+    JAVA_HOME: /usr/lib/jvm/java-22-openjdk-amd64  # ✅ Declare here so it's available in all steps
 
 steps:
   - type: Command
@@ -22,19 +23,6 @@ steps:
     name: Set Execution Permission for mvnw
     command: |
       chmod +x MtdrSpring/backend/mvnw
-
-  - type: Command
-    name: Check Java Installations
-    command: |
-      java -version
-      ls -la /usr/lib/jvm
-
-  - type: Command
-    name: Set JAVA_HOME
-    command: |
-      export JAVA_HOME=/usr/lib/jvm/java-22-openjdk-amd64
-      echo "JAVA_HOME set to: $JAVA_HOME"
-
 
   - type: Command
     name: Build Spring Boot JAR
@@ -56,4 +44,3 @@ outputArtifacts:
   - name: todolist-image
     type: DOCKER_IMAGE
     location: ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
-#hear me out

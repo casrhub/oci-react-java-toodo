@@ -1,7 +1,4 @@
-/**
- * Crea un WebDriver de Chrome listo para usar (headless en CI).
- */
-require('chromedriver'); // registra el binario en PATH
+require('chromedriver');
 
 const { Builder } = require('selenium-webdriver');
 const chrome      = require('selenium-webdriver/chrome');
@@ -9,8 +6,15 @@ const chrome      = require('selenium-webdriver/chrome');
 function createDriver () {
   const options = new chrome.Options();
 
-  // En entornos CI/--headless (por ej. GitHub Actions) ahorra recursos.
-  if (process.env.CI) options.addArguments('--headless=new');
+  if (process.env.CI) {
+    options.addArguments(
+      '--headless=new',
+      '--no-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--window-size=1920,1080'
+    );
+  }
 
   return new Builder()
     .forBrowser('chrome')

@@ -36,3 +36,29 @@ steps:
                   ${DOCKER_USERNAME}/${IMAGE_NAME}:latest
       docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
       docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:latest
+
+  - type: Command
+    name: Run OWASP ZAP Scan
+    timeoutInSeconds: 600
+    command: |
+      echo "📌 [INFO] Starting OWASP ZAP scan..."
+      echo "📌 [INFO] Current working directory: $(pwd)"
+      echo "📌 [INFO] Target URL: http://220.158.74.30/"
+
+      docker --version
+      docker ps
+
+      docker run \
+        -v "$(pwd)":/zap/wrk/:rw \
+        -t ghcr.io/zaproxy/zaproxy:stable \
+        zap.sh -cmd -quickurl http://220.158.74.30/ \
+               -quickout /zap/wrk/result.xml
+
+      echo "✅ [INFO] ZAP scan finished."
+
+      if [ -f "result.xml" ]; then
+        echo "📄 [INFO] Preview of result.xml:"
+        head -n 20 result.xml
+      else
+        echo "❌ [ERROR] result.xml not found. The scan may have failed or the target was unreachable."
+      fi

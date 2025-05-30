@@ -38,7 +38,7 @@ steps:
       docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:latest
 
 
-  - ⁠type: Command
+  - type: Command
     name: Run Selenium E2E Tests
     timeoutInSeconds: 300
     command: |

@@ -9,6 +9,7 @@
         "@mui/icons-material": "^5.8.0",
         "@mui/material": "^5.8.0",
         "@mui/styles": "^5.7.0",
+        "chromedriver": "^136.0.3",
         "lucide-react": "^0.487.0",
         "moment": "^2.29.3",
         "react": "^17.0.2",
@@ -24,7 +25,9 @@
         "build": "CI=false react-scripts build",
         "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
         "format": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
-        "format:fix": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\""
+        "format:fix": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
+        "jest:e2e": "jest --config selenium/jest.e2e.config.js",
+        "test:e2e": "start-server-and-test start http://localhost:3000 jest:e2e"
     },
     "eslintConfig": {
         "extends": [
@@ -54,6 +57,8 @@
         "eslint": "8.57.0",
         "eslint-config-prettier": "9.1.0",
         "eslint-plugin-react": "7.34.1",
-        "prettier": "3.2.5"
+        "prettier": "3.2.5",
+        "selenium-webdriver": "^4.21.0",
+        "start-server-and-test": "^2.0.0"
     }
 }

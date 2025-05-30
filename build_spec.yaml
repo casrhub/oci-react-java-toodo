@@ -37,6 +37,16 @@ steps:
       docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
       docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:latest
 
+
+  - ⁠type: Command
+    name: Run Selenium E2E Tests
+    timeoutInSeconds: 300
+    command: |
+      echo "▶️  Instalando dependencias y ejecutando tests E2E de Selenium…"
+      cd MtdrSpring/backend/src/main/frontend
+      npm install
+      npm run test:e2e
+
   - type: Command
     name: Run OWASP ZAP Scan
     timeoutInSeconds: 600

@@ -41,24 +41,20 @@ steps:
     name: Run OWASP ZAP Scan
     timeoutInSeconds: 600
     command: |
-      echo "📌 [INFO] Starting OWASP ZAP scan..."
-      echo "📌 [INFO] Current working directory: $(pwd)"
-      echo "📌 [INFO] Target URL: http://220.158.74.30/"
+     workdir="$(pwd)/zap-output"
+     mkdir -p "$workdir"
+     docker run --rm \
+      -v "$workdir":/zap/wrk \
+      ghcr.io/zaproxy/zaproxy:stable \
+      zap.sh -cmd \
+             -quickurl http://220.158.74.30/ \
+             -quickout /zap/wrk/result.xml
 
-      docker --version
-      docker ps
+     if [ -f "$workdir/result.xml" ]; then
+      echo "✅ ZAP report generated:"
+      head -n 20 "$workdir/result.xml"
+     else
+      echo "❌ ZAP report missing – scan failed?"
+      exit 1
+     fi
 
-      docker run \
-        -v "$(pwd)":/zap/wrk/:rw \
-        -t ghcr.io/zaproxy/zaproxy:stable \
-        zap.sh -cmd -quickurl http://220.158.74.30/ \
-               -quickout /zap/wrk/result.xml
-
-      echo "✅ [INFO] ZAP scan finished."
-
-      if [ -f "result.xml" ]; then
-        echo "📄 [INFO] Preview of result.xml:"
-        head -n 20 result.xml
-      else
-        echo "❌ [ERROR] result.xml not found. The scan may have failed or the target was unreachable."
-      fi

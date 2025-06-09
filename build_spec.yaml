@@ -53,14 +53,34 @@ steps:
      echo "ℹ️  ZAP finalizado; si hubo alertas las viste más arriba."
 
   - type: Command
-    name: Use Java 11 (if available)
+    name: Install and use Java 11
+    timeoutInSeconds: 1800
     command: |
-      export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+      echo "Java BEFORE install:"
+      java  -version || echo "java not found"
+      javac -version || echo "javac not found"
+
+      # ---- install OpenJDK 11 ----
+      # AppStream module name: java-11-openjdk
+      sudo dnf install -y java-11-openjdk-devel
+
+      # ---- verify & configure ----
+      echo "Java AFTER install:"
+      java  -version
+      javac -version
+
+      # Set JAVA_HOME for this step
+      export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
       export PATH=$JAVA_HOME/bin:$PATH
-      java -version
+
+      echo "JAVA_HOME is $JAVA_HOME"
+      which java
+      which javac
+
+      # ---- run your integration tests ----
       cd MtdrSpring/backend
       mvn --batch-mode verify
 
- 
+  
 
 

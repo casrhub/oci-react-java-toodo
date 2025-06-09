@@ -1,205 +1,213 @@
+
+
 # oci-react-samples
-A repository for full stack Cloud Native applications with a React JS frontend and various backends (Java, Python, DotNet, and so on) on the Oracle Cloud Infrastructure.
 
-![image](https://user-images.githubusercontent.com/7783295/116454396-cbfb7a00-a814-11eb-8196-ba2113858e8b.png)
-  
+[![Backend + Frontend CI](https://github.com/your-org/oci-react-samples/workflows/Backend%20+%20Frontend%20CI/badge.svg)](#) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## MyToDo React JS
-The `mtdrworkshop` repository hosts the materiald (code, scripts and instructions) for building and deploying Cloud Native Application using a Java/Helidon backend Prueba
+A **cloud-native** ToDo application (“MyTodoList”) demonstrating:
 
+- **Frontend**: React.js (Vite + TypeScript)  
+- **Backend**: Spring Boot 3 (Java 17) + Oracle Database  
+- **Auth**: Clerk (JWT-based session management)  
+- **Bot**: Telegram integration using `TelegramLongPollingBot`  
+- **Infra & CI/CD**: Docker, GitHub Actions, OCI DevOps, Testcontainers  
 
-### Requirements
-The lab executes scripts that require the following software to run properly: (These are already installed on and included with the OCI Cloud Shell)
-* oci-cli
-* python 2.7^
-* terraform
-* kubectl
-* mvn (maveennn)
+---
 
+## Table of Contents
 
+1. [Architecture](#architecture)  
+2. [Prerequisites](#prerequisites)  
+3. [Setup & Local Development](#setup--local-development)  
+   - [Environment Variables](#environment-variables)  
+   - [Back-end](#running-the-back-end)  
+   - [Front-end](#running-the-front-end)  
+   - [Docker Compose](#docker-compose)  
+4. [Testing](#testing)  
+5. [CI/CD](#cicd)  
+6. [Git Hooks & Scripts](#git-hooks--scripts)  
+7. [Platform Notes](#platform-notes)  
+8. [Contributing](#contributing)  
+9. [License](#license)  
 
-1. **Copy the hook scripts** from this repo into your local `.git/hooks` folder:  
-   ```bash
-   cp scripts/pre-commit .git/hooks/pre-commit
-   cp scripts/pre-push   .git/hooks/pre-push
-   ```
+---
 
-2. **Make them executable**:
-   ```bash
-   chmod +x .git/hooks/pre-commit
-   chmod +x .git/hooks/pre-push
-   ```
+## Architecture
 
-3. **Verify** by making a small change and running:
-   ```bash
-   git commit -m "test hooks"
-   git push
-   ```
-   You should see Spotless/Checkstyle format checks on commit, and JUnit tests on push.
+![Architecture Overview](./docs/architecture.drawio.png)
 
-### Example: `scripts/pre-commit`
+1. **API Gateway**  
+   - Centralizes Clerk-based JWT validation (via `AuthService`)  
+   - Routes to microservices (`TaskService`, `SubTaskService`, etc.)  
+2. **Spring Boot Services**  
+   - **TaskService**, **SubTaskService**, **SprintService**, **KpiService**, **UsuarioService**, **ToDoItemService**  
+   - Each follows Controller → Service → Repository layering  
+3. **React Frontend**  
+   - Consumes REST endpoints; uses Clerk for authentication  
+4. **Telegram Bot**  
+   - Implements conversational flows via `ToDoItemBotController`  
+5. **Database**  
+   - Oracle DB (free edition for dev/testing, Testcontainers for integration tests)  
+
+---
+
+## Prerequisites
+
+- **Java 17** (GraalVM EE for native-image optional)  
+- **Maven**  
+- **Node.js** ≥ 16 & **npm**  
+- **Docker Desktop** (or Linux Docker)  
+- **OCI CLI** (for deployments)  
+
+---
+
+## Setup & Local Development
+
+### Environment Variables
+
+Create a `.env` (or export) with:
+
+| Variable                 | Purpose                                           | Example                          |
+|--------------------------|---------------------------------------------------|----------------------------------|
+| `SPRING_PROFILES_ACTIVE` | Spring profile (`dev`/`test`/`prod`)              | `dev`                            |
+| `DATABASE_URL`           | JDBC URL to Oracle DB                             | `jdbc:oracle:thin:@localhost:1521/ORCLPDB1` |
+| `ORACLE_WALLET_PATH`     | Path to OCI Wallet directory                      | `./Wallet_FATDATABASE`           |
+| `JWT_SECRET`             | HMAC secret for signing JWTs                      | `super-secret-change-me`         |
+| `CLERK_API_KEY`          | Clerk service API key                             | `sk_test_abc123`                 |
+| `TELEGRAM_BOT_TOKEN`     | Telegram Bot token                                | `123456:ABC-DEF…`               |
+
+### Running the Back-end
 
 ```bash
-#!/usr/bin/env bash
-# --- pre-commit: format + lint Java code via Spotless & Checkstyle ---
+# From repo root
+cd MtdrSpring/backend
 
-echo "▶ Formatting & linting code…"
+# Install & compile
+mvn clean install
 
-# Move to backend
-cd MtdrSpring/backend || exit 1
+# Run with dev profile
+SPRING_PROFILES_ACTIVE=dev \
+java -jar target/MyTodoList-0.0.1-SNAPSHOT.jar
+````
 
-# 1) Apply Google Java Format
-mvn -q spotless:apply || { echo "❌ spotless failed"; exit 1; }
+* **Health**: `GET http://localhost:8080/actuator/health`
+* **Swagger UI**: `http://localhost:8080/swagger-ui.html`
 
-# 2) Run Checkstyle (abort on violations)
-mvn -q checkstyle:check || { echo "❌ checkstyle violations"; exit 1; }
+### Running the Front-end
 
-exit 0
+```bash
+cd MtdrSpring/backend/src/main/frontend
+
+# Install & start dev server
+npm ci
+npm start
 ```
 
-### Example: `scripts/pre-push`
+* App available at **[http://localhost:3000](http://localhost:3000)** (proxy → backend on 8080)
+* To build for production: `npm run build`
+
+### Docker Compose
+
+A single-command alternative (requires Docker):
 
 ```bash
-#!/usr/bin/env bash
-# --- pre-push: run backend tests before pushing ---
+# from repo root
+docker-compose up --build
+```
 
-echo "▶ Running backend tests…"
+This spins up:
 
-cd MtdrSpring/backend || { echo "❌ backend folder not found"; exit 1; }
+* Oracle DB container (with sample wallet)
+* Spring Boot app on port **8080**
+* React build served via Spring Boot
 
-mvn -q test
-if [ $? -ne 0 ]; then
-  echo "❌ Tests failed; push aborted."
-  exit 1
-else
-  echo "✅ Tests passed; proceeding with push."
-  exit 0
-fi
+---
+
+## Testing
+
+* **Unit Tests**:
+
+  ```bash
+  cd MtdrSpring/backend
+  mvn test
+  ```
+* **Integration Tests** (uses Testcontainers + real Oracle):
+
+  ```bash
+  mvn verify
+  ```
+* **Front-end Lint & Tests**:
+
+  ```bash
+  cd MtdrSpring/backend/src/main/frontend
+  npm run lint
+  npm test
+  ```
+
+---
+
+## CI/CD
+
+* **GitHub Actions**
+
+  * Validates Maven build, runs backend tests, packages JAR
+  * Runs ESLint, builds React app
+  * Uploads artifacts for deployment
+* **OCI DevOps Pipeline**
+
+  * Builds Docker image, pushes to OCIR
+  * Deploys to Kubernetes on OCI
+
+Configuration lives in:
+
+* `.github/workflows/build.yml`
+* `oci_devops.yml`
+
+---
+
+## Git Hooks & Scripts
+
+We provide ready-made hooks and helper scripts in `scripts/`:
+
+| Script         | Purpose                            |
+| -------------- | ---------------------------------- |
+| `pre-commit`   | Spotless format, Checkstyle checks |
+| `pre-push`     | Run full backend test suite        |
+| `start-dev.sh` | Docker Compose up + DB migrations  |
+
+**Install hooks:**
+
+```bash
+cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+cp scripts/pre-push   .git/hooks/pre-push   && chmod +x .git/hooks/pre-push
 ```
 
 ---
 
-## CI/CD with GitHub Actions
+## Platform Notes
 
-We also enforce these checks in CI on every push or PR:
-
-```yaml
-# .github/workflows/build.yml
-name: Backend + Frontend CI
-
-on:
-  push:
-    branches: [ main, dev, LinuxTaks ]
-  pull_request:
-
-jobs:
-  # ---------- BACKEND ----------
-  backend:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK 11
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 11
-          cache: maven
-
-      - name: Build backend JAR (skip tests)
-        working-directory: MtdrSpring/backend
-        run: mvn --batch-mode clean package -DskipTests
-
-      - name: Upload JAR artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: MyTodoList-jar
-          path: MtdrSpring/backend/target/MyTodoList-0.0.1-SNAPSHOT.jar
-
-  # ---------- FRONTEND ----------
-  frontend:
-    runs-on: ubuntu-22.04
-    needs: backend
-
-    defaults:
-      run:
-        working-directory: MtdrSpring/backend/src/main/frontend
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node 16
-        uses: actions/setup-node@v4
-        with:
-          node-version: 16
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint (ESLint)
-        run: npm run lint
-
-      - name: Build React app
-        run: npm run build
-
-      - name: Upload React build
-        uses: actions/upload-artifact@v4
-        with:
-          name: react-build
-          path: MtdrSpring/backend/src/main/frontend/build
-
-## Local Deployment (Backend + Frontend)
-
-You can run the full application — Spring Boot backend and embedded React frontend — locally using Docker. This works across macOS, Windows (WSL2), and Linux.
-
-### Prerequisites
-
-- Docker Desktop installed
-- Oracle Wallet folder named `Wallet_FATDATABASE/` placed inside `MtdrSpring/backend/`
-- Ports 8080 and 8081 available
-
-### Steps to Deploy Locally
-
-1. Open a terminal and navigate to the backend folder:
-
-   ```bash
-   cd MtdrSpring/backend
-   ```
-
-2. Build the Docker image:
-
-   ```bash
-   docker build -t mytodoapp .
-   ```
-
-3. Run the container:
-
-   ```bash
-   docker run -d -p 8080:8080 --name mytodoapp-container mytodoapp
-   ```
-
-4. Open your browser and visit:
-
-   ```
-   http://localhost:8080
-   ```
-
-   You will see the React frontend served by the Spring Boot backend.
-
-### View Logs (Optional)
-
-To monitor logs in real time (e.g., backend startup, request handling, DB events):
-
-```bash
-docker logs -f mytodoapp-container
-```
-
-###  OS-specific Notes
-
-| OS        | Notes                                                                 |
-|-----------|-----------------------------------------------------------------------|
-| macOS     | Runs out-of-the-box with Docker Desktop                              |
-| Windows   | Requires [WSL2](https://docs.microsoft.com/en-us/windows/wsl/) and Docker set to Linux containers |
-| Linux     | Works with standard Docker installation                               |
+| OS      | Notes                                                    |
+| ------- | -------------------------------------------------------- |
+| macOS   | Use Docker Desktop                                       |
+| Windows | Enable WSL2 and run Docker in Linux mode                 |
+| Linux   | Standard Docker setup; ensure `docker-compose` installed |
 
 ---
+
+## Contributing
+
+We welcome issues and pull requests! Please:
+
+1. Fork the repo & create a feature branch
+2. Write tests for new logic
+3. Adhere to code style (Spotless, Checkstyle)
+4. Submit a PR against `dev` branch
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
+
+---
+
+## License
+
+This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
+

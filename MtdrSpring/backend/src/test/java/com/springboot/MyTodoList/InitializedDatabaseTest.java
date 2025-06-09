@@ -57,8 +57,8 @@ public class InitializedDatabaseTest {
   @Test
   void getTareaById() throws SQLException {
     try (Connection conn = ds.getConnection();
-         Statement stmt = conn.createStatement();
-         ResultSet rs = stmt.executeQuery("SELECT * FROM TAREAS WHERE TAREA_ID = 268")) {
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT * FROM TAREAS WHERE TAREA_ID = 268")) {
 
       Assertions.assertTrue(rs.next(), "No se encontró la tarea con ID = 268");
       Assertions.assertEquals("Data Model Validation", rs.getString("TITULO"));

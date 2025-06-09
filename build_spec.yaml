@@ -54,6 +54,7 @@ steps:
 
   - type: Command
     name: Run Integration Tests
+    timeoutInSeconds: 1800
     command: |
       cd MtdrSpring/backend
       mvn --batch-mode verify

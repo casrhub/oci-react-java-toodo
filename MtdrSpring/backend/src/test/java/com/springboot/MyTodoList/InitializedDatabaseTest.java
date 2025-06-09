@@ -64,4 +64,19 @@ public class InitializedDatabaseTest {
       Assertions.assertEquals("Data Model Validation", rs.getString("TITULO"));
     }
   }
+// Retrieve all TAREAS for a specific USUARIO_ID
+  @Test
+  void getTareasForUsuario() throws SQLException {
+    try (Connection conn = ds.getConnection();
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT * FROM TAREAS WHERE USUARIO_ID = 102")) {
+
+      int count = 0;
+      while (rs.next()) {
+        count++;
+        Assertions.assertEquals(102, rs.getInt("USUARIO_ID"));
+      }
+      Assertions.assertTrue(count > 0, "No se encontraron tareas para el usuario 102");
+    }
+  }
 }

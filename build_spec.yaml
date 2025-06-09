@@ -53,20 +53,14 @@ steps:
      echo "ℹ️  ZAP finalizado; si hubo alertas las viste más arriba."
 
   - type: Command
-    name: Install Java 11
+    name: Use Java 11 (if available)
     command: |
-      sudo yum install -y java-11-openjdk-devel || sudo apt-get install -y openjdk-11-jdk
-      export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))
+      export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
       export PATH=$JAVA_HOME/bin:$PATH
       java -version
-
-  - type: Command
-    name: Run Integration Tests
-    timeoutInSeconds: 1800
-    command: |
-      export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))
-      export PATH=$JAVA_HOME/bin:$PATH
       cd MtdrSpring/backend
       mvn --batch-mode verify
+
+ 
 
 

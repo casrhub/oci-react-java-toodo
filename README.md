@@ -147,3 +147,59 @@ jobs:
         with:
           name: react-build
           path: MtdrSpring/backend/src/main/frontend/build
+
+## Local Deployment (Backend + Frontend)
+
+You can run the full application — Spring Boot backend and embedded React frontend — locally using Docker. This works across macOS, Windows (WSL2), and Linux.
+
+### Prerequisites
+
+- Docker Desktop installed
+- Oracle Wallet folder named `Wallet_FATDATABASE/` placed inside `MtdrSpring/backend/`
+- Ports 8080 and 8081 available
+
+### Steps to Deploy Locally
+
+1. Open a terminal and navigate to the backend folder:
+
+   ```bash
+   cd MtdrSpring/backend
+   ```
+
+2. Build the Docker image:
+
+   ```bash
+   docker build -t mytodoapp .
+   ```
+
+3. Run the container:
+
+   ```bash
+   docker run -d -p 8080:8080 --name mytodoapp-container mytodoapp
+   ```
+
+4. Open your browser and visit:
+
+   ```
+   http://localhost:8080
+   ```
+
+   You will see the React frontend served by the Spring Boot backend.
+
+### View Logs (Optional)
+
+To monitor logs in real time (e.g., backend startup, request handling, DB events):
+
+```bash
+docker logs -f mytodoapp-container
+```
+
+###  OS-specific Notes
+
+| OS        | Notes                                                                 |
+|-----------|-----------------------------------------------------------------------|
+| macOS     | Runs out-of-the-box with Docker Desktop                              |
+| Windows   | Requires [WSL2](https://docs.microsoft.com/en-us/windows/wsl/) and Docker set to Linux containers |
+| Linux     | Works with standard Docker installation                               |
+
+---

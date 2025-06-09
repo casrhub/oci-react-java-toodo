@@ -54,6 +54,7 @@ steps:
 
   - type: Command
     name: Install Oracle JDK 11 on OL7
+    timeoutInSeconds: 1800
     command: |
       echo "Java BEFORE install:"; java -version
 

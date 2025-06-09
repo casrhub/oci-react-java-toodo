@@ -58,29 +58,24 @@ steps:
     command: |
       echo "Java BEFORE install:"
       java  -version || echo "java not found"
-      javac -version || echo "javac not found"
 
-      # ---- install OpenJDK 11 ----
-      # AppStream module name: java-11-openjdk
-      sudo dnf install -y java-11-openjdk-devel
+      # --- install OpenJDK 11 on Oracle Linux 8 ---
+      # Runner is already root, so no sudo is needed
+      dnf install -y java-11-openjdk-devel
 
-      # ---- verify & configure ----
       echo "Java AFTER install:"
       java  -version
       javac -version
 
-      # Set JAVA_HOME for this step
-      export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+      # --- set JAVA_HOME dynamically ---
+      export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))
       export PATH=$JAVA_HOME/bin:$PATH
-
       echo "JAVA_HOME is $JAVA_HOME"
-      which java
-      which javac
 
-      # ---- run your integration tests ----
+      # --- run Maven build ---
       cd MtdrSpring/backend
       mvn --batch-mode verify
 
-  
+    
 
 

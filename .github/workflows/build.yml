@@ -3,7 +3,7 @@ name: Backend + Frontend CI
 
 on:
   push:
-    branches: [main, dev, LinuxTak, final-dev]
+    branches: [main, dev, LinuxTak, final-dev, tocha-dev]
   pull_request:
 
 jobs:

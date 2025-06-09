@@ -64,7 +64,8 @@ public class InitializedDatabaseTest {
       Assertions.assertEquals("Data Model Validation", rs.getString("TITULO"));
     }
   }
-// Retrieve all TAREAS for a specific USUARIO_ID
+
+  // Retrieve all TAREAS for a specific USUARIO_ID
   @Test
   void getTareasForUsuario() throws SQLException {
     try (Connection conn = ds.getConnection();

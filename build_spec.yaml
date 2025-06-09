@@ -52,3 +52,9 @@ steps:
 
      echo "ℹ️  ZAP finalizado; si hubo alertas las viste más arriba."
 
+  - type: Command
+    name: Run Integration Tests
+    command: |
+      cd MtdrSpring/backend
+      mvn --batch-mode verify
+

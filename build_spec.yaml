@@ -53,7 +53,7 @@ steps:
      echo "ℹ️  ZAP finalizado; si hubo alertas las viste más arriba."
 
   - type: Command
-    name: Install Oracle JDK 11 on OL7
+    name: Install Oracle JDK 11 and run Integration Tests
     timeoutInSeconds: 1800
     command: |
       echo "Java BEFORE install:"; java -version

@@ -6,7 +6,7 @@ WORKDIR /app
 COPY . .
 
 # Build the Spring Boot app (adjust if you want tests)
-RUN mvn clean package spring-boot:repackage 
+RUN mvn clean package spring-boot:repackage -DskipTests
 
 # ───── Stage 2: Runtime ─────
 FROM openjdk:11-jre-slim

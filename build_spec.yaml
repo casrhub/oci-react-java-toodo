@@ -53,28 +53,23 @@ steps:
      echo "ℹ️  ZAP finalizado; si hubo alertas las viste más arriba."
 
   - type: Command
-    name: Install and use Java 11
-    timeoutInSeconds: 1800
+    name: Install Oracle JDK 11 on OL7
     command: |
-      echo "Java BEFORE install:"
-      java  -version || echo "java not found"
+      echo "Java BEFORE install:"; java -version
 
-      # --- install OpenJDK 11 on Oracle Linux 8 ---
-      # Runner is already root, so no sudo is needed
-      dnf install -y java-11-openjdk-devel
+      # yum not dnf, and no sudo (already root)
+      yum install -y jdk-11-headful      # Oracle JDK 11
+      #     or   yum install -y java-11-openjdk-devel   # OpenJDK 11
 
-      echo "Java AFTER install:"
-      java  -version
-      javac -version
+      echo "Java AFTER install:"; java -version
 
-      # --- set JAVA_HOME dynamically ---
       export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))
       export PATH=$JAVA_HOME/bin:$PATH
-      echo "JAVA_HOME is $JAVA_HOME"
+      echo "JAVA_HOME=$JAVA_HOME"
 
-      # --- run Maven build ---
       cd MtdrSpring/backend
       mvn --batch-mode verify
+
 
     
 

@@ -29,9 +29,6 @@ jobs:
         working-directory: MtdrSpring/backend
         run: mvn --batch-mode verify
 
-      - name: Selenium E2E tests
-        working-directory: MtdrSpring/backend/src/main/frontend
-        run: npm run test:e2e
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
@@ -65,8 +62,27 @@ jobs:
       - name: Build React app
         run: npm run build
 
+      - name: Run Selenium E2E tests
+        working-directory: MtdrSpring/backend/src/main/frontend
+        run: npm run test:e2e
+
       - name: Upload React build
         uses: actions/upload-artifact@v4
         with:
           name: react-build
           path: MtdrSpring/backend/src/main/frontend/build
+
+      - name: Build backend (skip tests)
+        working-directory: MtdrSpring/backend
+        run: mvn clean package -DskipTests
+
+      - name: Start backend server
+        working-directory: MtdrSpring/backend
+        run: |
+          nohup mvn spring-boot:run > backend.log 2>&1 &
+          npx wait-on http://localhost:8080 --timeout 290000
+
+      - name: Run Selenium E2E tests
+        working-directory: MtdrSpring/backend/src/main/frontend
+        run: npm run test:e2e
+      

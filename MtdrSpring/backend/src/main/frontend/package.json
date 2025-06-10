@@ -27,7 +27,7 @@
         "format": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
         "format:fix": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
         "jest:e2e": "jest --config selenium/jest.e2e.config.js",
-        "test:e2e": "start-server-and-test start http://localhost:8080 jest:e2e"
+        "test:e2e": "start-server-and-test start http://localhost:3000 jest:e2e"
     },
     "eslintConfig": {
         "extends": [

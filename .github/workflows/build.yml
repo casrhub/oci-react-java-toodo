@@ -59,13 +59,9 @@ jobs:
       - name: Lint (ESLint)
         run: npm run lint
 
-      # Start React dev server
-      - name: Start React dev server
-        run: |
-          nohup npm start > react-dev.log 2>&1 &
-          sleep 30
+      # Do NOT start the React dev server manually!
 
-      # Run Selenium E2E tests
+      # Run Selenium E2E tests (this will start the dev server, wait for it, and run tests)
       - name: Run Selenium E2E tests
         run: npm run test:e2e
       

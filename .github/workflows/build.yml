@@ -66,3 +66,6 @@ jobs:
         with:
           name: react-build
           path: MtdrSpring/backend/src/main/frontend/build
+
+      - name: Run Selenium E2E tests
+        run: npm run test:e2e

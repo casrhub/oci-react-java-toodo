@@ -61,11 +61,22 @@ jobs:
       - name: Build React app
         run: npm run build
 
+      - name: Download backend JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: MyTodoList-jar
+          path: backend-server
+
+      - name: Start backend server
+        run: |
+          nohup java -jar backend-server/MyTodoList-0.0.1-SNAPSHOT.jar > backend.log 2>&1 &
+          sleep 300  # Give the backend time to start
+
+      - name: Run Selenium E2E tests
+        run: npm run test:e2e
+
       - name: Upload React build
         uses: actions/upload-artifact@v4
         with:
           name: react-build
           path: MtdrSpring/backend/src/main/frontend/build
-
-      - name: Run Selenium E2E tests
-        run: npm run test:e2e

@@ -5,7 +5,7 @@ describe('Navegación → Manager Login', () => {
   let driver;
   beforeAll(async () => {
     driver = createDriver();
-    await driver.get('http://localhost:8080/#/');
+    await driver.get('http://localhost:3000/#/');
   });
   afterAll(() => driver.quit());
 

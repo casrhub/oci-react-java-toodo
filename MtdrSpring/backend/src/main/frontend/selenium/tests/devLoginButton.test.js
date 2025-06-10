@@ -5,7 +5,7 @@ describe('Dev Login – botón SSO', () => {
   let driver;
   beforeAll(async () => {
     driver = createDriver();
-    await driver.get('http://localhost:8080/#/dev-login');
+    await driver.get('http://localhost:3000/#/dev-login');
   });
   afterAll(() => driver.quit());
 

@@ -59,12 +59,18 @@ jobs:
       - name: Lint (ESLint)
         run: npm run lint
 
-      # Start backend (and frontend) server
+      # Download backend JAR built in the backend job
+      - name: Download backend JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: MyTodoList-jar
+          path: backend-server
+
+      # Start backend server from JAR
       - name: Start backend server
-        working-directory: MtdrSpring/backend
         run: |
-          nohup mvn spring-boot:run > backend.log 2>&1 &
-          npx wait-on http://localhost:8080 --timeout 290000
+          nohup java -jar backend-server/MyTodoList-0.0.1-SNAPSHOT.jar > backend.log 2>&1 &
+          npx wait-on http://localhost:8080 --timeout 120000
 
       # Run Selenium E2E tests
       - name: Run Selenium E2E tests

@@ -69,8 +69,12 @@ jobs:
 
       - name: Start backend server
         run: |
-          nohup java -jar backend-server/MyTodoList-0.0.1-SNAPSHOT.jar > backend.log 2>&1 &
-          sleep 300  # Give the backend time to start
+          cd ../../..
+          nohup mvn spring-boot:run > backend.log 2>&1 &
+          cd src/main/frontend
+
+      - name: Wait for backend to be available
+        run: npx wait-on http://localhost:8080
 
       - name: Run Selenium E2E tests
         run: npm run test:e2e

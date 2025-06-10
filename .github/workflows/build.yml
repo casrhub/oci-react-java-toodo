@@ -64,4 +64,8 @@ jobs:
       # Run Selenium E2E tests (this will start the dev server, wait for it, and run tests)
       - name: Run Selenium E2E tests
         run: npm run test:e2e
+
+      - name: Print React dev server log on failure
+        if: failure()
+        run: cat react-dev.log || true
       

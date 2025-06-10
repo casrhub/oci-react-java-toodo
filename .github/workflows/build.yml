@@ -29,6 +29,10 @@ jobs:
         working-directory: MtdrSpring/backend
         run: mvn --batch-mode verify
 
+      - name: Selenium E2E tests
+        working-directory: MtdrSpring/backend/src/main/frontend
+        run: npm run test:e2e
+
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
@@ -60,24 +64,6 @@ jobs:
 
       - name: Build React app
         run: npm run build
-
-      - name: Download backend JAR
-        uses: actions/download-artifact@v4
-        with:
-          name: MyTodoList-jar
-          path: backend-server
-
-      - name: Start backend server
-        run: |
-          cd ../../..
-          nohup mvn spring-boot:run > backend.log 2>&1 &
-          cd src/main/frontend
-
-      - name: Wait for backend to be available
-        run: npx wait-on http://localhost:8080
-
-      - name: Run Selenium E2E tests
-        run: npm run test:e2e
 
       - name: Upload React build
         uses: actions/upload-artifact@v4

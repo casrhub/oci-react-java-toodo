@@ -1,53 +1,193 @@
-# Compiled class file
-*.class
+# ========================================
+# 🧠 Baseline – SO, tmp, basura en general
+# ========================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.bak
+*.tmp
+*.temp
+*.swp
+*.swo
+*.swn
+*~
+*#
+.#*
 
-# Log file
+# ========================================
+# 🛠️ IDEs y editores
+# ========================================
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+*.sublime-*
+*.komodoproject
+*.tmproj
+*.log.*
+
+# ========================================
+# 🧪 Testing y análisis estático
+# ========================================
+**/coverage/
+**/test-output/
+**/test-results/
+**/jacoco.exec
+*.test.js.snap
+*.spec.js.snap
+*.lcov
+*.lcov.info
+*.snap
+.pytest_cache/
+.nyc_output/
+reports/
+
+# ========================================
+# 🔍 Logs y dumps
+# ========================================
 *.log
+*.log.*
+*.log-*
+*.out
+*.err
+*.gz
+hs_err_pid*
+MtdrSpring/backend/log*
+log*
+logs*
 
-# BlueJ files
-*.ctxt
-
-# Package Files #
+# ========================================
+# ⚙️ Build tools (Java, Maven, Gradle)
+# ========================================
+*.class
 *.jar
 *.war
 *.nar
 *.ear
+
+**/target/
+**/build/
+**/.gradle/
+.gradle/
+build/
+out/
+dist/
+
+# Gradle wrapper
+gradlew
+gradlew.bat
+
+# IntelliJ
+*.ipr
+*.iws
+
+# Eclipse
+*.classpath
+*.project
+*.settings/
+.factorypath
+
+# ========================================
+# 🧩 Node.js / NPM / Yarn / PNPM / Frontend
+# ========================================
+**/node_modules/
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/yarn.lock
+**/pnpm-lock.yaml
+**/.pnp/
+**/.pnp.js
+**/.pnp.cjs
+**/.eslintcache
+*.tsbuildinfo
+
+# Build de React/Vite/etc.
+**/frontend/build/
+**/frontend/dist/
+
+# ========================================
+# 🧹 Cachés, binarios y artefactos
+# ========================================
+.cache/
+tmp/
+temp/
+*.pyc
+*.pyo
+__pycache__/
+*.exe
+*.dll
+*.so
+*.dylib
+*.class
+*.o
+*.obj
+*.a
+*.lib
+*.db
+*.sqlite
+*.sqlite3
+*.log.*
+
+# ========================================
+# 🔄 CI/CD y artefactos empaquetados
+# ========================================
 *.zip
+*.tar
 *.tar.gz
+*.tgz
+*.7z
 *.rar
-backend/target/*
-backend/.settings/*
-backend/.project
-backend/.classpath
+*.bak
+*.old
+*.orig
+*.save
+*.snapshot
+*.swp
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-*~
+# build & deploy dirs
+.build/
+.deploy/
+.release/
+.pipeline/
+*.spec.ts.snap
 
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ========================================
+# 🧬 Git metadata (opcional, no recomendado)
+# ========================================
+*.patch
+*.diff
+*.rej
 
-# dependencies
-frontend/node_modules
-frontend/.pnp
-.pnp.js
+# ========================================
+# 🔍 Seguridad y privacidad adicional
+# ========================================
+.zsh_history
+.zshrc.local
+bash_history
+history
+.npmrc
+.envrc
+*.nvmrc
 
-# testing
-frontend/coverage
+# ========================================
+# 🔧 Proyecto específico (MtdrSpring)
+# ========================================
+MtdrSpring/backend/.classpath
+MtdrSpring/backend/.project
+MtdrSpring/backend/.settings/
+MtdrSpring/backend/log*
+MtdrSpring/backend/target/
+MtdrSpring/backend/build/
+MtdrSpring/backend/node_modules/
 
-# production
-frontend/build
-
-# misc
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.idea
-
-frontend/package-lock.json
-frontend/npm-debug.log*
-frontend/yarn-debug.log*
-frontend/yarn-error.log*
-
+# ========================================
+# 📦 Mono-repo: excluir redundancias
+# ========================================
+**/target/
+**/build/
+**/node_modules/
+**/coverage/
 

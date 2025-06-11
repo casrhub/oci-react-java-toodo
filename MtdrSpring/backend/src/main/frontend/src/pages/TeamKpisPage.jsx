@@ -1,28 +1,33 @@
-import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Box, Button, Typography } from "@mui/material";
-import TeamTaskCharts from "./TeamTaskCharts";
-import TeamKpiReport from "./TeamKpiReport";
+// src/pages/TeamKpisPage.jsx
+import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Box, Button, Typography } from '@mui/material';
+import AppNavbar from '../components/AppNavbar';
+import TeamTaskCharts from './TeamTaskCharts';
+import TeamKpiReport from './TeamKpiReport';
 
 function TeamKpisPage() {
-    const { equipoId } = useParams();
-    const navigate = useNavigate();
+  const { equipoId } = useParams();
+  const navigate = useNavigate();
 
-    return (
-        <Box sx={{ p: 3 }}>
-            <Button onClick={() => navigate(-1)} sx={{ mb: 2 }}>← Back</Button>
+  return (
+    <>
+      <AppNavbar />
 
-            <Typography variant="h5" sx={{ fontWeight: "bold", mb: 3 }}>
-                KPIs del equipo #{equipoId}
-            </Typography>
+      <Box sx={{ p: 3 }}>
+        <Button onClick={() => navigate(-1)} sx={{ mb: 2 }}>
+          ← Back
+        </Button>
 
-            {/* Charts (existing) */}
-            <TeamTaskCharts equipoId={Number(equipoId)} />
+        <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 3 }}>
+          KPIs del equipo #{equipoId}
+        </Typography>
 
-            {/* Report (new) */}
-            <TeamKpiReport equipoId={Number(equipoId)} />
-        </Box>
-    );
+        <TeamTaskCharts equipoId={Number(equipoId)} />
+        <TeamKpiReport equipoId={Number(equipoId)} />
+      </Box>
+    </>
+  );
 }
 
 export default TeamKpisPage;

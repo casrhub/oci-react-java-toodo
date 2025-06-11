@@ -1,20 +1,33 @@
 import React, { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  CartesianGrid,
+} from 'recharts';
 import { CircularProgress, Typography } from '@mui/material';
 import { API_TAREAS } from '../../api';
 
-// Hardcoded team members for Equipo 1 (same as in ManagerKpisPage)
+// ─── Miembros (hard-codeados para Equipo 1) ──────────────────────────────────
 const teamMembers = [
   { id: 102, name: 'Cesar Alan Silva Ramos' },
   { id: 101, name: 'Jose Maria' },
   { id: 104, name: 'Miguel Angel Barrientos Ballesteros' },
   { id: 100, name: 'Diego Iván Morales Gallardo' },
-  { id: 103, name: 'Fernanda Díaz Gutiérrez' }
+  { id: 103, name: 'Fernanda Díaz Gutiérrez' },
 ];
 
 const COLORS = ['#4fc3f7', '#81c784', '#ba68c8', '#ffd54f', '#ff8a65'];
 
-function TeamSprintCompletedTasksChart({ equipoId = 1 }) {
+/**
+ * ● Sin `usuarioId`  →  barras para todos los developers.
+ * ● Con  `usuarioId`  →  solo una barra con las tareas del developer.
+ */
+function TeamSprintCompletedTasksChart({ equipoId = 1, usuarioId = null }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -22,67 +35,44 @@ function TeamSprintCompletedTasksChart({ equipoId = 1 }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch all tasks
+        // Todas las tareas
         const tasksRes = await fetch(API_TAREAS);
         const allTasks = await tasksRes.json();
-        console.log('All tasks:', allTasks);
 
-        // Filter tasks for the specified team
-        const teamTasks = allTasks.filter(task => task.equipoId === equipoId);
-        console.log('Team tasks:', teamTasks);
+        // Filtrado por equipo (y opcionalmente por usuario)
+        let tasks = allTasks.filter((t) => t.equipoId === equipoId);
+        if (usuarioId) tasks = tasks.filter((t) => t.usuarioId === usuarioId);
 
-        // Group tasks by sprint
-        const tasksBySprint = teamTasks.reduce((acc, task) => {
-          // Get sprint ID from the task
-          const sprintId = task.sprintId;
-          if (!sprintId) {
-            // If no sprint ID, group under "Sin Sprint"
-            if (!acc['no-sprint']) {
-              acc['no-sprint'] = {
-                sprint: 'Sin Sprint',
-                ...teamMembers.reduce((obj, member) => ({ ...obj, [member.name]: 0 }), {})
-              };
-            }
-            
-            if (task.estado === 'completado') {
-              const member = teamMembers.find(m => m.id === task.usuarioId);
-              if (member) {
-                acc['no-sprint'][member.name]++;
-              }
-            }
-            return acc;
-          }
+        // Agrupar por sprint
+        const bySprint = tasks.reduce((acc, task) => {
+          if (task.estado !== 'completado') return acc;
 
-          if (!acc[sprintId]) {
-            acc[sprintId] = {
-              sprint: `Sprint ${sprintId}`,
-              ...teamMembers.reduce((obj, member) => ({ ...obj, [member.name]: 0 }), {})
-            };
-          }
+          const sprintKey = task.sprintId != null ? `Sprint ${task.sprintId}` : 'Sin Sprint';
 
-          if (task.estado === 'completado') {
-            const member = teamMembers.find(m => m.id === task.usuarioId);
-            if (member) {
-              acc[sprintId][member.name]++;
+          if (!acc[sprintKey]) {
+            acc[sprintKey] = { sprint: sprintKey };
+            if (usuarioId) {
+              const m = teamMembers.find((mm) => mm.id === usuarioId);
+              acc[sprintKey][m.name] = 0;
+            } else {
+              teamMembers.forEach((m) => (acc[sprintKey][m.name] = 0));
             }
           }
+
+          const member = teamMembers.find((m) => m.id === task.usuarioId);
+          if (member) acc[sprintKey][member.name] += 1;
 
           return acc;
         }, {});
 
-        // Sort sprints by ID, keeping "Sin Sprint" at the end
-        const results = Object.values(tasksBySprint).sort((a, b) => {
+        const result = Object.values(bySprint).sort((a, b) => {
           if (a.sprint === 'Sin Sprint') return 1;
           if (b.sprint === 'Sin Sprint') return -1;
-          const sprintA = parseInt(a.sprint.split(' ')[1]);
-          const sprintB = parseInt(b.sprint.split(' ')[1]);
-          return sprintA - sprintB;
+          return Number(a.sprint.split(' ')[1]) - Number(b.sprint.split(' ')[1]);
         });
 
-        console.log('Final chart data:', results);
-        setData(results);
+        setData(result);
       } catch (err) {
-        console.error('Error in TeamSprintCompletedTasksChart:', err);
         setError(err);
       } finally {
         setLoading(false);
@@ -90,36 +80,57 @@ function TeamSprintCompletedTasksChart({ equipoId = 1 }) {
     };
 
     fetchData();
-  }, [equipoId]);
+  }, [equipoId, usuarioId]);
 
   if (loading) return <CircularProgress />;
   if (error) return <Typography color="error">Error loading chart: {error.message}</Typography>;
 
+  /* ────────────────────────────────────────────────────────────────────────── */
   return (
     <div style={{ margin: '2rem 0' }}>
       <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-        Tareas Completadas por Developer por Sprint
+        {usuarioId
+          ? 'Tareas Completadas por Sprint'
+          : 'Tareas Completadas por Developer por Sprint'}
       </Typography>
+
       <ResponsiveContainer width="100%" height={340}>
         <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="sprint" />
-          <YAxis allowDecimals={false} label={{ value: 'Tareas completadas', angle: -90, position: 'insideLeft' }} />
+          <YAxis
+            allowDecimals={false}
+            label={{ value: 'Tareas', angle: -90, position: 'insideLeft' }}
+          />
           <Tooltip />
           <Legend />
-          {teamMembers.map((member, idx) => (
-            <Bar 
-              key={member.id} 
-              dataKey={member.name} 
-              fill={COLORS[idx % COLORS.length]} 
-              name={member.name} 
-              barSize={30} 
-            />
-          ))}
+
+          {usuarioId
+            ? (() => {
+                const member = teamMembers.find((m) => m.id === usuarioId);
+                const colorIndex = teamMembers.findIndex((m) => m.id === usuarioId);
+                return (
+                  <Bar
+                    dataKey={member.name}
+                    fill={COLORS[colorIndex % COLORS.length]}
+                    name={member.name}
+                    barSize={30}
+                  />
+                );
+              })()
+            : teamMembers.map((member, idx) => (
+                <Bar
+                  key={member.id}
+                  dataKey={member.name}
+                  fill={COLORS[idx % COLORS.length]}
+                  name={member.name}
+                  barSize={30}
+                />
+              ))}
         </BarChart>
       </ResponsiveContainer>
     </div>
   );
 }
 
-export default TeamSprintCompletedTasksChart; 
+export default TeamSprintCompletedTasksChart;

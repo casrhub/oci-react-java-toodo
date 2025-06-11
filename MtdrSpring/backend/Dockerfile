@@ -15,9 +15,6 @@ WORKDIR /app
 # Copy only the final JAR
 COPY --from=builder /app/target/MyTodoList-0.0.1-SNAPSHOT.jar app.jar
 
-# Copy the wallet files (optional, adjust path)
-COPY Wallet_FATDATABASE /app/src/main/resources/wallet/
-
 ENV TNS_ADMIN=/app/src/main/resources/wallet
 
 EXPOSE 8080

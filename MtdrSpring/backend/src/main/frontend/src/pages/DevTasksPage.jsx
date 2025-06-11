@@ -1,35 +1,54 @@
+/* eslint-disable react/prop-types */ // ← IGNORA “missing in props validation”
+/* eslint-disable @typescript-eslint/no-empty-function */
 // src/pages/DevTasksPage.jsx
 import React, { useState, useEffect } from 'react';
 import {
-  Table, TableHead, TableBody, TableRow, TableCell,
-  TableContainer, Paper, Button, Menu, MenuItem, Toolbar,
-  Typography, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, CircularProgress,
-  FormControl, InputLabel, Select, Box
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  TableContainer,
+  Paper,
+  Button,
+  Menu,
+  MenuItem,
+  Toolbar,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  Box,
 } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Moment from 'react-moment';
-import { UserButton } from "@clerk/clerk-react"; // 👈 Importa esto arriba 
 
-import { useAuthFetch } from '../utils/authFetch';                   // 🔒 helper con JWT
+import { useAuthFetch } from '../utils/authFetch'; // 🔒 helper con JWT (ahora Firebase)
 import { API_TAREAS, API_SUBTAREAS, API_USUARIOS } from '../api';
 import NewItem from '../components/tasks/NewItem';
+import AppNavbar from '../components/AppNavbar'; // Navbar unificada
 
 /* ────────────────────────────────────────────────────────── */
 export default function DevTasksPage() {
   /* ---------- STATE ---------- */
-  const [tasks, setTasks]   = useState([]);
-  const [users, setUsers]   = useState([]);          // {id,nombre}
+  const [tasks, setTasks] = useState([]);
+  const [users, setUsers] = useState([]); // {id,nombre}
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
 
   /* dialogs */
   const [newDlg, setNewDlg] = useState(false);
   const [inserting, setInserting] = useState(false);
-  const [deadlineDlg, setDeadlineDlg] = useState({ open:false, task:null, val:'' });
-  const [completeDlg, setCompleteDlg] = useState({ open:false, task:null, hours:'' });
+  const [deadlineDlg, setDeadlineDlg] = useState({ open: false, task: null, val: '' });
+  const [completeDlg, setCompleteDlg] = useState({ open: false, task: null, hours: '' });
   const [pendingSplit, setPendingSplit] = useState(null);
 
   /* subtasks / filter */
@@ -41,97 +60,118 @@ export default function DevTasksPage() {
   const [newSubHours, setNewSubHours] = useState('');
 
   /* ---------- EFFECTS ---------- */
-  useEffect(() => {
-    Promise.all([fetchTasks(), fetchUsers()]).finally(() => setLoading(false));
-  }, []);
-
-
   const authFetch = useAuthFetch();
 
-  /* ---------- API calls (ahora con authFetch) ---------- */
+  useEffect(() => {
+    Promise.all([fetchTasks(), fetchUsers()]).finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* ---------- API calls ---------- */
   const fetchTasks = () =>
     authFetch(API_TAREAS)
-      .then(r => r.ok ? r.json() : Promise.reject('Error loading tasks'))
+      .then((r) => (r.ok ? r.json() : Promise.reject('Error loading tasks')))
       .then(setTasks)
       .catch(setError);
 
   const fetchUsers = () =>
     authFetch(API_USUARIOS)
-      .then(r => r.ok ? r.json() : Promise.reject('Error loading users'))
-      .then(arr => setUsers(arr.map(u => ({
-        id: u.usuario_id ?? u.usuarioId ?? u.id,
-        nombre: u.nombre
-      }))))
+      .then((r) => (r.ok ? r.json() : Promise.reject('Error loading users')))
+      .then((arr) =>
+        setUsers(
+          arr.map((u) => ({
+            id: u.usuario_id ?? u.usuarioId ?? u.id,
+            nombre: u.nombre,
+          }))
+        )
+      )
       .catch(setError);
 
   const reloadOne = (id) =>
     authFetch(`${API_TAREAS}/${id}`)
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then(t => setTasks(p => p.map(x => x.tareaId === id ? { ...x, ...t } : x)))
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((t) => setTasks((p) => p.map((x) => (x.tareaId === id ? { ...x, ...t } : x))))
       .catch(setError);
 
   const fetchSubs = (tid) =>
-    authFetch(`${API_SUBTAREAS}?tareaId=${tid}`)
-      .then(r => r.ok ? r.json() : Promise.reject());
+    authFetch(`${API_SUBTAREAS}?tareaId=${tid}`).then((r) => (r.ok ? r.json() : Promise.reject()));
 
   const addSub = (tid, title, hrs) =>
     authFetch(API_SUBTAREAS, {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json' },
-      body:JSON.stringify({
-        tareaId:tid, titulo:title, descripcion:'Subtask',
-        estado:'pendiente', horasEstimadas:hrs, horasReales:0,
-        fechaCreacion:new Date().toISOString(), deadline:null
-      })
-    }).then(() => reloadOne(tid)).catch(setError);
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tareaId: tid,
+        titulo: title,
+        descripcion: 'Subtask',
+        estado: 'pendiente',
+        horasEstimadas: hrs,
+        horasReales: 0,
+        fechaCreacion: new Date().toISOString(),
+        deadline: null,
+      }),
+    })
+      .then(() => reloadOne(tid))
+      .catch(setError);
 
-  const addItem = (tit,desc,uid,eq,pid,hrs) => {
+  const addItem = (tit, desc, uid, eq, pid, hrs) => {
     setInserting(true);
     authFetch(API_TAREAS, {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json' },
-      body:JSON.stringify({
-        titulo:tit, descripcion:desc, usuarioId:uid,
-        equipoId:eq, proyectoId:pid,
-        horasEstimadas:Math.min(hrs,4),
-        estado:'pendiente', fechaCreacion:new Date().toISOString()
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        titulo: tit,
+        descripcion: desc,
+        usuarioId: uid,
+        equipoId: eq ? Number(eq) : null,
+        proyectoId: pid ? Number(pid) : null,
+        horasEstimadas: Math.min(hrs, 4),
+        estado: 'pendiente',
+        fechaCreacion: new Date().toISOString(),
+      }),
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((created) => {
+        if (hrs > 4) setPendingSplit({ tareaId: created.tareaId, remainingHours: hrs - 4 });
+        fetchTasks();
       })
-    })
-    .then(r => r.ok ? r.json() : Promise.reject())
-    .then(created => {
-      if (hrs > 4) setPendingSplit({ tareaId:created.tareaId, remainingHours:hrs-4 });
-      fetchTasks();
-    })
-    .catch(setError)
-    .finally(() => { setInserting(false); setNewDlg(false); });
+      .catch(setError)
+      .finally(() => {
+        setInserting(false);
+        setNewDlg(false);
+      });
   };
 
-  /* ---------- PATCH SOLO USUARIO ---------- */
+  /* ---------- PATCH helpers ---------- */
   const updateAssignee = (tid, uid) =>
     authFetch(`${API_TAREAS}/${tid}/assignee`, {
-      method:'PATCH',
-      headers:{ 'Content-Type':'application/json' },
-      body:JSON.stringify({ usuarioId:uid })
-    }).then(() => reloadOne(tid)).catch(setError);
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuarioId: uid }),
+    })
+      .then(() => reloadOne(tid))
+      .catch(setError);
 
   const setDeadline = (tid, iso) =>
     authFetch(`${API_TAREAS}/${tid}/deadline`, {
-      method:'PUT',
-      headers:{ 'Content-Type':'application/json' },
-      body:JSON.stringify({ deadline:iso })
-    }).then(() => reloadOne(tid)).catch(setError);
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deadline: iso }),
+    })
+      .then(() => reloadOne(tid))
+      .catch(setError);
 
   const markDone = (tid, hrs) =>
     authFetch(`${API_TAREAS}/${tid}/complete`, {
-      method:'PUT',
-      headers:{ 'Content-Type':'application/json' },
-      body:JSON.stringify({ estado:'completado', horasReales:hrs })
-    }).then(() => reloadOne(tid)).catch(setError);
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ estado: 'completado', horasReales: hrs }),
+    })
+      .then(() => reloadOne(tid))
+      .catch(setError);
 
   const deleteTask = (tid) =>
-    authFetch(`${API_TAREAS}/${tid}`, { method:'DELETE' })
-      .then(fetchTasks)
-      .catch(setError);
+    authFetch(`${API_TAREAS}/${tid}`, { method: 'DELETE' }).then(fetchTasks).catch(setError);
 
   /* ---------- helpers ---------- */
   const renderAssignee = (t) => (
@@ -141,240 +181,323 @@ export default function DevTasksPage() {
         labelId={`ass-${t.tareaId}`}
         value={t.usuarioId != null ? String(t.usuarioId) : ''}
         label="Asignado"
-        onChange={e =>
-          updateAssignee(t.tareaId,
-            e.target.value === '' ? null : Number(e.target.value))
+        onChange={(e) =>
+          updateAssignee(t.tareaId, e.target.value === '' ? null : Number(e.target.value))
         }
       >
-        <MenuItem value=""><em>No asignado</em></MenuItem>
-        {users.map(u => (
-          <MenuItem key={u.id} value={String(u.id)}>{u.nombre}</MenuItem>
+        <MenuItem value="">
+          <em>No asignado</em>
+        </MenuItem>
+        {users.map((u) => (
+          <MenuItem key={u.id} value={String(u.id)}>
+            {u.nombre}
+          </MenuItem>
         ))}
       </Select>
     </FormControl>
   );
 
   const toggleExpand = (id) => {
-    if (expanded === id) { setExpanded(null); return; }
-    fetchSubs(id).then(subs => {
-      setTasks(p => p.map(t => t.tareaId === id ? { ...t, subTareas:subs } : t));
-      setExpanded(id);
-    }).catch(setError);
+    if (expanded === id) {
+      setExpanded(null);
+      return;
+    }
+    fetchSubs(id)
+      .then((subs) => {
+        setTasks((p) => p.map((t) => (t.tareaId === id ? { ...t, subTareas: subs } : t)));
+        setExpanded(id);
+      })
+      .catch(setError);
   };
 
   /* ---------- rendering data ---------- */
-  const pending   = tasks.filter(t => t.estado !== 'completado');
-  const completed = tasks.filter(t => t.estado === 'completado');
+  const pending = tasks.filter((t) => t.estado !== 'completado');
+  const completed = tasks.filter((t) => t.estado === 'completado');
 
-  if (loading) return <CircularProgress sx={{ m:4 }} />;
-  if (error)   return <Typography color="error">{String(error)}</Typography>;
+  if (loading) return <CircularProgress sx={{ m: 4 }} />;
+  if (error) return <Typography color="error">{String(error)}</Typography>;
 
+  /* ---------- UI ---------- */
   return (
-    <div style={{ padding:16 }}>
-      {/* header */}
-      <Toolbar sx={{ justifyContent: 'space-between' }}>
-      <Typography variant="h5" fontWeight="bold">My Tasks</Typography>
-      <Box display="flex" alignItems="center" gap={2}>
-        <Button variant="outlined" startIcon={<FilterListIcon />}
-                onClick={e => setAnchorEl(e.currentTarget)}>
-          Filter
-        </Button>
-        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)}
-              onClose={() => setAnchorEl(null)}>
-          <MenuItem onClick={() => setAnchorEl(null)}>No filters yet</MenuItem>
-        </Menu>
-        <Button startIcon={<AddIcon />} variant="contained"
-                onClick={() => setNewDlg(true)}
-                sx={{ bgcolor:'#C74634', '&:hover':{ bgcolor:'#b63f2e' } }}>
-          Add Task
-        </Button>
-        <UserButton afterSignOutUrl="/" /> {/* 👈 Este es el botón de logout */}
-      </Box>
-    </Toolbar>
+    <>
+      <AppNavbar />
 
+      <div style={{ padding: 16 }}>
+        {/* header */}
+        <Toolbar sx={{ justifyContent: 'space-between' }}>
+          <Typography variant="h5" fontWeight="bold">
+            My Tasks
+          </Typography>
 
-      {/* ---------------- Pending ---------------- */}
-      {pending.length > 0 && (
-        <>
-          <Typography variant="h6" sx={{ mt:3 }}>Pending</Typography>
-          <TableContainer component={Paper} sx={{ mt:1 }}>
-            <Table size="small">
-              <TableHead sx={{ bgcolor:'#C74634' }}>
-                <TableRow>
-                  {['#','Title','Assignee','Status','Deadline','Actions']
-                    .map(h => (
-                      <TableCell key={h} sx={{ color:'white', fontWeight:'bold' }}>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Button
+              variant="outlined"
+              startIcon={<FilterListIcon />}
+              onClick={(e) => setAnchorEl(e.currentTarget)}
+            >
+              Filter
+            </Button>
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
+              <MenuItem onClick={() => setAnchorEl(null)}>No filters yet</MenuItem>
+            </Menu>
+            <Button
+              startIcon={<AddIcon />}
+              variant="contained"
+              onClick={() => setNewDlg(true)}
+              sx={{ bgcolor: '#C74634', '&:hover': { bgcolor: '#b63f2e' } }}
+            >
+              Add Task
+            </Button>
+          </Box>
+        </Toolbar>
+
+        {/* ---------------- Pending ---------------- */}
+        {pending.length > 0 && (
+          <>
+            <Typography variant="h6" sx={{ mt: 3 }}>
+              Pending
+            </Typography>
+            <TableContainer component={Paper} sx={{ mt: 1 }}>
+              <Table size="small">
+                <TableHead sx={{ bgcolor: '#C74634' }}>
+                  <TableRow>
+                    {['#', 'Title', 'Assignee', 'Status', 'Deadline', 'Actions'].map((h) => (
+                      <TableCell key={h} sx={{ color: 'white', fontWeight: 'bold' }}>
                         {h}
                       </TableCell>
                     ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {pending.map((t,i) => (
-                  <React.Fragment key={t.tareaId}>
-                    <TableRow>
-                      <TableCell>{i+1}</TableCell>
-                      <TableCell>
-                        <Button onClick={() => toggleExpand(t.tareaId)}>{t.titulo}</Button>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {pending.map((t, i) => (
+                    <React.Fragment key={t.tareaId}>
+                      <TableRow>
+                        <TableCell>{i + 1}</TableCell>
+                        <TableCell>
+                          <Button onClick={() => toggleExpand(t.tareaId)}>{t.titulo}</Button>
+                        </TableCell>
+                        <TableCell>{renderAssignee(t)}</TableCell>
+                        <TableCell>
+                          {t.estado === 'en progreso' ? 'In Progress' : 'To Do'}
+                        </TableCell>
+                        <TableCell>
+                          {t.deadline ? (
+                            <Moment format="DD/MM/YYYY HH:mm" utc>
+                              {t.deadline}
+                            </Moment>
+                          ) : (
+                            <Button
+                              size="small"
+                              onClick={() => setDeadlineDlg({ open: true, task: t, val: '' })}
+                            >
+                              Set
+                            </Button>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            onClick={() => setCompleteDlg({ open: true, task: t, hours: '' })}
+                          >
+                            Done
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+
+                      {/* expanded row */}
+                      {expanded === t.tareaId && (
+                        <TableRow>
+                          <TableCell colSpan={6} sx={{ bgcolor: '#fafafa' }}>
+                            <Typography variant="subtitle2">Description</Typography>
+                            <Typography sx={{ whiteSpace: 'pre-wrap' }}>
+                              {t.descripcion || '—'}
+                            </Typography>
+
+                            <Typography mt={2} variant="subtitle2">
+                              Sub-tasks
+                            </Typography>
+                            {t.subTareas?.length ? (
+                              <ul>
+                                {t.subTareas.map((s) => (
+                                  <li key={s.subTareaId}>
+                                    {s.titulo} — {s.horasEstimadas}h ({s.estado})
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <Typography>No subtasks</Typography>
+                            )}
+
+                            {/* add subtask */}
+                            <Box
+                              component="form"
+                              sx={{ display: 'flex', gap: 1, mt: 1, maxWidth: 400 }}
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                addSub(t.tareaId, newSubTitle, newSubHours);
+                                setNewSubTitle('');
+                                setNewSubHours('');
+                              }}
+                            >
+                              <TextField
+                                size="small"
+                                label="Title"
+                                value={newSubTitle}
+                                onChange={(e) => setNewSubTitle(e.target.value)}
+                              />
+                              <TextField
+                                size="small"
+                                label="Hours"
+                                type="number"
+                                value={newSubHours}
+                                onChange={(e) => setNewSubHours(e.target.value)}
+                              />
+                              <Button type="submit" variant="contained">
+                                Add
+                              </Button>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </>
+        )}
+
+        {/* ---------------- Completed ---------------- */}
+        {completed.length > 0 && (
+          <>
+            <Typography variant="h6" sx={{ mt: 4 }}>
+              Completed
+            </Typography>
+            <TableContainer component={Paper} sx={{ mt: 1 }}>
+              <Table size="small">
+                <TableHead sx={{ bgcolor: '#C74634' }}>
+                  <TableRow>
+                    {['#', 'Title', 'Assignee', 'Status', 'Deadline', 'Actions'].map((h) => (
+                      <TableCell key={h} sx={{ color: 'white', fontWeight: 'bold' }}>
+                        {h}
                       </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {completed.map((t, i) => (
+                    <TableRow key={t.tareaId}>
+                      <TableCell>{i + 1}</TableCell>
+                      <TableCell>{t.titulo}</TableCell>
                       <TableCell>{renderAssignee(t)}</TableCell>
-                      <TableCell>{t.estado==='en progreso' ? 'In Progress' : 'To Do'}</TableCell>
+                      <TableCell>Done</TableCell>
                       <TableCell>
-                        {t.deadline
-                          ? <Moment format="DD/MM/YYYY HH:mm" utc>{t.deadline}</Moment>
-                          : <Button size="small" onClick={() =>
-                              setDeadlineDlg({ open:true, task:t, val:'' })}>Set</Button>}
+                        <Moment format="DD/MM/YYYY HH:mm" utc>
+                          {t.deadline}
+                        </Moment>
                       </TableCell>
                       <TableCell>
-                        <Button size="small" variant="contained"
-                                onClick={() => setCompleteDlg({ open:true, task:t, hours:'' })}>
-                          Done
+                        <Button
+                          startIcon={<DeleteIcon />}
+                          color="error"
+                          onClick={() => deleteTask(t.tareaId)}
+                        >
+                          Delete
                         </Button>
                       </TableCell>
                     </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </>
+        )}
 
-                    {/* expanded row */}
-                    {expanded === t.tareaId && (
-                      <TableRow>
-                        <TableCell colSpan={6} sx={{ bgcolor:'#fafafa' }}>
-                          <Typography variant="subtitle2">Description</Typography>
-                          <Typography sx={{ whiteSpace:'pre-wrap' }}>
-                            {t.descripcion || '—'}
-                          </Typography>
-
-                          <Typography mt={2} variant="subtitle2">Sub-tasks</Typography>
-                          {t.subTareas?.length
-                            ? <ul>{t.subTareas.map(s => (
-                                <li key={s.subTareaId}>
-                                  {s.titulo} — {s.horasEstimadas}h ({s.estado})
-                                </li>
-                              ))}</ul>
-                            : <Typography>No subtasks</Typography>}
-
-                          {/* add subtask */}
-                          <Box component="form"
-                               sx={{ display:'flex', gap:1, mt:1, maxWidth:400 }}
-                               onSubmit={e => {
-                                 e.preventDefault();
-                                 addSub(t.tareaId, newSubTitle, newSubHours);
-                                 setNewSubTitle(''); setNewSubHours('');
-                               }}>
-                            <TextField size="small" label="Title" value={newSubTitle}
-                                       onChange={e=>setNewSubTitle(e.target.value)} />
-                            <TextField size="small" label="Hours" type="number"
-                                       value={newSubHours}
-                                       onChange={e=>setNewSubHours(e.target.value)} />
-                            <Button type="submit" variant="contained">Add</Button>
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </React.Fragment>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </>
-      )}
-
-      {/* ---------------- Completed ---------------- */}
-      {completed.length > 0 && (
-        <>
-          <Typography variant="h6" sx={{ mt:4 }}>Completed</Typography>
-          <TableContainer component={Paper} sx={{ mt:1 }}>
-            <Table size="small">
-              <TableHead sx={{ bgcolor:'#C74634' }}>
-                <TableRow>
-                  {['#','Title','Assignee','Status','Deadline','Actions']
-                    .map(h => (
-                      <TableCell key={h} sx={{ color:'white', fontWeight:'bold' }}>
-                        {h}
-                      </TableCell>
-                    ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {completed.map((t,i) => (
-                  <TableRow key={t.tareaId}>
-                    <TableCell>{i+1}</TableCell>
-                    <TableCell>{t.titulo}</TableCell>
-                    <TableCell>{renderAssignee(t)}</TableCell>
-                    <TableCell>Done</TableCell>
-                    <TableCell>
-                      <Moment format="DD/MM/YYYY HH:mm" utc>{t.deadline}</Moment>
-                    </TableCell>
-                    <TableCell>
-                      <Button startIcon={<DeleteIcon />} color="error"
-                              onClick={() => deleteTask(t.tareaId)}>Delete</Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </>
-      )}
-
-      {/* ------------- New Task dialog ------------- */}
-      <Dialog open={newDlg} onClose={() => setNewDlg(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Nueva Tarea</DialogTitle>
-        <DialogContent>
-          <NewItem addItem={addItem} isInserting={inserting} users={users} />
-        </DialogContent>
-      </Dialog>
-
-      {/* ------------- Deadline dialog ------------- */}
-      <Dialog open={deadlineDlg.open}
-              onClose={() => setDeadlineDlg({ open:false, task:null, val:'' })}>
-        <DialogTitle>Set Deadline</DialogTitle>
-        <DialogContent>
-          <TextField type="datetime-local" fullWidth
-                     value={deadlineDlg.val}
-                     onChange={e=>setDeadlineDlg({...deadlineDlg, val:e.target.value})} />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeadlineDlg({ open:false, task:null, val:'' })}>Cancel</Button>
-          <Button onClick={() => {
-            const iso = new Date(deadlineDlg.val).toISOString();
-            setDeadline(deadlineDlg.task.tareaId, iso);
-            setDeadlineDlg({ open:false, task:null, val:'' });
-          }}>Save</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* ------------- Complete dialog ------------- */}
-      <Dialog open={completeDlg.open}
-              onClose={() => setCompleteDlg({ open:false, task:null, hours:'' })}>
-        <DialogTitle>Complete Task</DialogTitle>
-        <DialogContent>
-          <TextField label="Real hours" type="number" fullWidth
-                     value={completeDlg.hours}
-                     onChange={e=>setCompleteDlg({...completeDlg, hours:e.target.value})} />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCompleteDlg({ open:false, task:null, hours:'' })}>Cancel</Button>
-          <Button onClick={() => {
-            markDone(completeDlg.task.tareaId, completeDlg.hours);
-            setCompleteDlg({ open:false, task:null, hours:'' });
-          }}>Confirm</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* ------------- Split-into-subtasks prompt ------------- */}
-      {pendingSplit && (
-        <Dialog open onClose={() => setPendingSplit(null)}>
-          <DialogTitle>Divide task into subtasks</DialogTitle>
+        {/* ------------- New Task dialog ------------- */}
+        <Dialog open={newDlg} onClose={() => setNewDlg(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>Nueva Tarea</DialogTitle>
           <DialogContent>
-            <Typography>
-              You still have {pendingSplit.remainingHours} h to assign to subtasks.
-              (Implementación futura)
-            </Typography>
+            <NewItem addItem={addItem} isInserting={inserting} users={users} />
+          </DialogContent>
+        </Dialog>
+
+        {/* ------------- Deadline dialog ------------- */}
+        <Dialog
+          open={deadlineDlg.open}
+          onClose={() => setDeadlineDlg({ open: false, task: null, val: '' })}
+        >
+          <DialogTitle>Set Deadline</DialogTitle>
+          <DialogContent>
+            <TextField
+              type="datetime-local"
+              fullWidth
+              value={deadlineDlg.val}
+              onChange={(e) => setDeadlineDlg({ ...deadlineDlg, val: e.target.value })}
+            />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setPendingSplit(null)}>OK</Button>
+            <Button onClick={() => setDeadlineDlg({ open: false, task: null, val: '' })}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                const iso = new Date(deadlineDlg.val).toISOString();
+                setDeadline(deadlineDlg.task.tareaId, iso);
+                setDeadlineDlg({ open: false, task: null, val: '' });
+              }}
+            >
+              Save
+            </Button>
           </DialogActions>
         </Dialog>
-      )}
-    </div>
+
+        {/* ------------- Complete dialog ------------- */}
+        <Dialog
+          open={completeDlg.open}
+          onClose={() => setCompleteDlg({ open: false, task: null, hours: '' })}
+        >
+          <DialogTitle>Complete Task</DialogTitle>
+          <DialogContent>
+            <TextField
+              label="Real hours"
+              type="number"
+              fullWidth
+              value={completeDlg.hours}
+              onChange={(e) => setCompleteDlg({ ...completeDlg, hours: e.target.value })}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setCompleteDlg({ open: false, task: null, hours: '' })}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                markDone(completeDlg.task.tareaId, completeDlg.hours);
+                setCompleteDlg({ open: false, task: null, hours: '' });
+              }}
+            >
+              Confirm
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* ------------- Split-into-subtasks prompt ------------- */}
+        {pendingSplit && (
+          <Dialog open onClose={() => setPendingSplit(null)}>
+            <DialogTitle>Divide task into subtasks</DialogTitle>
+            <DialogContent>
+              <Typography>
+                You still have {pendingSplit.remainingHours} h to assign to subtasks.
+                (Implementación futura)
+              </Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setPendingSplit(null)}>OK</Button>
+            </DialogActions>
+          </Dialog>
+        )}
+      </div>
+    </>
   );
 }

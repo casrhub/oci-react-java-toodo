@@ -53,3 +53,5 @@ If you encounter connection issues:
 2. Check the database credentials in `application.properties`
 3. Ensure the database service is running and accessible
 4. Review logs after running `./build.sh` or running the container with Docker
+
+

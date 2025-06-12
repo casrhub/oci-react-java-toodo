@@ -12,11 +12,6 @@ import {
 import { CircularProgress, Typography } from '@mui/material';
 import { API_USER_KPIS } from '../api';
 
-/**
- * Muestra una sola gráfica de barras con:
- *   • Tareas completadas ANTES del deadline
- *   • Tareas completadas DESPUÉS del deadline
- */
 function UserTaskCharts({ usuarioId }) {
   const [summary, setSummary] = useState(null);
   const [err, setErr] = useState(null);
@@ -41,7 +36,6 @@ function UserTaskCharts({ usuarioId }) {
     );
   if (!summary) return <CircularProgress />;
 
-  /* ─── Datos para la gráfica ───────────────────────────── */
   const data = [
     {
       name: 'Tareas Completadas',

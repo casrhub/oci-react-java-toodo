@@ -11,9 +11,8 @@ function ManagerInsights() {
       <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold' }}>
         Insights del Equipoo
       </Typography>
-      
+
       <Grid container spacing={4}>
-        {/* First Row: Hours Charts */}
         <Grid item xs={12} md={6}>
           <Paper elevation={3} sx={{ p: 3, height: '100%' }}>
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
@@ -32,7 +31,6 @@ function ManagerInsights() {
           </Paper>
         </Grid>
 
-        {/* Second Row: Completed Tasks Chart */}
         <Grid item xs={12}>
           <Paper elevation={3} sx={{ p: 3 }}>
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
@@ -42,7 +40,6 @@ function ManagerInsights() {
           </Paper>
         </Grid>
 
-        {/* Third Row: Task Report */}
         <Grid item xs={12}>
           <Paper elevation={3} sx={{ p: 3 }}>
             <LastSprintTaskReport sprintId={2} />
@@ -53,4 +50,4 @@ function ManagerInsights() {
   );
 }
 
-export default ManagerInsights; 
+export default ManagerInsights;

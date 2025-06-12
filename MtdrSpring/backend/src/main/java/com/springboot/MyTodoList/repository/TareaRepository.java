@@ -9,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface TareaRepository extends JpaRepository<Tarea, Long> {
 
-  // Horas trabajadas por equipo por sprint
   @Query(
       value =
           "SELECT COALESCE(SUM(t.horas_reales), 0) "
@@ -21,7 +20,6 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
   BigDecimal sumHorasRealesByEquipoAndSprint(
       @Param("equipoId") Long equipoId, @Param("sprintId") Long sprintId);
 
-  // Tareas completadas por equipo por sprint
   @Query(
       value =
           "SELECT COUNT(*) "
@@ -33,7 +31,6 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
   Long countCompletedTareasByEquipoAndSprint(
       @Param("equipoId") Long equipoId, @Param("sprintId") Long sprintId);
 
-  // Horas trabajadas por usuario en un sprint
   @Query(
       value =
           "SELECT COALESCE(SUM(t.horas_reales), 0) "
@@ -45,7 +42,6 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
   BigDecimal sumHorasRealesByUsuarioAndSprint(
       @Param("usuarioId") Long usuarioId, @Param("sprintId") Long sprintId);
 
-  // Tareas completadas por usuario en un sprint
   @Query(
       value =
           "SELECT COUNT(*) "
@@ -107,7 +103,6 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
       nativeQuery = true)
   Long countCompletedAfterDeadlineTeam(@Param("equipoId") Long equipoId);
 
-  // Horas estimadas por usuario en un sprint (de tareas completadas)
   @Query(
       value =
           "SELECT COALESCE(SUM(t.horas_estimadas), 0) "
@@ -119,7 +114,6 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
   BigDecimal sumHorasEstimadasByUsuarioAndSprint(
       @Param("usuarioId") Long usuarioId, @Param("sprintId") Long sprintId);
 
-  // Tareas completadas despues del deadline por usuario en un sprint
   @Query(
       value =
           "SELECT COUNT(*) "
@@ -132,7 +126,6 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
   Long countCompletedTareasAfterDeadlineByUsuarioAndSprint(
       @Param("usuarioId") Long usuarioId, @Param("sprintId") Long sprintId);
 
-  // Tareas completadas antes del deadline por usuario en un sprint
   @Query(
       value =
           "SELECT COUNT(*) "
@@ -145,7 +138,6 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
   Long countCompletedTareasBeforeDeadlineByUsuarioAndSprint(
       @Param("usuarioId") Long usuarioId, @Param("sprintId") Long sprintId);
 
-  // Tareas asignadas por usuario en un sprint
   @Query(
       value =
           "SELECT COUNT(*) "
@@ -156,10 +148,8 @@ public interface TareaRepository extends JpaRepository<Tarea, Long> {
   Long countAsignedTareasByUsuarioAndSprint(
       @Param("usuarioId") Long usuarioId, @Param("sprintId") Long sprintId);
 
-  // 🔹 ADDED FROM `dev`: find tareas by usuario
   List<Tarea> findByUsuarioId(Long usuarioId);
 
-  // Horas trabajadas por usuario en un sprint y equipo
   @Query(
       value =
           "SELECT COALESCE(SUM(t.horas_reales), 0) "

@@ -19,12 +19,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-/**
- * Pruebas unitarias para {@link UsuariosController} siguiendo el mismo enfoque de aislamiento que
- * en {@link KpiControllerTest} y {@link SubTareaControllerTest}. Se emplea un contexto MVC mínimo,
- * se deshabilitan filtros de seguridad y se fuerza el *ant_path_matcher* para evitar problemas con
- * patrones complejos.
- */
 @WebMvcTest(
     controllers = UsuariosController.class,
     properties = "spring.mvc.pathmatch.matching-strategy=ant_path_matcher")
@@ -36,7 +30,6 @@ public class UsuariosControllerTest {
 
   @MockBean private UsuarioService usuarioService;
 
-  /** Registramos manualmente el controlador para mantener un contexto liviano. */
   @Configuration
   static class TestConfig {
     static final UsuariosController controller = new UsuariosController();
@@ -52,9 +45,6 @@ public class UsuariosControllerTest {
     Mockito.reset(usuarioService);
   }
 
-  // ---------------------------------------------------------------------
-  // CREATE & GET BY ID
-  // ---------------------------------------------------------------------
   @Test
   void testCreateAndGetUsuario() throws Exception {
     Usuarios saved = buildUsuario(1, "Diego Ivan Morales", "a01643382@tec.mx", "developer", 1);
@@ -63,14 +53,12 @@ public class UsuariosControllerTest {
 
     String payload = objectMapper.writeValueAsString(saved);
 
-    // Crear
     mockMvc
         .perform(post("/usuarios").contentType(MediaType.APPLICATION_JSON).content(payload))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.usuario_id").value(1))
         .andExpect(jsonPath("$.nombre").doesNotExist());
 
-    // Obtener
     mockMvc
         .perform(get("/usuarios/1"))
         .andExpect(status().isOk())
@@ -81,9 +69,6 @@ public class UsuariosControllerTest {
         .andExpect(jsonPath("$.equipo_id").value(1));
   }
 
-  // ---------------------------------------------------------------------
-  // UPDATE
-  // ---------------------------------------------------------------------
   @Test
   void testUpdateUsuario() throws Exception {
     Usuarios existing = buildUsuario(1, "Diego Ivan Morales", "a01643382@tec.mx", "developer", 1);
@@ -103,9 +88,6 @@ public class UsuariosControllerTest {
         .andExpect(jsonPath("$.rol").value("manager"));
   }
 
-  // ---------------------------------------------------------------------
-  // GET ALL & FILTERS
-  // ---------------------------------------------------------------------
   @Test
   void testGetAllUsuariosAndByEquipo() throws Exception {
     Usuarios u1 = buildUsuario(1, "Diego", "d@tec.mx", "manager", 1);
@@ -116,13 +98,11 @@ public class UsuariosControllerTest {
     Mockito.when(usuarioService.findByEquipoId(1)).thenReturn(Arrays.asList(u1, u2));
     Mockito.when(usuarioService.findByRol("manager")).thenReturn(Arrays.asList(u1, u3));
 
-    // Todos
     mockMvc
         .perform(get("/usuarios"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(3));
 
-    // Por equipo
     mockMvc
         .perform(get("/usuarios/equipo/1"))
         .andExpect(status().isOk())
@@ -130,7 +110,6 @@ public class UsuariosControllerTest {
         .andExpect(jsonPath("$[0].usuario_id").value(1))
         .andExpect(jsonPath("$[1].usuario_id").value(2));
 
-    // Por rol
     mockMvc
         .perform(get("/usuarios/rol/manager"))
         .andExpect(status().isOk())
@@ -140,9 +119,6 @@ public class UsuariosControllerTest {
                 .value(org.hamcrest.Matchers.everyItem(org.hamcrest.Matchers.equalTo("manager"))));
   }
 
-  // ---------------------------------------------------------------------
-  // BAD REQUEST (manager con varios roles)
-  // ---------------------------------------------------------------------
   @Test
   void testUpdateUsuario_ManagerMultiRole_BadRequest() throws Exception {
     Usuarios invalid = buildUsuario(null, "Diego", "d@tec.mx", "manager, developer", 1);
@@ -154,9 +130,6 @@ public class UsuariosControllerTest {
         .andExpect(jsonPath("$.error").value("El usuario con rol manager no puede tener otro rol"));
   }
 
-  // ---------------------------------------------------------------------
-  // Helpers
-  // ---------------------------------------------------------------------
   private Usuarios buildUsuario(
       Integer id, String nombre, String email, String rol, Integer equipo) {
     Usuarios u = new Usuarios();

@@ -12,7 +12,6 @@ import {
 import { CircularProgress, Typography } from '@mui/material';
 import { API_TAREAS } from '../../api';
 
-// ─── Miembros (hard-codeados para Equipo 1) ──────────────────────────────────
 const teamMembers = [
   { id: 102, name: 'Cesar Alan Silva Ramos' },
   { id: 101, name: 'Jose Maria' },
@@ -23,10 +22,6 @@ const teamMembers = [
 
 const COLORS = ['#4fc3f7', '#81c784', '#ba68c8', '#ffd54f', '#ff8a65'];
 
-/**
- * ● Sin `usuarioId`  →  barras para todos los developers.
- * ● Con  `usuarioId`  →  solo una barra con las tareas del developer.
- */
 function TeamSprintCompletedTasksChart({ equipoId = 1, usuarioId = null }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,15 +30,12 @@ function TeamSprintCompletedTasksChart({ equipoId = 1, usuarioId = null }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Todas las tareas
         const tasksRes = await fetch(API_TAREAS);
         const allTasks = await tasksRes.json();
 
-        // Filtrado por equipo (y opcionalmente por usuario)
         let tasks = allTasks.filter((t) => t.equipoId === equipoId);
         if (usuarioId) tasks = tasks.filter((t) => t.usuarioId === usuarioId);
 
-        // Agrupar por sprint
         const bySprint = tasks.reduce((acc, task) => {
           if (task.estado !== 'completado') return acc;
 
@@ -85,7 +77,6 @@ function TeamSprintCompletedTasksChart({ equipoId = 1, usuarioId = null }) {
   if (loading) return <CircularProgress />;
   if (error) return <Typography color="error">Error loading chart: {error.message}</Typography>;
 
-  /* ────────────────────────────────────────────────────────────────────────── */
   return (
     <div style={{ margin: '2rem 0' }}>
       <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>

@@ -6,7 +6,7 @@ import java.time.OffsetDateTime;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "TAREAS", schema = "ADMIN") // Replace schema if needed
+@Table(name = "TAREAS", schema = "ADMIN")
 public class Tarea {
 
   public Tarea(Long tareaId, String titulo, String descripcion, String estado) {
@@ -56,10 +56,8 @@ public class Tarea {
   @com.fasterxml.jackson.annotation.JsonBackReference
   private Sprint sprint;
 
-  // Constructors
   public Tarea() {}
 
-  // Getters & Setters
   public Long getTareaId() {
     return tareaId;
   }

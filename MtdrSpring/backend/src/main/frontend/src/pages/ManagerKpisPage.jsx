@@ -1,37 +1,36 @@
-// src/pages/ManagerKpisPage.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Button, Grid, Menu, MenuItem, Paper, Typography } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
-
+import { useAuth } from '../context/AuthContext';
 import AppNavbar from '../components/AppNavbar';
-
-// ─── Componentes para vista de EQUIPO ─────────────────────────────────────────
 import TeamSprintHoursBarChart from '../components/charts/TeamSprintHoursBarChart';
 import TeamSprintDevHoursBarChart from '../components/charts/TeamSprintDevHoursBarChart';
 import LastSprintTaskReport from '../components/charts/LastSprintTaskReport';
 import TeamSprintCompletedTasksChart from '../components/charts/TeamSprintCompletedTasksChart';
-
-// ─── KPIs extra de equipo ────────────────────────────────────────────────────
 import TeamTaskCharts from './TeamTaskCharts';
 import TeamKpiReport from './TeamKpiReport';
-
-// ─── Componentes para vista de DESARROLLADOR ────────────────────────────────
 import UserTaskCharts from './UserTaskCharts';
 import UserKpiReport from './UserKpiReport';
 
-function ManagerKpisPage() {
-  // ─── Miembros del equipo (hard-codeados para Equipo 1) ────────────────────
-  const teamMembers = [
-    { id: 102, name: 'Cesar Alan Silva Ramos' },
-    { id: 101, name: 'Jose Maria' },
-    { id: 104, name: 'Miguel Angel Barrientos Ballesteros' },
-    { id: 100, name: 'Diego Iván Morales Gallardo' },
-    { id: 103, name: 'Fernanda Díaz Gutiérrez' },
-  ];
+const teamMembers = [
+  { id: 102, name: 'Cesar Alan Silva Ramos' },
+  { id: 101, name: 'Jose Maria' },
+  { id: 104, name: 'Miguel Angel Barrientos Ballesteros' },
+  { id: 100, name: 'Diego Iván Morales Gallardo' },
+  { id: 103, name: 'Fernanda Díaz Gutiérrez' },
+];
 
-  // ─── Estado del filtro ────────────────────────────────────────────────────
+export default function ManagerKpisPage() {
+  const { role, developerId } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedDev, setSelectedDev] = useState(null);
+
+  useEffect(() => {
+    if (role === 'developer' && developerId) {
+      const dev = teamMembers.find((m) => m.id === developerId);
+      if (dev) setSelectedDev(dev);
+    }
+  }, [role, developerId]);
 
   const openMenu = (e) => setAnchorEl(e.currentTarget);
   const closeMenu = () => setAnchorEl(null);
@@ -44,13 +43,11 @@ function ManagerKpisPage() {
     closeMenu();
   };
 
-  /* ────────────────────────────────────────────────────────────────────────── */
   return (
     <>
       <AppNavbar />
 
       <Box sx={{ p: 3 }}>
-        {/* Encabezado + filtro */}
         <Box
           sx={{
             mb: 3,
@@ -65,22 +62,25 @@ function ManagerKpisPage() {
             {selectedDev ? `KPIs — ${selectedDev.name}` : 'KPIs del Equipo'}
           </Typography>
 
-          <Button startIcon={<FilterListIcon />} variant="outlined" onClick={openMenu}>
-            Filtrar por developer
-          </Button>
+          {role !== 'developer' && (
+            <Button startIcon={<FilterListIcon />} variant="outlined" onClick={openMenu}>
+              Filtrar por developer
+            </Button>
+          )}
 
-          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={closeMenu}>
-            <MenuItem onClick={clearFilter}>Todo el equipo</MenuItem>
-            {teamMembers.map((m) => (
-              <MenuItem key={m.id} onClick={() => selectDev(m)}>
-                {m.name}
-              </MenuItem>
-            ))}
-          </Menu>
+          {role !== 'developer' && (
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={closeMenu}>
+              <MenuItem onClick={clearFilter}>Todo el equipo</MenuItem>
+              {teamMembers.map((m) => (
+                <MenuItem key={m.id} onClick={() => selectDev(m)}>
+                  {m.name}
+                </MenuItem>
+              ))}
+            </Menu>
+          )}
         </Box>
 
-        {/* ─── Vista GLOBAL ─────────────────────────────────────────────────── */}
-        {!selectedDev && (
+        {!selectedDev && role !== 'developer' && (
           <>
             <Grid container spacing={4}>
               <Grid item xs={12} md={6}>
@@ -115,10 +115,8 @@ function ManagerKpisPage() {
           </>
         )}
 
-        {/* ─── Vista de DEVELOPER ───────────────────────────────────────────── */}
         {selectedDev && (
           <Box>
-            {/* Fila superior con las dos gráficas filtradas */}
             <Grid container spacing={4} sx={{ mb: 4 }}>
               <Grid item xs={12} md={6}>
                 <Paper elevation={3} sx={{ p: 3, height: '100%' }}>
@@ -133,7 +131,6 @@ function ManagerKpisPage() {
               </Grid>
             </Grid>
 
-            {/* Componentes existentes (sin cambios) */}
             <UserTaskCharts usuarioId={selectedDev.id} />
             <UserKpiReport usuarioId={selectedDev.id} />
           </Box>
@@ -142,5 +139,3 @@ function ManagerKpisPage() {
     </>
   );
 }
-
-export default ManagerKpisPage;

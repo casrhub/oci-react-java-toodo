@@ -15,13 +15,11 @@ import org.springframework.web.bind.annotation.*;
 public class ToDoItemController {
   @Autowired private ToDoItemService toDoItemService;
 
-  // @CrossOrigin
   @GetMapping(value = "/todolist")
   public List<ToDoItem> getAllToDoItems() {
     return toDoItemService.findAll();
   }
 
-  // @CrossOrigin
   @GetMapping(value = "/todolist/{id}")
   public ResponseEntity<ToDoItem> getToDoItemById(@PathVariable int id) {
     try {
@@ -32,19 +30,16 @@ public class ToDoItemController {
     }
   }
 
-  // @CrossOrigin
   @PostMapping(value = "/todolist")
   public ResponseEntity<ToDoItem> addToDoItem(@RequestBody ToDoItem todoItem) throws Exception {
     ToDoItem td = toDoItemService.addToDoItem(todoItem);
     HttpHeaders responseHeaders = new HttpHeaders();
     responseHeaders.set("location", "" + td.getID());
     responseHeaders.set("Access-Control-Expose-Headers", "location");
-    // URI location = URI.create(""+td.getID())
 
     return ResponseEntity.ok().headers(responseHeaders).build();
   }
 
-  // @CrossOrigin
   @PutMapping(value = "todolist/{id}")
   public ResponseEntity<ToDoItem> updateToDoItem(
       @RequestBody ToDoItem toDoItem, @PathVariable int id) {
@@ -57,7 +52,6 @@ public class ToDoItemController {
     }
   }
 
-  // @CrossOrigin
   @DeleteMapping(value = "todolist/{id}")
   public ResponseEntity<Boolean> deleteToDoItem(@PathVariable("id") int id) {
     Boolean flag = false;

@@ -1,6 +1,3 @@
-/* eslint-disable react/prop-types */ // ← IGNORA “missing in props validation”
-/* eslint-disable @typescript-eslint/no-empty-function */
-// src/pages/DevTasksPage.jsx
 import React, { useState, useEffect } from 'react';
 import {
   Table,
@@ -31,43 +28,37 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Moment from 'react-moment';
 
-import { useAuthFetch } from '../utils/authFetch'; // 🔒 helper con JWT (ahora Firebase)
+import { useAuth } from '../context/AuthContext';
+import { useAuthFetch } from '../utils/authFetch';
 import { API_TAREAS, API_SUBTAREAS, API_USUARIOS } from '../api';
 import NewItem from '../components/tasks/NewItem';
-import AppNavbar from '../components/AppNavbar'; // Navbar unificada
+import AppNavbar from '../components/AppNavbar';
 
-/* ────────────────────────────────────────────────────────── */
 export default function DevTasksPage() {
-  /* ---------- STATE ---------- */
+  const { role, developerId } = useAuth();
   const [tasks, setTasks] = useState([]);
-  const [users, setUsers] = useState([]); // {id,nombre}
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  /* dialogs */
   const [newDlg, setNewDlg] = useState(false);
   const [inserting, setInserting] = useState(false);
   const [deadlineDlg, setDeadlineDlg] = useState({ open: false, task: null, val: '' });
   const [completeDlg, setCompleteDlg] = useState({ open: false, task: null, hours: '' });
   const [pendingSplit, setPendingSplit] = useState(null);
 
-  /* subtasks / filter */
   const [expanded, setExpanded] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
 
-  /* new-subtask fields */
   const [newSubTitle, setNewSubTitle] = useState('');
   const [newSubHours, setNewSubHours] = useState('');
 
-  /* ---------- EFFECTS ---------- */
   const authFetch = useAuthFetch();
 
   useEffect(() => {
     Promise.all([fetchTasks(), fetchUsers()]).finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ---------- API calls ---------- */
   const fetchTasks = () =>
     authFetch(API_TAREAS)
       .then((r) => (r.ok ? r.json() : Promise.reject('Error loading tasks')))
@@ -142,7 +133,6 @@ export default function DevTasksPage() {
       });
   };
 
-  /* ---------- PATCH helpers ---------- */
   const updateAssignee = (tid, uid) =>
     authFetch(`${API_TAREAS}/${tid}/assignee`, {
       method: 'PATCH',
@@ -173,7 +163,6 @@ export default function DevTasksPage() {
   const deleteTask = (tid) =>
     authFetch(`${API_TAREAS}/${tid}`, { method: 'DELETE' }).then(fetchTasks).catch(setError);
 
-  /* ---------- helpers ---------- */
   const renderAssignee = (t) => (
     <FormControl size="small" fullWidth>
       <InputLabel id={`ass-${t.tareaId}`}>Asignado</InputLabel>
@@ -210,20 +199,21 @@ export default function DevTasksPage() {
       .catch(setError);
   };
 
-  /* ---------- rendering data ---------- */
-  const pending = tasks.filter((t) => t.estado !== 'completado');
-  const completed = tasks.filter((t) => t.estado === 'completado');
+  const pending = tasks.filter(
+    (t) => t.estado !== 'completado' && (role !== 'developer' || t.usuarioId === developerId)
+  );
+  const completed = tasks.filter(
+    (t) => t.estado === 'completado' && (role !== 'developer' || t.usuarioId === developerId)
+  );
 
   if (loading) return <CircularProgress sx={{ m: 4 }} />;
   if (error) return <Typography color="error">{String(error)}</Typography>;
 
-  /* ---------- UI ---------- */
   return (
     <>
       <AppNavbar />
 
       <div style={{ padding: 16 }}>
-        {/* header */}
         <Toolbar sx={{ justifyContent: 'space-between' }}>
           <Typography variant="h5" fontWeight="bold">
             My Tasks
@@ -240,18 +230,19 @@ export default function DevTasksPage() {
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
               <MenuItem onClick={() => setAnchorEl(null)}>No filters yet</MenuItem>
             </Menu>
-            <Button
-              startIcon={<AddIcon />}
-              variant="contained"
-              onClick={() => setNewDlg(true)}
-              sx={{ bgcolor: '#C74634', '&:hover': { bgcolor: '#b63f2e' } }}
-            >
-              Add Task
-            </Button>
+            {role !== 'developer' && (
+              <Button
+                startIcon={<AddIcon />}
+                variant="contained"
+                onClick={() => setNewDlg(true)}
+                sx={{ bgcolor: '#C74634', '&:hover': { bgcolor: '#b63f2e' } }}
+              >
+                Add Task
+              </Button>
+            )}
           </Box>
         </Toolbar>
 
-        {/* ---------------- Pending ---------------- */}
         {pending.length > 0 && (
           <>
             <Typography variant="h6" sx={{ mt: 3 }}>
@@ -286,12 +277,14 @@ export default function DevTasksPage() {
                               {t.deadline}
                             </Moment>
                           ) : (
-                            <Button
-                              size="small"
-                              onClick={() => setDeadlineDlg({ open: true, task: t, val: '' })}
-                            >
-                              Set
-                            </Button>
+                            role !== 'developer' && (
+                              <Button
+                                size="small"
+                                onClick={() => setDeadlineDlg({ open: true, task: t, val: '' })}
+                              >
+                                Set
+                              </Button>
+                            )
                           )}
                         </TableCell>
                         <TableCell>
@@ -305,7 +298,6 @@ export default function DevTasksPage() {
                         </TableCell>
                       </TableRow>
 
-                      {/* expanded row */}
                       {expanded === t.tareaId && (
                         <TableRow>
                           <TableCell colSpan={6} sx={{ bgcolor: '#fafafa' }}>
@@ -329,7 +321,6 @@ export default function DevTasksPage() {
                               <Typography>No subtasks</Typography>
                             )}
 
-                            {/* add subtask */}
                             <Box
                               component="form"
                               sx={{ display: 'flex', gap: 1, mt: 1, maxWidth: 400 }}
@@ -368,7 +359,6 @@ export default function DevTasksPage() {
           </>
         )}
 
-        {/* ---------------- Completed ---------------- */}
         {completed.length > 0 && (
           <>
             <Typography variant="h6" sx={{ mt: 4 }}>
@@ -398,13 +388,15 @@ export default function DevTasksPage() {
                         </Moment>
                       </TableCell>
                       <TableCell>
-                        <Button
-                          startIcon={<DeleteIcon />}
-                          color="error"
-                          onClick={() => deleteTask(t.tareaId)}
-                        >
-                          Delete
-                        </Button>
+                        {role !== 'developer' && (
+                          <Button
+                            startIcon={<DeleteIcon />}
+                            color="error"
+                            onClick={() => deleteTask(t.tareaId)}
+                          >
+                            Delete
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -414,7 +406,6 @@ export default function DevTasksPage() {
           </>
         )}
 
-        {/* ------------- New Task dialog ------------- */}
         <Dialog open={newDlg} onClose={() => setNewDlg(false)} maxWidth="sm" fullWidth>
           <DialogTitle>Nueva Tarea</DialogTitle>
           <DialogContent>
@@ -422,7 +413,6 @@ export default function DevTasksPage() {
           </DialogContent>
         </Dialog>
 
-        {/* ------------- Deadline dialog ------------- */}
         <Dialog
           open={deadlineDlg.open}
           onClose={() => setDeadlineDlg({ open: false, task: null, val: '' })}
@@ -452,7 +442,6 @@ export default function DevTasksPage() {
           </DialogActions>
         </Dialog>
 
-        {/* ------------- Complete dialog ------------- */}
         <Dialog
           open={completeDlg.open}
           onClose={() => setCompleteDlg({ open: false, task: null, hours: '' })}
@@ -482,7 +471,6 @@ export default function DevTasksPage() {
           </DialogActions>
         </Dialog>
 
-        {/* ------------- Split-into-subtasks prompt ------------- */}
         {pendingSplit && (
           <Dialog open onClose={() => setPendingSplit(null)}>
             <DialogTitle>Divide task into subtasks</DialogTitle>

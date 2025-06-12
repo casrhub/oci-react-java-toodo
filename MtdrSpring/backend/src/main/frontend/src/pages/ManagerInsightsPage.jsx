@@ -1,4 +1,3 @@
-// src/pages/ManagerInsightsPage.jsx
 import React from 'react';
 import { Box, Typography, Paper, Grid } from '@mui/material';
 import AppNavbar from '../components/AppNavbar';

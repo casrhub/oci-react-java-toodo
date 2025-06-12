@@ -12,18 +12,10 @@ import {
 import { CircularProgress, Typography } from '@mui/material';
 import { API_TEAM_KPIS } from '../api';
 
-/**
- * Gráfica de tareas completadas por el equipo:
- *   • Una barra = Completadas ANTES del deadline
- *   • Otra barra = Completadas DESPUÉS del deadline
- *
- * @param {number} equipoId – ID del equipo (por defecto lo pasa la página)
- */
 function TeamTaskCharts({ equipoId }) {
   const [summary, setSummary] = useState(null);
   const [err, setErr] = useState(null);
 
-  /* ─── Fetch resumen ───────────────────────────────────── */
   useEffect(() => {
     fetch(`${API_TEAM_KPIS}${equipoId}/summary`)
       .then(async (r) => {
@@ -35,7 +27,6 @@ function TeamTaskCharts({ equipoId }) {
       .catch(setErr);
   }, [equipoId]);
 
-  /* ─── Estados de carga / error ────────────────────────── */
   if (err)
     return (
       <div style={{ color: 'red', padding: '1rem' }}>
@@ -46,7 +37,6 @@ function TeamTaskCharts({ equipoId }) {
 
   if (!summary) return <CircularProgress />;
 
-  /* ─── Datos para la gráfica ───────────────────────────── */
   const data = [
     {
       name: 'Tareas Completadas',
@@ -55,7 +45,6 @@ function TeamTaskCharts({ equipoId }) {
     },
   ];
 
-  /* ─── UI ──────────────────────────────────────────────── */
   return (
     <div style={{ marginTop: '2rem' }}>
       <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>

@@ -1,61 +1,37 @@
-/* 
-** Todo application version 1.0.
-** Copyright (c) 2020, Oracle
-** Licensed under the Universal Permissive License v 1.0
-*/
-
-/* 
-   1) Global Reset/Styles:
-      - Default to a WHITE background for all pages
-*/
 body {
-  background-color: white; /* White background for all pages by default */
+  background-color: white;
   margin: 0;
   padding: 0;
   width: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/*
-   2) Themed Wrapper:
-      - ONLY the Home page wraps its content in .themed-wrapper,
-        so these dark styles won't spill over to other pages.
-*/
 .themed-wrapper {
-  background-color: #2F2F2F; /* Dark gray background for "dark mode" look */
+  background-color: #2f2f2f;
   max-width: 50rem;
   margin: 0 auto;
-  /* You can add padding if desired */
 }
 
-/* 
-   3) App Container Styles:
-      - Scoped so only .App inside .themed-wrapper gets these dark colors
-*/
 .themed-wrapper .App {
-  background: #363432; /* Dark container background */
-  color: #FEF9F2;
+  background: #363432;
+  color: #fef9f2;
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: max(12px, min(2vw, 18px)); 
+  font-size: max(12px, min(2vw, 18px));
   margin: 2rem 0 4rem 0;
   padding: 1rem;
   position: relative;
-  box-shadow: 0 10px 18px 0 rgba(0, 0, 0, 0.2), 
-              0 4.5rem 8rem 0 rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 10px 18px 0 rgba(0, 0, 0, 0.2),
+    0 4.5rem 8rem 0 rgba(0, 0, 0, 0.1);
   border-radius: 0.5rem;
   animation: fadeInApp 0.6s ease forwards;
 }
 
-/* 
-   4) Main Content: 
-      - Still only affects elements inside .themed-wrapper .App
-*/
 .themed-wrapper div#maincontent,
 .themed-wrapper div#newinputform form {
   width: 95%;
@@ -110,7 +86,7 @@ body {
 }
 
 .themed-wrapper table.itemlist td {
-  border-bottom: solid 1px #4A4844;
+  border-bottom: solid 1px #4a4844;
   padding: 0.5rem;
   transition: background-color 0.3s ease;
 }
@@ -123,14 +99,14 @@ body {
 
 .themed-wrapper table.itemlist td.date {
   font-size: max(10px, min(1.5vw, 14px));
-  color: #CCCCCC;
+  color: #cccccc;
   white-space: nowrap;
   padding-right: 0;
   padding-left: 0;
 }
 
 .themed-wrapper table.itemlist tr:hover {
-  background-color: #2A2926;
+  background-color: #2a2926;
 }
 
 input {
@@ -150,49 +126,44 @@ input[type='text'] {
   padding-left: 10px;
 }
 
-/*
-  5) Buttons: 
-     - Also scoped inside .themed-wrapper 
-*/
 .themed-wrapper button.AddButton,
 .themed-wrapper button.DeleteButton,
 .themed-wrapper button.DoneButton {
   font-size: max(8px, min(2vw, 12px));
   padding: 0.35em 0.5em;
-  color: #161513; 
+  color: #161513;
   transition: transform 0.2s ease;
 }
 
 .themed-wrapper button.AddButton {
-  color: #FEF9F2;
-  background-color: #0079AE;
+  color: #fef9f2;
+  background-color: #0079ae;
 }
 
 .themed-wrapper button.AddButton:hover {
-  background-color: #0090CF;
+  background-color: #0090cf;
   transform: scale(1.03);
 }
 
 .themed-wrapper button.DeleteButton {
-  color: #FEF9F2;
-  background-color: #D63B25;
+  color: #fef9f2;
+  background-color: #d63b25;
 }
 
 .themed-wrapper button.DeleteButton:hover {
-  background-color: #EC4F3A;
+  background-color: #ec4f3a;
   transform: scale(1.03);
 }
 
 .themed-wrapper button.DoneButton {
-  background-color: #E2E0DB;
+  background-color: #e2e0db;
 }
 
 .themed-wrapper button.DoneButton:hover {
-  background-color: #BEBBB5;
+  background-color: #bebbb5;
   transform: scale(1.03);
 }
 
-/* Keyframe animation for .App fade-in */
 @keyframes fadeInApp {
   0% {
     opacity: 0;
@@ -204,17 +175,15 @@ input[type='text'] {
   }
 }
 
-/* ✅ Style for the Deadline Column */
 .themed-wrapper table.itemlist td.deadline {
   font-size: max(10px, min(1.5vw, 14px));
-  color: #FFA500;
+  color: #ffa500;
   font-weight: bold;
   white-space: nowrap;
   padding-right: 10px;
   text-align: center;
 }
 
-/* ✅ Align buttons in the same row */
 .themed-wrapper td.actions {
   display: flex;
   gap: 10px;

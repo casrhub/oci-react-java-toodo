@@ -17,8 +17,6 @@ public class TareaController {
 
   @Autowired private TareaService tareaService;
 
-  /* ---------- CRUD básico ---------- */
-
   @GetMapping
   public List<Tarea> getAllTareas() {
     return tareaService.findAll();
@@ -49,9 +47,6 @@ public class TareaController {
     return deleted ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
   }
 
-  /* ---------- PATCH SOLO ASIGNACIÓN ---------- */
-
-  /** Cambia únicamente el usuario asignado sin tocar otros campos. */
   @PatchMapping("/{id}/assignee")
   public ResponseEntity<Tarea> updateAssignee(
       @PathVariable Long id, @RequestBody Map<String, Long> payload) {
@@ -63,8 +58,6 @@ public class TareaController {
     Tarea updated = tareaService.updateAssignee(id, usuarioId);
     return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
   }
-
-  /* ---------- completar ---------- */
 
   @PutMapping("/{id}/complete")
   public ResponseEntity<Tarea> markAsComplete(
@@ -89,8 +82,6 @@ public class TareaController {
     }
   }
 
-  /* ---------- deadline ---------- */
-
   @PutMapping("/{id}/deadline")
   public ResponseEntity<Tarea> updateDeadline(
       @PathVariable Long id, @RequestBody Map<String, String> payload) {
@@ -105,8 +96,6 @@ public class TareaController {
       return ResponseEntity.badRequest().build();
     }
   }
-
-  /* ---------- KPIs ---------- */
 
   @GetMapping("/equipo/{equipoId}/sprint/{sprintId}/horas-trabajadas")
   public ResponseEntity<BigDecimal> getHorasByEquipoAndSprint(
@@ -176,7 +165,6 @@ public class TareaController {
     return ResponseEntity.ok(count != null ? count : 0L);
   }
 
-  /* ---------- Get tasks by user (from dev) ---------- */
   @GetMapping("/user/{usuarioId}")
   public ResponseEntity<List<Tarea>> getTareasByUsuario(@PathVariable Long usuarioId) {
     List<Tarea> tareas = tareaService.findByUsuarioId(usuarioId);

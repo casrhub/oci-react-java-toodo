@@ -1,267 +1,186 @@
+# Oracle SprintSight
 
-# oci-react-samples
-
-[![Backend + Frontend CI](https://github.com/your-org/oci-react-samples/workflows/Backend%20+%20Frontend%20CI/badge.svg)](#) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-A **cloud-native** ToDo application (“MyTodoList”) demonstrating:
-
-- **Frontend**: React.js (Vite + TypeScript)  
-- **Backend**: Spring Boot 3 (Java 17) + Oracle Database  
-- **Auth**: Clerk (JWT-based session management)  
-- **Bot**: Telegram integration via `TelegramLongPollingBot`  
-- **Infra & CI/CD**: Docker, GitHub Actions, OCI DevOps, Testcontainers  
+Oracle SprintSight is a **cloud-native** application that streamlines sprint and KPI tracking for development teams. It marries a fast Type-Script + React.js front-end with a robust Spring Boot 3 back-end running on Oracle Autonomous Database, and secures everything with Firebase Authentication. A Telegram bot extends the experience to chat, while automated CI/CD pipelines (GitHub Actions + OCI DevOps) and Testcontainers keep builds, security, and testing reproducible from laptop to cloud.
 
 ---
 
-## Table of Contents
+## Key Technology Stack
 
-1. [Architecture](#architecture)  
-2. [Prerequisites](#prerequisites)  
-3. [Setup & Local Development](#setup--local-development)  
-   - [Environment Variables](#environment-variables)  
-   - [Running the Back-end](#running-the-back-end)  
-   - [Running the Front-end](#running-the-front-end)  
-   - [Docker Compose](#docker-compose)  
-4. [Testing](#testing)  
-   - [Unit Tests](#unit-tests)  
-   - [Integration Tests](#integration-tests)  
-   - [Front-end Lint & Tests](#front-end-lint--tests)  
-   - [End-to-End Selenium Tests](#end-to-end-selenium-tests)  
-5. [CI/CD](#cicd)  
-6. [Git Hooks & Scripts](#git-hooks--scripts)  
-7. [Platform Notes](#platform-notes)  
-8. [Contributing](#contributing)  
-9. [License](#license)  
+| Tier / Concern       | Technology                                       |
+| -------------------- | ------------------------------------------------ |
+| **Front-end**        | React 18 + Vite + TypeScript                     |
+| **Back-end**         | Spring Boot 3 (Java 17)                          |
+| **Data**             | Oracle Autonomous Database (ATP)                 |
+| **Auth**             | Firebase Authentication (JWT, hosted login)      |
+| **Chat UX**          | TelegramLongPollingBot (Java)                    |
+| **Containerization** | Docker                                           |
+| **CI/CD**            | GitHub Actions, OCI DevOps build & deploy stages |
+| **Testing**          | JUnit 5, Testcontainers, Selenium (E2E)          |
+| **Infra-as-Code**    | Kubernetes YAML manifests                        |
+| **Security**         | OWASP ZAP scan in pipeline                       |
 
 ---
 
 ## Architecture
 
-[[Link to Architecture Overview](https://drive.google.com/uc?export=view&id=1ezv0N4BDVg8ytpaWaS_nmzur3LcKrq20)](https://drive.google.com/file/d/1ezv0N4BDVg8ytpaWaS_nmzur3LcKrq20/view?usp=sharing)
+[**Download the PDF**](https://drive.google.com/uc?export=view&id=1ezv0N4BDVg8ytpaWaS_nmzur3LcKrq20) | [**View in Drive**](https://drive.google.com/file/d/1ezv0N4BDVg8ytpaWaS_nmzur3LcKrq20/view?usp=sharing)
 
+**High-level flow**
 
-1. **API Gateway**  
-   - Centralized Clerk-based JWT validation via `AuthService`  
-   - Routes requests to microservices (`TaskService`, `SubTaskService`, etc.)  
-2. **Spring Boot Services**  
-   - `TaskService`, `SubTaskService`, `SprintService`, `KpiService`, `UsuarioService`, `ToDoItemService`  
-   - Each follows Controller → Service → Repository layering  
-3. **React Frontend**  
-   - Consumes REST endpoints; uses Clerk for authentication  
-4. **Telegram Bot**  
-   - Conversational flows implemented in `ToDoItemBotController`  
-5. **Database**  
-   - Oracle DB (free edition for dev/testing; Testcontainers for integration tests)  
+1. **Client** (React) obtains a Firebase **ID token** after login.
+2. **API Gateway**
+
+   - Validates the JWT against the Firebase JWKS endpoint (`https://securetoken.google.com/<PROJECT_ID>`).
+   - Routes the request to the corresponding micro-service.
+
+3. **Spring Boot micro-services**
+
+   - _TaskService, SubTaskService, SprintService, KpiService, UsuarioService, ToDoItemService_
+   - Each adopts the **Controller → Service → Repository** layered pattern (hexagonal ports/adapters).
+
+4. **Data layer**
+
+   - Oracle ATP for production.
+   - Testcontainers spins up an ephemeral ATP-compatible container during `mvn test`.
+
+5. **Telegram Bot**
+
+   - `ToDoItemBotController` hosts conversational flows (add task, list tasks, complete task).
 
 ---
 
 ## Prerequisites
 
-- **Java 17** (GraalVM EE if you plan to build native images)  
-- **Maven**  
-- **Node.js** ≥ 16 & **npm**  
-- **Docker Desktop** (or Docker Engine on Linux)  
-- **OCI CLI** (for cloud deployments)  
+| Tool        | Minimum Version |
+| ----------- | --------------- |
+| **Java**    | 17              |
+| **Maven**   | 3.8+            |
+| **Node.js** | 16+             |
+| **Docker**  | 20+             |
+| **OCI CLI** | Latest          |
 
 ---
 
-## Setup & Local Development
+## Getting Started (Local Dev)
 
-### Environment Variables
+1. **Clone repository**
 
-Create a `.env` file or export these variables in your shell:
+   ```bash
+   git clone https://github.com/casrhub/oci-react-java-toodo.git
+   cd oci-react-java-toodo
+   ```
 
-| Variable                 | Purpose                                           | Example                                 |
-|--------------------------|---------------------------------------------------|-----------------------------------------|
-| `SPRING_PROFILES_ACTIVE` | Spring profile (`dev`/`test`/`prod`)              | `dev`                                   |
-| `DATABASE_URL`           | JDBC URL to Oracle DB                             | `jdbc:oracle:thin:@localhost:1521/ORCLPDB1` |
-| `ORACLE_WALLET_PATH`     | Path to OCI Wallet directory                      | `./Wallet_FATDATABASE`                  |
-| `JWT_SECRET`             | HMAC secret for signing JWTs                      | `super-secret-change-me`                |
-| `CLERK_API_KEY`          | Clerk service API key                             | `sk_test_abc123`                        |
-| `TELEGRAM_BOT_TOKEN`     | Telegram Bot token                                | `123456:ABC-DEF…`                       |
+2. **Configure Oracle Wallet path**
 
----
+   Edit
+   `MtdrSpring/backend/src/main/resources/application.properties`
 
-### Running the Back-end
+   ```properties
+   spring.datasource.url=jdbc:oracle:thin:@fatdatabase_high?TNS_ADMIN=<ABSOLUTE_PATH>/oci-react-java-toodo/MtdrSpring/backend/src/main/resources/wallet/Wallet_FATDATABASE/
+   ```
 
-```bash
-# From repo root
-cd MtdrSpring/backend
+3. **Build back-end**
 
-# Install & compile
-mvn clean install
+   ```bash
+   cd MtdrSpring/backend
+   mvn clean install      # compiles + unit + integration tests
+   mvn spring-boot:run    # app available at http://localhost:8080
+   ```
 
-# Run with dev profile
-SPRING_PROFILES_ACTIVE=dev \
-java -jar target/MyTodoList-0.0.1-SNAPSHOT.jar
-````
-
-* **Health check**: `GET http://localhost:8080/actuator/health`
-* **Swagger UI**: `http://localhost:8080/swagger-ui.html`
-
----
-
-### Running the Front-end
-
-```bash
-cd MtdrSpring/backend/src/main/frontend
-
-# Install dependencies & start
-npm ci
-npm start
-```
-
-* App available at **[http://localhost:3000](http://localhost:3000)** (proxied to backend on port 8080)
-* To build for production: `npm run build`
-
----
-
-### Docker Compose
-
-Start everything with one command (requires Docker):
-
-```bash
-# from repo root
-docker-compose up --build
-```
-
-This brings up:
-
-* Oracle DB container (with sample wallet)
-* Spring Boot app on port **8080**
-* Static React build served by Spring Boot
-
----
-
-## Testing
-
-### Unit Tests
-
-```bash
-# Back-end unit tests (service & controller layer with MockMvc)
-cd MtdrSpring/backend
-mvn test
-```
-
-### Integration Tests
-
-> Uses Testcontainers + Oracle Free to spin up a real database.
-
-```bash
-cd MtdrSpring/backend
-mvn verify
-```
-
-### Front-end Lint & Unit Tests
-
-```bash
-cd MtdrSpring/backend/src/main/frontend
-npm run lint
-npm test
-```
-
-### End-to-End Selenium Tests
-
-We verify critical UI flows using **selenium-webdriver** + **Jest**.
-
-* **Location:**
-  `MtdrSpring/backend/src/main/frontend/selenium/tests`
-
-* **Sample test (`devLoginButton.test.js`):**
-
-  ```js
-  const createDriver  = require('../driver');
-  const { By, until } = require('selenium-webdriver');
-
-  describe('Dev Login – Oracle SSO button', () => {
-    let driver;
-    beforeAll(async () => {
-      driver = createDriver();
-      await driver.get('http://localhost:8080/#/dev-login');
-    });
-    afterAll(() => driver.quit());
-
-    test('SSO button displays correct text', async () => {
-      const btn = await driver.wait(
-        until.elementLocated(By.css('.login-button')), 10000
-      );
-      expect(await btn.getText())
-        .toBe('Iniciar Sesión Con Oracle SSO');
-    });
-  });
-  ```
-
-#### Running E2E
-
-1. Ensure backend (`localhost:8080`) and frontend (`localhost:3000`) are running.
-2. From the frontend folder:
+4. **Run front-end (optional)**
+   The React SPA is pre-built into the Spring Boot JAR, but if you want concurrent hot-reload:
 
    ```bash
    cd MtdrSpring/backend/src/main/frontend
-   npm run test:e2e
+   npm install
+   npm run dev           # Vite dev server at http://localhost:3000
    ```
 
 ---
 
-## CI/CD
-
-* **GitHub Actions**
-
-  * Builds backend JAR, runs tests, packages artifacts
-  * Installs Node, lints and builds React app
-
-  Configuration: `.github/workflows/build.yml`
-
-* **OCI DevOps**
-
-  * Builds Docker image, pushes to OCIR, deploys to Kubernetes on OCI
-
-  Configuration: `oci_devops.yml`
-
----
-
-## Git Hooks & Scripts
-
-Helper scripts in the `scripts/` directory:
-
-| Script         | Purpose                                           |
-| -------------- | ------------------------------------------------- |
-| `pre-commit`   | Spotless format & Checkstyle checks               |
-| `pre-push`     | Run full backend test suite                       |
-| `start-dev.sh` | Docker Compose up + apply migrations + launch app |
+## Local Deployment with Docker
 
 ```bash
-# Install hooks
-cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
-cp scripts/pre-push   .git/hooks/pre-push   && chmod +x .git/hooks/pre-push
+cd MtdrSpring/backend
+docker build -t todoapp .
+docker run -d -p 8080:8080 --name todoappcontainer todoapp
 ```
 
----
-
-## Platform Notes
-
-| OS      | Notes                                                       |
-| ------- | ----------------------------------------------------------- |
-| macOS   | Use Docker Desktop                                          |
-| Windows | Enable WSL2 and run Docker in Linux mode                    |
-| Linux   | Standard Docker setup; ensure `docker-compose` is installed |
+The service is now reachable at **[http://localhost:8080](http://localhost:8080)** inside its own container, using the in-container Oracle Wallet.
 
 ---
 
-## Contributing
+## Running Tests
 
-We welcome contributions! Please:
-
-1. Fork the repo & create a feature branch
-2. Write tests for new functionality
-3. Follow code style (Spotless & Checkstyle)
-4. Submit a PR against the `dev` branch
-
-See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for full guidelines.
+| Scope                     | Command                                                       | Description                                                   |
+| ------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------- |
+| **Unit + Integration**    | `cd MtdrSpring/backend && mvn test`                           | JUnit + Testcontainers (spins up Oracle-compatible container) |
+| **End-to-End (Selenium)** | `cd MtdrSpring/backend/src/main/frontend && npm run test:e2e` | Headless Chrome via Selenium                                  |
 
 ---
 
-## License
+## CI/CD Overview
 
-This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
+> The pipeline combines **GitHub Actions** (build) and **OCI DevOps** (deploy). Key files:
 
+### `build_spec.yaml` (OCI DevOps Build Stage)
+
+| Step                        | What it does                                                                                                                                        |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Set IMAGE_TAG**           | Derives a 7-character git SHA for an immutable image tag and exports it for later steps.                                                            |
+| **Docker Hub Login**        | Authenticates using `${DOCKER_USERNAME}` and a secret `${DOCKER_PASSWORD}`.                                                                         |
+| **Build & Push**            | `docker build` builds the back-end image via the multi-stage Dockerfile, then pushes `${IMAGE_TAG}` and `latest` tags.                              |
+| **OWASP ZAP Quick Scan**    | Runs an unauthenticated dynamic scan against a staging URL (`http://220.158.74.30/`), prints alerts, but never fails the build (exit code ignored). |
+| **Install JDK 11 & verify** | Installs Oracle JDK 11 inside the runner and executes `mvn verify` to re-run integration tests in a pristine environment.                           |
+
+### `MtdrSpring/backend/Dockerfile` (Multi-Stage Build)
+
+1. **Builder stage**
+
+   - `maven:3.8.6-openjdk-11` compiles the Spring Boot project and re-packages it as a layered JAR (`spring-boot:repackage`).
+
+2. **Runtime stage**
+
+   - `openjdk:11-jre-slim` is used for a minimal runtime image (\~250 MB → \~200 MB after layering).
+   - The resulting `app.jar` is copied, `TNS_ADMIN` is set to the in-image wallet, and port **8080** is exposed.
+
+### `todolistapp-springboot.yaml` (Kubernetes Manifests)
+
+| Kind           | Purpose                                                                                                                                                      |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Deployment** | Schedules **1 replica** of the Docker image (`casrhub/todolistapp-springboot:${IMAGE_TAG}`) with `Always` pull policy so every rollout grabs the newest tag. |
+| **Service**    | Exposes the pod via a **LoadBalancer** on port 80 → container port 8080.                                                                                     |
+
+> **How it ties together**
+>
+> - GitHub pushes trigger OCI DevOps Build.
+> - The build publishes the Docker image and exports `${IMAGE_TAG}`.
+> - A subsequent OCI DevOps **Deploy Stage** patches the Kubernetes manifest with the same `${IMAGE_TAG}` and applies it to your OCI Container Engine for Kubernetes (OKE) cluster, achieving blue/green or rolling updates depending on the OKE strategy.
+
+---
+
+## Observability
+
+- **Local Logs**
+  Regardless of the tool you invoke—whether it’s
+
+  - **Maven** (`mvn clean install`, `mvn spring-boot:run`, `mvn test`),
+  - **Docker** (`docker build`, `docker run`),
+  - **React dev server** (`npm run dev` for hot-reload), or
+  - **End-to-end tests** (`npm run test:e2e`)—
+    the full stdout/stderr output from each command streams directly to your local terminal in real time. You’ll see compilation details, test results, container logs, hot-reload updates, and everything in between as they happen.
+
+- **CI/CD Logs**
+  In both our GitHub Actions workflows and OCI DevOps pipelines, every build, test, security-scan, and deployment step emits its logs to the pipeline UI. Logs are automatically captured and made available in each run, so you can inspect the output of any stage—right from the GitHub Actions run view or the OCI DevOps build/deploy dashboard.
+
+---
+
+## Quality & Security Gates
+
+| Stage            | Gate                                                                                    |
+| ---------------- | --------------------------------------------------------------------------------------- |
+| **Pull Request** | Runs end-to-end tests in GitHub Actions CI                                              |
+| **Pre-commit**   | ESLint + Prettier                                                                       |
+| **Build**        | JUnit (unit), Testcontainers (integration)                                              |
+| **Pipeline**     | OWASP ZAP Dynamic Scan                                                                  |
+| **Deploy**       | OCI DevOps builds and deploys with automatic image scanning to ensure secure production |

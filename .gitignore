@@ -1,6 +1,3 @@
-# ========================================
-# 🧠 Baseline – SO, tmp, basura en general
-# ========================================
 .DS_Store
 Thumbs.db
 ehthumbs.db
@@ -16,9 +13,6 @@ $RECYCLE.BIN/
 *#
 .#*
 
-# ========================================
-# 🛠️ IDEs y editores
-# ========================================
 .idea/
 *.iml
 .vscode/
@@ -28,9 +22,6 @@ $RECYCLE.BIN/
 *.tmproj
 *.log.*
 
-# ========================================
-# 🧪 Testing y análisis estático
-# ========================================
 **/coverage/
 **/test-output/
 **/test-results/
@@ -44,9 +35,6 @@ $RECYCLE.BIN/
 .nyc_output/
 reports/
 
-# ========================================
-# 🔍 Logs y dumps
-# ========================================
 *.log
 *.log.*
 *.log-*
@@ -58,9 +46,6 @@ MtdrSpring/backend/log*
 log*
 logs*
 
-# ========================================
-# ⚙️ Build tools (Java, Maven, Gradle)
-# ========================================
 *.class
 *.jar
 *.war
@@ -75,23 +60,17 @@ build/
 out/
 dist/
 
-# Gradle wrapper
 gradlew
 gradlew.bat
 
-# IntelliJ
 *.ipr
 *.iws
 
-# Eclipse
 *.classpath
 *.project
 *.settings/
 .factorypath
 
-# ========================================
-# 🧩 Node.js / NPM / Yarn / PNPM / Frontend
-# ========================================
 **/node_modules/
 **/npm-debug.log*
 **/yarn-debug.log*
@@ -104,13 +83,9 @@ gradlew.bat
 **/.eslintcache
 *.tsbuildinfo
 
-# Build de React/Vite/etc.
 **/frontend/build/
 **/frontend/dist/
 
-# ========================================
-# 🧹 Cachés, binarios y artefactos
-# ========================================
 .cache/
 tmp/
 temp/
@@ -131,9 +106,6 @@ __pycache__/
 *.sqlite3
 *.log.*
 
-# ========================================
-# 🔄 CI/CD y artefactos empaquetados
-# ========================================
 *.zip
 *.tar
 *.tar.gz
@@ -147,23 +119,16 @@ __pycache__/
 *.snapshot
 *.swp
 
-# build & deploy dirs
 .build/
 .deploy/
 .release/
 .pipeline/
 *.spec.ts.snap
 
-# ========================================
-# 🧬 Git metadata (opcional, no recomendado)
-# ========================================
 *.patch
 *.diff
 *.rej
 
-# ========================================
-# 🔍 Seguridad y privacidad adicional
-# ========================================
 .zsh_history
 .zshrc.local
 bash_history
@@ -172,9 +137,6 @@ history
 .envrc
 *.nvmrc
 
-# ========================================
-# 🔧 Proyecto específico (MtdrSpring)
-# ========================================
 MtdrSpring/backend/.classpath
 MtdrSpring/backend/.project
 MtdrSpring/backend/.settings/
@@ -183,9 +145,6 @@ MtdrSpring/backend/target/
 MtdrSpring/backend/build/
 MtdrSpring/backend/node_modules/
 
-# ========================================
-# 📦 Mono-repo: excluir redundancias
-# ========================================
 **/target/
 **/build/
 **/node_modules/

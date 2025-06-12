@@ -15,7 +15,6 @@ import org.testcontainers.oracle.OracleContainer;
 
 public class InitializedDatabaseTest {
 
-  /** Use a containerized Oracle Database instance for testing. */
   static OracleContainer oracleContainer =
       new OracleContainer("gvenzl/oracle-free:23.6-slim-faststart")
           .withStartupTimeout(Duration.ofMinutes(5))
@@ -28,20 +27,16 @@ public class InitializedDatabaseTest {
 
   @BeforeAll
   static void setUp() throws SQLException {
-    // Disable Ryuk container to avoid ARM64 startup issues
     System.setProperty("testcontainers.ryuk.disabled", "true");
 
-    // Start the Oracle container
     oracleContainer.start();
 
-    // Configure the OracleDataSource to use the database container
     ds = new OracleDataSource();
     ds.setURL(oracleContainer.getJdbcUrl());
     ds.setUser(oracleContainer.getUsername());
     ds.setPassword(oracleContainer.getPassword());
   }
 
-  /** Verifies the database is initialized with the expected user */
   @Test
   void getUsuario() throws SQLException {
     try (Connection conn = ds.getConnection();
@@ -53,7 +48,6 @@ public class InitializedDatabaseTest {
     }
   }
 
-  /** Verifies a TAREA can be retrieved by ID and has the correct title */
   @Test
   void getTareaById() throws SQLException {
     try (Connection conn = ds.getConnection();
@@ -65,7 +59,6 @@ public class InitializedDatabaseTest {
     }
   }
 
-  // Retrieve all TAREAS for a specific USUARIO_ID
   @Test
   void getTareasForUsuario() throws SQLException {
     try (Connection conn = ds.getConnection();

@@ -1,4 +1,3 @@
-// src/pages/ManagerTasksPage.jsx
 import React, { useState, useEffect } from 'react';
 import {
   Table,
@@ -33,36 +32,28 @@ import AppNavbar from '../components/AppNavbar';
 import { API_TAREAS, API_SUBTAREAS, API_USUARIOS } from '../api';
 import NewItem from '../components/tasks/NewItem';
 
-/* ────────────────────────────────────────────────────────── */
 export default function ManagerTasksPage() {
-  // ← Nombre coherente
-  /* ---------- STATE ---------- */
   const [tasks, setTasks] = useState([]);
-  const [users, setUsers] = useState([]); // {id,nombre}
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  /* dialogs */
   const [newDlg, setNewDlg] = useState(false);
   const [inserting, setInserting] = useState(false);
   const [deadlineDlg, setDeadlineDlg] = useState({ open: false, task: null, val: '' });
   const [completeDlg, setCompleteDlg] = useState({ open: false, task: null, hours: '' });
   const [pendingSplit, setPendingSplit] = useState(null);
 
-  /* subtasks / filter */
   const [expanded, setExpanded] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
 
-  /* new-subtask fields */
   const [newSubTitle, setNewSubTitle] = useState('');
   const [newSubHours, setNewSubHours] = useState('');
 
-  /* ---------- EFFECTS ---------- */
   useEffect(() => {
     Promise.all([fetchTasks(), fetchUsers()]).finally(() => setLoading(false));
   }, []);
 
-  /* ---------- API ---------- */
   const fetchTasks = () =>
     fetch(API_TAREAS)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
@@ -137,7 +128,6 @@ export default function ManagerTasksPage() {
       });
   };
 
-  /* ---------- PATCH SOLO USUARIO ---------- */
   const updateAssignee = (tid, uid) =>
     fetch(`${API_TAREAS}/${tid}/assignee`, {
       method: 'PATCH',
@@ -168,7 +158,6 @@ export default function ManagerTasksPage() {
   const deleteTask = (tid) =>
     fetch(`${API_TAREAS}/${tid}`, { method: 'DELETE' }).then(fetchTasks).catch(setError);
 
-  /* ---------- helpers ---------- */
   const renderAssignee = (t) => (
     <FormControl size="small" fullWidth>
       <InputLabel id={`ass-${t.tareaId}`}>Asignado</InputLabel>
@@ -205,14 +194,11 @@ export default function ManagerTasksPage() {
       .catch(setError);
   };
 
-  /* ---------- rendering data ---------- */
   const pending = tasks.filter((t) => t.estado !== 'completado');
   const completed = tasks.filter((t) => t.estado === 'completado');
 
-  /* ---------- UI ---------- */
   return (
     <>
-      {/* Navbar visible al instante */}
       <AppNavbar />
 
       <div style={{ padding: 16 }}>
@@ -220,15 +206,13 @@ export default function ManagerTasksPage() {
           My Tasks
         </Typography>
 
-        {/* loading / error se muestran debajo sin ocultar la navbar ni el título */}
         {loading && <CircularProgress sx={{ m: 4 }} />}
         {error && <Typography color="error">{error.toString()}</Typography>}
 
         {!loading && !error && (
           <>
-            {/* header */}
             <Toolbar sx={{ justifyContent: 'space-between' }}>
-              <Box /> {/* placeholder para alinear el título ya mostrado */}
+              <Box />
               <div>
                 <Button
                   variant="outlined"
@@ -256,7 +240,6 @@ export default function ManagerTasksPage() {
               </div>
             </Toolbar>
 
-            {/* ---------------- Pending ---------------- */}
             {pending.length > 0 && (
               <>
                 <Typography variant="h6" sx={{ mt: 3 }}>
@@ -310,7 +293,6 @@ export default function ManagerTasksPage() {
                             </TableCell>
                           </TableRow>
 
-                          {/* expanded row */}
                           {expanded === t.tareaId && (
                             <TableRow>
                               <TableCell colSpan={6} sx={{ bgcolor: '#fafafa' }}>
@@ -334,7 +316,6 @@ export default function ManagerTasksPage() {
                                   <Typography>No subtasks</Typography>
                                 )}
 
-                                {/* add subtask */}
                                 <Box
                                   component="form"
                                   sx={{ display: 'flex', gap: 1, mt: 1, maxWidth: 400 }}
@@ -373,7 +354,6 @@ export default function ManagerTasksPage() {
               </>
             )}
 
-            {/* ---------------- Completed ---------------- */}
             {completed.length > 0 && (
               <>
                 <Typography variant="h6" sx={{ mt: 4 }}>
@@ -421,7 +401,6 @@ export default function ManagerTasksPage() {
           </>
         )}
 
-        {/* ------------- New Task dialog ------------- */}
         <Dialog open={newDlg} onClose={() => setNewDlg(false)} maxWidth="sm" fullWidth>
           <DialogTitle>Nueva Tarea</DialogTitle>
           <DialogContent>
@@ -429,7 +408,6 @@ export default function ManagerTasksPage() {
           </DialogContent>
         </Dialog>
 
-        {/* ------------- Deadline dialog ------------- */}
         <Dialog
           open={deadlineDlg.open}
           onClose={() => setDeadlineDlg({ open: false, task: null, val: '' })}
@@ -459,7 +437,6 @@ export default function ManagerTasksPage() {
           </DialogActions>
         </Dialog>
 
-        {/* ------------- Complete dialog ------------- */}
         <Dialog
           open={completeDlg.open}
           onClose={() => setCompleteDlg({ open: false, task: null, hours: '' })}
@@ -489,7 +466,6 @@ export default function ManagerTasksPage() {
           </DialogActions>
         </Dialog>
 
-        {/* ------------- Split-into-subtasks prompt ------------- */}
         {pendingSplit && (
           <Dialog open onClose={() => setPendingSplit(null)}>
             <DialogTitle>Divide task into subtasks</DialogTitle>

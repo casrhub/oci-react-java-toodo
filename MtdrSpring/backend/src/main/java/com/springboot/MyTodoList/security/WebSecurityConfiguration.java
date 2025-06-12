@@ -12,10 +12,6 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
   protected void configure(HttpSecurity httpSecurity) throws Exception {
     httpSecurity
         .csrf(csrf -> csrf.disable())
-        .authorizeRequests(
-            requests ->
-                requests
-                    .antMatchers("/**")
-                    .permitAll()); // This allows all requests without authentication
+        .authorizeRequests(requests -> requests.antMatchers("/**").permitAll());
   }
 }

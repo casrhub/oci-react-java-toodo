@@ -30,7 +30,6 @@ public class ToDoItemService {
     if (toDoItem.getCreation_ts() == null) {
       toDoItem.setCreation_ts(OffsetDateTime.now());
     }
-    // Optional: you can also check if deadline should be set
     return toDoItemRepository.save(toDoItem);
   }
 
@@ -50,13 +49,12 @@ public class ToDoItemService {
       toDoItem.setDescription(td.getDescription());
       toDoItem.setCreation_ts(td.getCreation_ts());
       toDoItem.setDone(td.isDone());
-      toDoItem.setDeadline(td.getDeadline()); // Ensure deadline is updated
+      toDoItem.setDeadline(td.getDeadline());
       return toDoItemRepository.save(toDoItem);
     }
     return null;
   }
 
-  // **New Method to Update Only the Deadline**
   public ResponseEntity<ToDoItem> updateDeadline(int id, OffsetDateTime newDeadline) {
     Optional<ToDoItem> toDoItemData = toDoItemRepository.findById(id);
     if (toDoItemData.isPresent()) {
@@ -69,9 +67,8 @@ public class ToDoItemService {
   }
 
   public Optional<Integer> verifyLinkCode(String code) {
-    // For now, mock a successful link by matching a hardcoded code
     if ("ABC123".equals(code)) {
-      return Optional.of(1); // Return user ID (or any identifier you need)
+      return Optional.of(1);
     }
     return Optional.empty();
   }

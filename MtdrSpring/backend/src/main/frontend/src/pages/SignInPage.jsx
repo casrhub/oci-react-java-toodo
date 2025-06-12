@@ -1,4 +1,3 @@
-// src/pages/SignInPage.jsx
 import React, { useState } from 'react';
 import { Box, Button, Paper, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +17,6 @@ export default function SignInPage() {
     setLoading(true);
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, pass);
-      // role lookup
       const snap = await getDoc(doc(db, 'roles', user.uid));
       const role = snap.exists() ? snap.data().role : null;
       nav(role === 'manager' ? '/manager/tasks' : '/dev/tasks', { replace: true });

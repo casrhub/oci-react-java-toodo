@@ -27,8 +27,7 @@ public class Usuarios {
   @Column(name = "TELEGRAM_CHAT_ID")
   private Long telegramChatId;
 
-  // Getters and Setters
-  @JsonProperty("usuario_id") // para que los tests lo mappeen a como lo regresa el json
+  @JsonProperty("usuario_id")
   public Integer getId() {
     return id;
   }

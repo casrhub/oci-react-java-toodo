@@ -34,7 +34,6 @@ public class SubTarea {
 
   private OffsetDateTime deadline;
 
-  // Getters and setters
   public Long getSubTareaId() {
     return subTareaId;
   }

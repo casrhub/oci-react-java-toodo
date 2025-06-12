@@ -7,20 +7,20 @@ spec:
   selector:
     matchLabels:
       app: todolistapp
-  template:                     # ← in template, not top level
+  template:
     metadata:
       labels:
         app: todolistapp
     spec:
       containers:
-      - name: todolist-container
-        image: casrhub/todolistapp-springboot:${IMAGE_TAG}
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 8080
-        env:
-        - name: TNS_ADMIN
-          value: /app/src/main/resources/wallet
+        - name: todolist-container
+          image: casrhub/todolistapp-springboot:${IMAGE_TAG}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TNS_ADMIN
+              value: /app/src/main/resources/wallet
 ---
 apiVersion: v1
 kind: Service

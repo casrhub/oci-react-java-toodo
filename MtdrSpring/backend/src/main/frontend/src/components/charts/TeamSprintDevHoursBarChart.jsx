@@ -12,7 +12,6 @@ import {
 import { CircularProgress, Typography } from '@mui/material';
 import { API_SPRINTS, API_TEAM_KPIS } from '../../api';
 
-// ─── Miembros (hard-codeados para Equipo 1) ──────────────────────────────────
 const teamMembers = [
   { id: 102, name: 'Cesar Alan Silva Ramos' },
   { id: 101, name: 'Jose Maria' },
@@ -23,10 +22,6 @@ const teamMembers = [
 
 const COLORS = ['#4fc3f7', '#81c784', '#ba68c8', '#ffd54f', '#ff8a65'];
 
-/**
- * ● Sin `usuarioId`  →  Gráfica de todas las barras (horas por developer).
- * ● Con  `usuarioId`  →  Gráfica de una sola barra (horas del developer).
- */
 function TeamSprintDevHoursBarChart({ equipoId = 1, usuarioId = null }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +35,6 @@ function TeamSprintDevHoursBarChart({ equipoId = 1, usuarioId = null }) {
 
         let results;
 
-        // ─── Vista de DEVELOPER ────────────────────────────────────────────
         if (usuarioId) {
           const member = teamMembers.find((m) => m.id === usuarioId);
           if (!member) throw new Error('Developer no encontrado en la lista local.');
@@ -58,9 +52,7 @@ function TeamSprintDevHoursBarChart({ equipoId = 1, usuarioId = null }) {
               };
             })
           );
-        }
-        // ─── Vista de EQUIPO (comportamiento original) ────────────────────
-        else {
+        } else {
           results = await Promise.all(
             sprints.map(async (sprint) => {
               const memberHours = await Promise.all(
@@ -97,7 +89,6 @@ function TeamSprintDevHoursBarChart({ equipoId = 1, usuarioId = null }) {
   if (loading) return <CircularProgress />;
   if (error) return <Typography color="error">Error loading chart: {error.message}</Typography>;
 
-  /* ────────────────────────────────────────────────────────────────────────── */
   return (
     <div style={{ margin: '2rem 0' }}>
       <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>

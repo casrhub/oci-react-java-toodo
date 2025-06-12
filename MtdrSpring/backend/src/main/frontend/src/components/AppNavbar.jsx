@@ -1,4 +1,3 @@
-// src/components/AppNavbar.jsx
 import React, { useState } from 'react';
 import { AppBar, Toolbar, Button, IconButton, Menu, MenuItem, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -40,7 +39,6 @@ export default function AppNavbar() {
 
         <Typography sx={{ flexGrow: 1 }} />
 
-        {/* Account menu */}
         <IconButton color="inherit" onClick={openMenu}>
           <LogOut />
         </IconButton>

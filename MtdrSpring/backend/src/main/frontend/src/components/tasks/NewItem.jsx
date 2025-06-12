@@ -1,21 +1,16 @@
-/* eslint-disable react/prop-types */      // ← IGNORA “missing in props validation”
+/* eslint-disable react/prop-types */
 /* eslint-disable @typescript-eslint/no-empty-function */
 import React, { useState } from 'react';
-import {
-  Box, TextField, FormControl,
-  InputLabel, Select, MenuItem, Button,
-} from '@mui/material';
+import { Box, TextField, FormControl, InputLabel, Select, MenuItem, Button } from '@mui/material';
 
 export default function NewItem({ addItem, isInserting, users }) {
-  /* ---- local state ---- */
   const [titulo, setTitulo] = useState('');
   const [descripcion, setDescripcion] = useState('');
-  const [usuarioId, setUsuarioId] = useState('');  // '' | '101'
-  const [equipoId, setEquipoId]   = useState('');
+  const [usuarioId, setUsuarioId] = useState('');
+  const [equipoId, setEquipoId] = useState('');
   const [proyectoId, setProyectoId] = useState('');
   const [horas, setHoras] = useState('');
 
-  /* ---- submit ---- */
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!titulo.trim() || !descripcion.trim() || usuarioId === '') return;
@@ -24,12 +19,11 @@ export default function NewItem({ addItem, isInserting, users }) {
       titulo,
       descripcion,
       Number(usuarioId),
-      equipoId   ? Number(equipoId)   : null,
+      equipoId ? Number(equipoId) : null,
       proyectoId ? Number(proyectoId) : null,
-      Number(horas) || 0,
+      Number(horas) || 0
     );
 
-    // reset
     setTitulo('');
     setDescripcion('');
     setUsuarioId('');
@@ -38,7 +32,6 @@ export default function NewItem({ addItem, isInserting, users }) {
     setHoras('');
   };
 
-  /* ---- UI ---- */
   return (
     <Box
       component="form"
@@ -67,9 +60,11 @@ export default function NewItem({ addItem, isInserting, users }) {
           label="Asignar a"
           onChange={(e) => setUsuarioId(e.target.value)}
           renderValue={(val) =>
-            val === ''
-              ? <em style={{ color: '#888' }}>Selecciona un dev…</em>
-              : users.find((u) => String(u.id) === val)?.nombre
+            val === '' ? (
+              <em style={{ color: '#888' }}>Selecciona un dev…</em>
+            ) : (
+              users.find((u) => String(u.id) === val)?.nombre
+            )
           }
         >
           <MenuItem value="">
@@ -103,11 +98,7 @@ export default function NewItem({ addItem, isInserting, users }) {
         onChange={(e) => setHoras(e.target.value)}
       />
 
-      <Button
-        type="submit"
-        variant="contained"
-        disabled={isInserting || usuarioId === ''}
-      >
+      <Button type="submit" variant="contained" disabled={isInserting || usuarioId === ''}>
         {isInserting ? 'Adding…' : 'Add'}
       </Button>
     </Box>

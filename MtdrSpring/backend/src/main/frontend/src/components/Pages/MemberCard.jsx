@@ -5,11 +5,7 @@ import './MemberCard.css';
 
 export default function MemberCard({ name, onClick }) {
   return (
-    <button /* accesible + evita div-onclick -> ESLint */
-      type="button"
-      className="member-card"
-      onClick={onClick}
-    >
+    <button type="button" className="member-card" onClick={onClick}>
       <CircleUserRound className="member-icon" />
       <span className="member-name">{name}</span>
     </button>
@@ -18,9 +14,11 @@ export default function MemberCard({ name, onClick }) {
 
 MemberCard.propTypes = {
   name: PropTypes.string.isRequired,
-  onClick: PropTypes.func,          // opcional
+  onClick: PropTypes.func,
 };
 
 MemberCard.defaultProps = {
-  onClick: () => {console.log("alog")},               // función “noop” segura
+  onClick: () => {
+    console.log('alog');
+  },
 };

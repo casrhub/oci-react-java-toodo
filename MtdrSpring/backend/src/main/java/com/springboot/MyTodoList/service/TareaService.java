@@ -1,4 +1,3 @@
-// src/main/java/com/springboot/MyTodoList/service/TareaService.java
 package com.springboot.MyTodoList.service;
 
 import com.springboot.MyTodoList.model.SubTarea;
@@ -19,8 +18,6 @@ public class TareaService {
 
   @Autowired private TareaRepository tareaRepository;
   @Autowired private SubTareaRepository subTareaRepository;
-
-  /* ---------------- Lectura / creación ---------------- */
 
   public List<Tarea> findAll() {
     return tareaRepository.findAll();
@@ -44,8 +41,6 @@ public class TareaService {
     createDefaultSubTareas(saved);
     return saved;
   }
-
-  /* ---------------- Sub-tareas por defecto ---------------- */
 
   private void createDefaultSubTareas(Tarea tarea) {
     BigDecimal estimated = tarea.getHorasEstimadas();
@@ -71,8 +66,6 @@ public class TareaService {
     }
   }
 
-  /* ---------------- Borrado ---------------- */
-
   public boolean deleteById(Long id) {
     if (tareaRepository.existsById(id)) {
       tareaRepository.deleteById(id);
@@ -80,8 +73,6 @@ public class TareaService {
     }
     return false;
   }
-
-  /* ---------------- Actualizaciones ---------------- */
 
   public Tarea update(Long id, Tarea newData) {
     return tareaRepository
@@ -135,8 +126,6 @@ public class TareaService {
             })
         .orElse(null);
   }
-
-  /* ---------------- KPIs: kpis-corregido ---------------- */
 
   public BigDecimal getHorasRealesByEquipoAndSprint(Long equipoId, Long sprintId) {
     return tareaRepository.sumHorasRealesByEquipoAndSprint(equipoId, sprintId);
@@ -192,8 +181,6 @@ public class TareaService {
   public Long countAsignedTareasByUsuarioAndSprint(Long usuarioId, Long sprintId) {
     return tareaRepository.countAsignedTareasByUsuarioAndSprint(usuarioId, sprintId);
   }
-
-  /* ---------------- KPIs: extra from dev ---------------- */
 
   public Map<String, Object> calculateUserKPIs(Long usuarioId) {
     List<Tarea> userTasks = findByUsuarioId(usuarioId);

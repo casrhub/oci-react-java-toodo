@@ -48,7 +48,6 @@ public class UsuarioService {
     return usuarioRepository.save(usuario);
   }
 
-  // nuevos para usar todos los atributos de la tabla y tener tests completos
   public List<Usuarios> findAll() {
     return usuarioRepository.findAll();
   }
@@ -58,10 +57,10 @@ public class UsuarioService {
   }
 
   public List<Usuarios> findByEquipoId(Integer equipoId) {
-    return usuarioRepository.findByEquipoId(equipoId); // para el get all users por team id
+    return usuarioRepository.findByEquipoId(equipoId);
   }
 
   public List<Usuarios> findByRol(String rol) {
-    return usuarioRepository.findByRol(rol); // para el get users by role
+    return usuarioRepository.findByRol(rol);
   }
 }

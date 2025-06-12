@@ -49,7 +49,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
   private TareaService tareaService;
 
-  // State tracker for awaiting commands
   private Map<Long, Long> pendingSprintTareaId = new HashMap<>();
 
   private Map<Long, String> sessionState = new HashMap<>();
@@ -62,7 +61,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
   private String botName;
   private UsuarioService usuarioService;
 
-  // for testing testDoneCommand_StoresTaskIdAndRequestsRealHours
   public Map<Long, Long> getPendingTaskIdTwo() {
     return pendingTaskIdTwo;
   }
@@ -80,7 +78,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
       String botToken,
       String botName,
       TareaService tareaService,
-      SprintService sprintService, // 🟢 Put SprintService here
+      SprintService sprintService,
       UsuarioService usuarioService,
       SubTareaService subTareaService) {
     super(botToken);
@@ -109,23 +107,18 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         List<KeyboardRow> keyboard = new ArrayList<>();
 
-        // first row
         KeyboardRow row = new KeyboardRow();
         row.add(BotLabels.LIST_ALL_ITEMS.getLabel());
         row.add(BotLabels.ADD_NEW_ITEM.getLabel());
-        // Add the first row to the keyboard
         keyboard.add(row);
 
-        // second row
         row = new KeyboardRow();
         row.add(BotLabels.SHOW_MAIN_SCREEN.getLabel());
         row.add(BotLabels.HIDE_MAIN_SCREEN.getLabel());
         keyboard.add(row);
 
-        // Set the keyboard
         keyboardMarkup.setKeyboard(keyboard);
 
-        // Add the keyboard markup
         messageToTelegram.setReplyMarkup(keyboardMarkup);
 
         try {
@@ -208,7 +201,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         List<KeyboardRow> keyboard = new ArrayList<>();
 
-        // command back to main screen
         KeyboardRow mainScreenRowTop = new KeyboardRow();
         mainScreenRowTop.add(BotLabels.SHOW_MAIN_SCREEN.getLabel());
         keyboard.add(mainScreenRowTop);
@@ -255,7 +247,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
           keyboard.add(currentRow);
         }
 
-        // command back to main screen
         KeyboardRow mainScreenRowBottom = new KeyboardRow();
         mainScreenRowBottom.add(BotLabels.SHOW_MAIN_SCREEN.getLabel());
         keyboard.add(mainScreenRowBottom);
@@ -279,20 +270,16 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
           SendMessage messageToTelegram = new SendMessage();
           messageToTelegram.setChatId(chatId);
           messageToTelegram.setText(BotMessages.TYPE_NEW_TODO_ITEM.getMessage());
-          // hide keyboard
           ReplyKeyboardRemove keyboardMarkup = new ReplyKeyboardRemove(true);
           messageToTelegram.setReplyMarkup(keyboardMarkup);
 
-          // send message
           execute(messageToTelegram);
 
         } catch (Exception e) {
           logger.error(e.getLocalizedMessage(), e);
         }
-        // deadline command
       } else if (messageTextFromTelegram.startsWith(BotCommands.SET_DEADLINE.getCommand())) {
         try {
-          // Example command format: "/setdeadline 123 2024-03-20T12:00:00Z"
           String[] parts = messageTextFromTelegram.split(" ");
           if (parts.length != 2) {
             BotHelper.sendMessageToTelegram(chatId, "Usage: /setdeadline <task_id>", this);
@@ -308,14 +295,11 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
         } catch (Exception e) {
           logger.error("Error setting deadline: " + e.getMessage(), e);
           BotHelper.sendMessageToTelegram(
-              chatId,
-              BotMessages.ERROR_SETTING_DEADLINE.getMessage(),
-              this); // This message comes from util/BotMessages
+              chatId, BotMessages.ERROR_SETTING_DEADLINE.getMessage(), this);
         }
-        // Wait for Time
       } else if (sessionState.get(chatId) != null
           && sessionState.get(chatId).equals("AWAITING_DATE")) {
-        pendingDate.put(chatId, messageTextFromTelegram); // Store date input
+        pendingDate.put(chatId, messageTextFromTelegram);
         sessionState.put(chatId, "AWAITING_TIME");
 
         BotHelper.sendMessageToTelegram(
@@ -326,24 +310,17 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
           String dateInput = pendingDate.get(chatId);
           String timeInput = messageTextFromTelegram;
 
-          // Convert to ISO format
           String[] dateParts = dateInput.split("-");
           String[] timeParts = timeInput.split(":");
 
           String isoDeadline =
               String.format(
                   "%s-%s-%sT%s:%s:00Z",
-                  dateParts[2],
-                  dateParts[1],
-                  dateParts[0], // Convert DD-MM-YYYY → YYYY-MM-DD
-                  timeParts[0],
-                  timeParts[1] // HH:MM
-                  );
+                  dateParts[2], dateParts[1], dateParts[0], timeParts[0], timeParts[1]);
 
           OffsetDateTime deadline = OffsetDateTime.parse(isoDeadline);
           int taskId = pendingTaskId.get(chatId);
 
-          // Save deadline in database
           ResponseEntity<ToDoItem> response = toDoItemService.updateDeadline(taskId, deadline);
           if (response.getStatusCode() == HttpStatus.OK) {
             BotHelper.sendMessageToTelegram(chatId, "✅ Deadline set successfully!", this);
@@ -351,7 +328,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             BotHelper.sendMessageToTelegram(chatId, "⚠️ Task not found.", this);
           }
 
-          // Clear session state
           sessionState.remove(chatId);
           pendingTaskId.remove(chatId);
           pendingDate.remove(chatId);
@@ -361,9 +337,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
               chatId, "❌ Error setting deadline. Please try again.", this);
           return;
         }
-      }
-      // Handle /link command
-      else if (messageTextFromTelegram.startsWith("/link")) {
+      } else if (messageTextFromTelegram.startsWith("/link")) {
         try {
           String[] parts = messageTextFromTelegram.split(" ");
           if (parts.length != 2) {
@@ -416,10 +390,10 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
           case "AWAITING_HOURS":
             int estimated = Integer.parseInt(messageTextFromTelegram);
-            data.put("horasEstimadas", Math.min(estimated, 4)); // Cap at 4h
+            data.put("horasEstimadas", Math.min(estimated, 4));
             if (estimated > 4) {
               data.put("remainingHours", estimated - 4);
-              data.put("needsSubtasks", true); // signal for later
+              data.put("needsSubtasks", true);
             }
             taskStep.put(chatId, "AWAITING_USER");
             BotHelper.sendMessageToTelegram(chatId, "👤 What's your user ID?", this);
@@ -450,13 +424,11 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
                   "⛏ Now let's break it into subtasks. Enter the first subtask title:",
                   this);
             } else {
-              // Proceed to create the task
               createTareaAndSubtasks(chatId, data);
             }
             break;
 
           case "AWAITING_SUBTASK_TITLE":
-            // Ask for subtask hours
             data.put("currentSubtaskTitle", messageTextFromTelegram);
             taskStep.put(chatId, "AWAITING_SUBTASK_HOURS");
             BotHelper.sendMessageToTelegram(chatId, "⌛ How many hours for this subtask?", this);
@@ -481,7 +453,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
                 BotHelper.sendMessageToTelegram(
                     chatId, "➕ Enter next subtask title (" + remaining + "h remaining):", this);
               } else {
-                createTareaAndSubtasks(chatId, data); // All subtasks collected
+                createTareaAndSubtasks(chatId, data);
               }
             } catch (NumberFormatException e) {
               BotHelper.sendMessageToTelegram(
@@ -521,7 +493,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
           payload.put("estado", "completado");
           payload.put("horasReales", realHours);
 
-          // Call your existing TareaController endpoint
           Tarea updated = tareaService.markAsComplete(taskId, "completado", realHours);
 
           if (updated != null) {
@@ -535,10 +506,9 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
           logger.error("❌ Failed to set real hours", e);
           BotHelper.sendMessageToTelegram(
               chatId, "❌ Invalid input. Please enter a number (e.g., 2.5)", this);
-          return; // Let them try again
+          return;
         }
 
-        // ✅ Clean up session state
         sessionState.remove(chatId);
         pendingTaskId.remove(chatId);
       } else if (messageTextFromTelegram.startsWith("/assignsprint")) {
@@ -586,7 +556,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             BotHelper.sendMessageToTelegram(chatId, "❌ Task not found.", this);
           }
 
-          // Clear session state
           sessionState.remove(chatId);
           pendingTaskIdTwo.remove(chatId);
         } catch (Exception e) {
@@ -605,7 +574,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             Tarea tarea = tareaOpt.get();
             tarea.setSprint(sprintOpt.get());
 
-            // ✅ Update status to "en progreso" if currently "pendiente"
             if ("pendiente".equalsIgnoreCase(tarea.getEstado())) {
               tarea.setEstado("en progreso");
             }
@@ -624,7 +592,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
                 chatId, "⚠️ Invalid TAREA_ID or SPRINT_ID. Please try again.", this);
           }
 
-          // Clear session
           sessionState.remove(chatId);
           pendingSprintTareaId.remove(chatId);
         } catch (Exception e) {
@@ -638,10 +605,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
           Long userId;
 
           if (parts.length > 1) {
-            // User ID provided in command
             userId = Long.parseLong(parts[1]);
           } else {
-            // Ask for user ID
             BotHelper.sendMessageToTelegram(
                 chatId, "Please provide your user ID: /mytasks <USER_ID>", this);
             return;
@@ -657,11 +622,9 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
           StringBuilder message = new StringBuilder();
           message.append("📋 Tasks for user ").append(userId).append(":\n\n");
 
-          // Group tasks by status
           Map<String, List<Tarea>> tasksByStatus =
               userTasks.stream().collect(Collectors.groupingBy(Tarea::getEstado));
 
-          // Show pending tasks first
           if (tasksByStatus.containsKey("pendiente")) {
             message.append("⏳ PENDING:\n");
             tasksByStatus
@@ -675,7 +638,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             message.append("\n");
           }
 
-          // Then in progress
           if (tasksByStatus.containsKey("en progreso")) {
             message.append("🔄 IN PROGRESS:\n");
             tasksByStatus
@@ -689,7 +651,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             message.append("\n");
           }
 
-          // Finally completed
           if (tasksByStatus.containsKey("completado")) {
             message.append("✅ COMPLETED:\n");
             tasksByStatus
@@ -720,10 +681,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
           Long userId;
 
           if (parts.length > 1) {
-            // User ID provided in command
             userId = Long.parseLong(parts[1]);
           } else {
-            // Ask for user ID
             BotHelper.sendMessageToTelegram(
                 chatId, "Please provide your user ID: /kpi <USER_ID>", this);
             return;
@@ -739,7 +698,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
           StringBuilder message = new StringBuilder();
           message.append("📊 KPI Report for User ").append(userId).append("\n\n");
 
-          // Task Statistics
           message.append("📈 TASK STATISTICS\n");
           message.append(String.format("Total Tasks: %d\n", kpis.get("totalTasks")));
           message.append(String.format("├─ Completed: %d\n", kpis.get("completedTasks")));
@@ -747,7 +705,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
           message.append(String.format("└─ Pending: %d\n", kpis.get("pendingTasks")));
           message.append("\n");
 
-          // Time Statistics
           message.append("⏱ TIME STATISTICS\n");
           message.append(
               String.format(
@@ -758,7 +715,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
                   "Total Real Hours: %.1f\n",
                   ((BigDecimal) kpis.get("totalRealHours")).doubleValue()));
 
-          // For completed tasks
           BigDecimal completedEstimated = (BigDecimal) kpis.get("completedEstimatedHours");
           BigDecimal completedReal = (BigDecimal) kpis.get("completedRealHours");
           message.append("\n📝 COMPLETED TASKS METRICS\n");
@@ -766,14 +722,12 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
               String.format("Estimated Hours: %.1f\n", completedEstimated.doubleValue()));
           message.append(String.format("Real Hours: %.1f\n", completedReal.doubleValue()));
 
-          // Efficiency calculation
           if (completedEstimated.compareTo(BigDecimal.ZERO) > 0) {
             double efficiency =
                 (completedEstimated.doubleValue() / completedReal.doubleValue()) * 100;
             message.append(String.format("Efficiency Rate: %.1f%%\n", efficiency));
           }
 
-          // Completion Rate
           message.append(
               String.format("\n✅ Completion Rate: %.1f%%\n", kpis.get("completionRate")));
 
@@ -792,20 +746,16 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
           Integer equipoId;
 
           if (parts.length > 1) {
-            // Team ID provided in command
             equipoId = Integer.parseInt(parts[1]);
           } else {
-            // Ask for team ID
             BotHelper.sendMessageToTelegram(
                 chatId, "Please provide your team ID: /teamsprintstats <TEAM_ID>", this);
             return;
           }
 
-          // Debug: Log all tasks first
           List<Tarea> allTasksFromDB = tareaService.findAll();
           logger.info("Total tasks in DB: {}", allTasksFromDB.size());
 
-          // Debug: Log tasks with equipoId
           allTasksFromDB.forEach(
               task -> {
                 logger.info(
@@ -815,7 +765,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
                     task.getEstado());
               });
 
-          // Get all tasks and filter by team
           List<Tarea> allTasks =
               allTasksFromDB.stream()
                   .filter(
@@ -843,11 +792,9 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             return;
           }
 
-          // Group tasks by sprint
           Map<Integer, Map<Integer, Integer>> sprintStats = new HashMap<>();
           Map<Integer, Map<Integer, Integer>> noSprintStats = new HashMap<>();
 
-          // Initialize no sprint stats
           noSprintStats.put(0, new HashMap<>());
 
           for (Tarea task : allTasks) {
@@ -867,11 +814,9 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             userStats.merge(userId, 1, Integer::sum);
           }
 
-          // Build the message
           StringBuilder message = new StringBuilder();
           message.append("📊 Team Sprint Statistics\n\n");
 
-          // First show tasks with sprints
           if (!sprintStats.isEmpty()) {
             for (Map.Entry<Integer, Map<Integer, Integer>> sprintEntry : sprintStats.entrySet()) {
               Integer sprintId = sprintEntry.getKey();
@@ -897,7 +842,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
             }
           }
 
-          // Then show tasks without sprint
           if (!noSprintStats.isEmpty() && !noSprintStats.get(0).isEmpty()) {
             message.append("No Sprint Assigned:\n");
             Map<Integer, Integer> noSprintUserStats = noSprintStats.get(0);
@@ -1041,12 +985,10 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     return botName;
   }
 
-  // GET /todolist
   public List<Tarea> getAllTareas() {
     return tareaService.findAll();
   }
 
-  // GET BY ID /todolist/{id}
   public ResponseEntity<ToDoItem> getToDoItemById(@PathVariable int id) {
     try {
       ResponseEntity<ToDoItem> responseEntity = toDoItemService.getItemById(id);
@@ -1057,18 +999,15 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     }
   }
 
-  // PUT /todolist
   public ResponseEntity<ToDoItem> addToDoItem(@RequestBody ToDoItem todoItem) throws Exception {
     ToDoItem td = toDoItemService.addToDoItem(todoItem);
     HttpHeaders responseHeaders = new HttpHeaders();
     responseHeaders.set("location", "" + td.getID());
     responseHeaders.set("Access-Control-Expose-Headers", "location");
-    // URI location = URI.create(""+td.getID())
 
     return ResponseEntity.ok().headers(responseHeaders).build();
   }
 
-  // UPDATE /todolist/{id}
   public ResponseEntity<ToDoItem> updateToDoItem(
       @RequestBody ToDoItem toDoItem, @PathVariable int id) {
     try {
@@ -1081,7 +1020,6 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
     }
   }
 
-  // DELETE todolist/{id}
   public ResponseEntity<Boolean> deleteToDoItem(@PathVariable("id") int id) {
     Boolean flag = false;
     try {

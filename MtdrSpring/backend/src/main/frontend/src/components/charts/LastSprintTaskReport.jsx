@@ -1,14 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { CircularProgress, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import {
+  CircularProgress,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from '@mui/material';
 import { API_SPRINTS } from '../../api';
 
-// Hardcoded team members for Equipo 1 (same as in other components)
 const teamMembers = [
   { id: 102, name: 'Cesar Alan Silva Ramos' },
   { id: 101, name: 'Jose Maria' },
   { id: 104, name: 'Miguel Angel Barrientos Ballesteros' },
   { id: 100, name: 'Diego Iván Morales Gallardo' },
-  { id: 103, name: 'Fernanda Díaz Gutiérrez' }
+  { id: 103, name: 'Fernanda Díaz Gutiérrez' },
 ];
 
 function LastSprintTaskReport({ sprintId: propSprintId }) {
@@ -24,30 +33,27 @@ function LastSprintTaskReport({ sprintId: propSprintId }) {
         let sprintName = '';
         let tareas = [];
         if (!sprintId) {
-          // Fetch all sprints and get the last one
           const sprintsRes = await fetch(API_SPRINTS);
           const sprints = await sprintsRes.json();
           if (!Array.isArray(sprints) || sprints.length === 0) throw new Error('No sprints found');
           const lastSprint = sprints.reduce((a, b) => (a.sprintId > b.sprintId ? a : b));
           sprintId = lastSprint.sprintId;
         }
-        // Fetch the sprint to get its name and tasks
         const sprintRes = await fetch(`${API_SPRINTS}/${sprintId}`);
         const sprint = await sprintRes.json();
         sprintName = sprint.nombre ?? `Sprint ${sprint.sprintId}`;
         tareas = sprint.tareas || [];
-        
-        const tableRows = tareas.map(t => {
-          // Find the team member by ID
-          const teamMember = teamMembers.find(member => member.id === t.usuarioId);
+
+        const tableRows = tareas.map((t) => {
+          const teamMember = teamMembers.find((member) => member.id === t.usuarioId);
           return {
             taskName: t.titulo,
             developer: teamMember ? teamMember.name : `Usuario ${t.usuarioId}`,
             estimated: t.horasEstimadas,
-            actual: t.horasReales
+            actual: t.horasReales,
           };
         });
-        
+
         setSprintName(sprintName);
         setRows(tableRows);
       } catch (err) {
@@ -71,10 +77,18 @@ function LastSprintTaskReport({ sprintId: propSprintId }) {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell><strong>Task Name</strong></TableCell>
-              <TableCell><strong>Developer</strong></TableCell>
-              <TableCell><strong>Estimated Hours</strong></TableCell>
-              <TableCell><strong>Actual Hours</strong></TableCell>
+              <TableCell>
+                <strong>Task Name</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Developer</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Estimated Hours</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Actual Hours</strong>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -93,4 +107,4 @@ function LastSprintTaskReport({ sprintId: propSprintId }) {
   );
 }
 
-export default LastSprintTaskReport; 
+export default LastSprintTaskReport;

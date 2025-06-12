@@ -3,10 +3,6 @@ package com.springboot.MyTodoList.model;
 import java.time.OffsetDateTime;
 import javax.persistence.*;
 
-/*
-   Representation of the TODOITEM table that exists already
-   in the autonomous database.
-*/
 @Entity
 @Table(name = "TODOITEM")
 public class ToDoItem {
@@ -24,7 +20,7 @@ public class ToDoItem {
   boolean done;
 
   @Column(name = "DEADLINE", nullable = true)
-  OffsetDateTime deadline; // New deadline field
+  OffsetDateTime deadline;
 
   public ToDoItem() {}
 

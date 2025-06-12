@@ -32,7 +32,6 @@ public class Sprint {
   @com.fasterxml.jackson.annotation.JsonManagedReference
   private List<Tarea> tareas;
 
-  // Getters & Setters
   public Long getSprintId() {
     return sprintId;
   }

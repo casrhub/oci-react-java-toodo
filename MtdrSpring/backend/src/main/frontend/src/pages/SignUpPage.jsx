@@ -1,4 +1,3 @@
-// src/pages/SignUpPage.jsx
 import React, { useState } from 'react';
 import { Box, Button, MenuItem, Select, TextField, Typography, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -20,7 +19,6 @@ export default function SignUpPage() {
     try {
       const { user } = await createUserWithEmailAndPassword(auth, email, pass);
       await saveUserRole(user.uid, role);
-      // redirección tras registro
       nav(role === 'manager' ? '/manager/tasks' : '/dev/tasks', { replace: true });
     } catch (err) {
       setError(err.message);

@@ -1,5 +1,3 @@
-/* eslint-disable react/prop-types */
-/* eslint-disable @typescript-eslint/no-empty-function */
 import React, { useState, useEffect } from 'react';
 import {
   Table,
@@ -30,12 +28,14 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Moment from 'react-moment';
 
+import { useAuth } from '../context/AuthContext';
 import { useAuthFetch } from '../utils/authFetch';
 import { API_TAREAS, API_SUBTAREAS, API_USUARIOS } from '../api';
 import NewItem from '../components/tasks/NewItem';
 import AppNavbar from '../components/AppNavbar';
 
 export default function DevTasksPage() {
+  const { role, developerId } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -199,8 +199,12 @@ export default function DevTasksPage() {
       .catch(setError);
   };
 
-  const pending = tasks.filter((t) => t.estado !== 'completado');
-  const completed = tasks.filter((t) => t.estado === 'completado');
+  const pending = tasks.filter(
+    (t) => t.estado !== 'completado' && (role !== 'developer' || t.usuarioId === developerId)
+  );
+  const completed = tasks.filter(
+    (t) => t.estado === 'completado' && (role !== 'developer' || t.usuarioId === developerId)
+  );
 
   if (loading) return <CircularProgress sx={{ m: 4 }} />;
   if (error) return <Typography color="error">{String(error)}</Typography>;
@@ -226,14 +230,16 @@ export default function DevTasksPage() {
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
               <MenuItem onClick={() => setAnchorEl(null)}>No filters yet</MenuItem>
             </Menu>
-            <Button
-              startIcon={<AddIcon />}
-              variant="contained"
-              onClick={() => setNewDlg(true)}
-              sx={{ bgcolor: '#C74634', '&:hover': { bgcolor: '#b63f2e' } }}
-            >
-              Add Task
-            </Button>
+            {role !== 'developer' && (
+              <Button
+                startIcon={<AddIcon />}
+                variant="contained"
+                onClick={() => setNewDlg(true)}
+                sx={{ bgcolor: '#C74634', '&:hover': { bgcolor: '#b63f2e' } }}
+              >
+                Add Task
+              </Button>
+            )}
           </Box>
         </Toolbar>
 
@@ -271,12 +277,14 @@ export default function DevTasksPage() {
                               {t.deadline}
                             </Moment>
                           ) : (
-                            <Button
-                              size="small"
-                              onClick={() => setDeadlineDlg({ open: true, task: t, val: '' })}
-                            >
-                              Set
-                            </Button>
+                            role !== 'developer' && (
+                              <Button
+                                size="small"
+                                onClick={() => setDeadlineDlg({ open: true, task: t, val: '' })}
+                              >
+                                Set
+                              </Button>
+                            )
                           )}
                         </TableCell>
                         <TableCell>
@@ -380,13 +388,15 @@ export default function DevTasksPage() {
                         </Moment>
                       </TableCell>
                       <TableCell>
-                        <Button
-                          startIcon={<DeleteIcon />}
-                          color="error"
-                          onClick={() => deleteTask(t.tareaId)}
-                        >
-                          Delete
-                        </Button>
+                        {role !== 'developer' && (
+                          <Button
+                            startIcon={<DeleteIcon />}
+                            color="error"
+                            onClick={() => deleteTask(t.tareaId)}
+                          >
+                            Delete
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

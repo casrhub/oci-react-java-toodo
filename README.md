@@ -184,13 +184,3 @@ The service is now reachable at **[http://localhost:8080](http://localhost:8080)
 | **Build**        | JUnit (unit), Testcontainers (integration)                                              |
 | **Pipeline**     | OWASP ZAP Dynamic Scan                                                                  |
 | **Deploy**       | OCI DevOps builds and deploys with automatic image scanning to ensure secure production |
-
----
-
-## Contributing
-
-1. Clone the repository.
-2. Create a new branch from main (or the appropriate base branch) to work on your changes. Use a descriptive branch name like feature/add-kpi-dashboard or bugfix/fix-task-deletion.
-3. Follow **Conventional Commits** (`feat: add gantt chart view`).
-4. Write/extend tests → `mvn test` & `npm run test:e2e`.
-5. Open PR; the CI pipeline will test, build, scan, and deploy to the cloud.

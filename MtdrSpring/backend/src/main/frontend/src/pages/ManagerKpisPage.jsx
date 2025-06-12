@@ -1,31 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Button, Grid, Menu, MenuItem, Paper, Typography } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
-
+import { useAuth } from '../context/AuthContext';
 import AppNavbar from '../components/AppNavbar';
-
 import TeamSprintHoursBarChart from '../components/charts/TeamSprintHoursBarChart';
 import TeamSprintDevHoursBarChart from '../components/charts/TeamSprintDevHoursBarChart';
 import LastSprintTaskReport from '../components/charts/LastSprintTaskReport';
 import TeamSprintCompletedTasksChart from '../components/charts/TeamSprintCompletedTasksChart';
-
 import TeamTaskCharts from './TeamTaskCharts';
 import TeamKpiReport from './TeamKpiReport';
-
 import UserTaskCharts from './UserTaskCharts';
 import UserKpiReport from './UserKpiReport';
 
-function ManagerKpisPage() {
-  const teamMembers = [
-    { id: 102, name: 'Cesar Alan Silva Ramos' },
-    { id: 101, name: 'Jose Maria' },
-    { id: 104, name: 'Miguel Angel Barrientos Ballesteros' },
-    { id: 100, name: 'Diego Iván Morales Gallardo' },
-    { id: 103, name: 'Fernanda Díaz Gutiérrez' },
-  ];
+const teamMembers = [
+  { id: 102, name: 'Cesar Alan Silva Ramos' },
+  { id: 101, name: 'Jose Maria' },
+  { id: 104, name: 'Miguel Angel Barrientos Ballesteros' },
+  { id: 100, name: 'Diego Iván Morales Gallardo' },
+  { id: 103, name: 'Fernanda Díaz Gutiérrez' },
+];
 
+export default function ManagerKpisPage() {
+  const { role, developerId } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedDev, setSelectedDev] = useState(null);
+
+  useEffect(() => {
+    if (role === 'developer' && developerId) {
+      const dev = teamMembers.find((m) => m.id === developerId);
+      if (dev) setSelectedDev(dev);
+    }
+  }, [role, developerId]);
 
   const openMenu = (e) => setAnchorEl(e.currentTarget);
   const closeMenu = () => setAnchorEl(null);
@@ -57,21 +62,25 @@ function ManagerKpisPage() {
             {selectedDev ? `KPIs — ${selectedDev.name}` : 'KPIs del Equipo'}
           </Typography>
 
-          <Button startIcon={<FilterListIcon />} variant="outlined" onClick={openMenu}>
-            Filtrar por developer
-          </Button>
+          {role !== 'developer' && (
+            <Button startIcon={<FilterListIcon />} variant="outlined" onClick={openMenu}>
+              Filtrar por developer
+            </Button>
+          )}
 
-          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={closeMenu}>
-            <MenuItem onClick={clearFilter}>Todo el equipo</MenuItem>
-            {teamMembers.map((m) => (
-              <MenuItem key={m.id} onClick={() => selectDev(m)}>
-                {m.name}
-              </MenuItem>
-            ))}
-          </Menu>
+          {role !== 'developer' && (
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={closeMenu}>
+              <MenuItem onClick={clearFilter}>Todo el equipo</MenuItem>
+              {teamMembers.map((m) => (
+                <MenuItem key={m.id} onClick={() => selectDev(m)}>
+                  {m.name}
+                </MenuItem>
+              ))}
+            </Menu>
+          )}
         </Box>
 
-        {!selectedDev && (
+        {!selectedDev && role !== 'developer' && (
           <>
             <Grid container spacing={4}>
               <Grid item xs={12} md={6}>
@@ -130,5 +139,3 @@ function ManagerKpisPage() {
     </>
   );
 }
-
-export default ManagerKpisPage;

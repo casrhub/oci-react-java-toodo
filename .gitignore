@@ -144,7 +144,6 @@ MtdrSpring/backend/log*
 MtdrSpring/backend/target/
 MtdrSpring/backend/build/
 MtdrSpring/backend/node_modules/
-MtdrSpring/backend/src/main/resources/application.properties
 
 **/target/
 **/build/

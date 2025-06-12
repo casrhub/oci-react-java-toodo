@@ -172,6 +172,7 @@ The service is now reachable at **[http://localhost:8080](http://localhost:8080)
 
 - **CI/CD Logs**
   In both our GitHub Actions workflows and OCI DevOps pipelines, every build, test, security-scan, and deployment step emits its logs to the pipeline UI. Logs are automatically captured and made available in each run, so you can inspect the output of any stage—right from the GitHub Actions run view or the OCI DevOps build/deploy dashboard.
+  
 
 ---
 

@@ -31,7 +31,7 @@ export default function SignInPage() {
     <Box sx={{ mt: 6, display: 'flex', justifyContent: 'center' }}>
       <Paper sx={{ p: 4, minWidth: 320, textAlign: 'center' }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>
-          Bienvenido
+          Bienvenidos
         </Typography>
         <Typography variant="h5" gutterBottom>
           Iniciar sesión

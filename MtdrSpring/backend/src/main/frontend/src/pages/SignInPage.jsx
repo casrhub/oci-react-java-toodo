@@ -1,4 +1,3 @@
-// src/pages/SignInPage.jsx
 import React, { useState } from 'react';
 import { Box, Button, Paper, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +17,6 @@ export default function SignInPage() {
     setLoading(true);
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, pass);
-      // role lookup
       const snap = await getDoc(doc(db, 'roles', user.uid));
       const role = snap.exists() ? snap.data().role : null;
       nav(role === 'manager' ? '/manager/tasks' : '/dev/tasks', { replace: true });
@@ -30,7 +28,10 @@ export default function SignInPage() {
 
   return (
     <Box sx={{ mt: 6, display: 'flex', justifyContent: 'center' }}>
-      <Paper sx={{ p: 4, minWidth: 320 }}>
+      <Paper sx={{ p: 4, minWidth: 320, textAlign: 'center' }}>
+        <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>
+          Welcome
+        </Typography>
         <Typography variant="h5" gutterBottom>
           Sign In
         </Typography>

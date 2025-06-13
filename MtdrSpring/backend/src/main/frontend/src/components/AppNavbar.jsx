@@ -1,4 +1,3 @@
-// src/components/AppNavbar.jsx
 import React, { useState } from 'react';
 import { AppBar, Toolbar, Button, IconButton, Menu, MenuItem, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -25,7 +24,7 @@ export default function AppNavbar() {
           { label: 'Tasks', path: '/manager/tasks' },
         ]
       : [
-          { label: 'KPIs', path: '/kpis' },
+          { label: 'KPIs', path: '/dev/kpis' },
           { label: 'Tasks', path: '/dev/tasks' },
         ];
 
@@ -40,7 +39,6 @@ export default function AppNavbar() {
 
         <Typography sx={{ flexGrow: 1 }} />
 
-        {/* Account menu */}
         <IconButton color="inherit" onClick={openMenu}>
           <LogOut />
         </IconButton>

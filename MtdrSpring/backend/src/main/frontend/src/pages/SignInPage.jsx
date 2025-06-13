@@ -1,3 +1,4 @@
+// File: MtdrSpring/backend/src/main/frontend/src/pages/SignInPage.jsx
 import React, { useState } from 'react';
 import { Box, Button, Paper, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -30,10 +31,10 @@ export default function SignInPage() {
     <Box sx={{ mt: 6, display: 'flex', justifyContent: 'center' }}>
       <Paper sx={{ p: 4, minWidth: 320, textAlign: 'center' }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>
-          Welcome
+          Bienvenido
         </Typography>
         <Typography variant="h5" gutterBottom>
-          Sign In
+          Iniciar sesión
         </Typography>
         <Box
           component="form"
@@ -41,7 +42,7 @@ export default function SignInPage() {
           sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
         >
           <TextField
-            label="Email"
+            label="Correo electrónico"
             type="email"
             required
             fullWidth
@@ -49,7 +50,7 @@ export default function SignInPage() {
             onChange={(e) => setEmail(e.target.value)}
           />
           <TextField
-            label="Password"
+            label="Contraseña"
             type="password"
             required
             fullWidth
@@ -57,11 +58,16 @@ export default function SignInPage() {
             onChange={(e) => setPass(e.target.value)}
           />
           {error && <Typography color="error">{error}</Typography>}
-          <Button type="submit" variant="contained" disabled={loading} sx={{ bgcolor: '#C74634' }}>
-            {loading ? 'Signing in…' : 'Sign In'}
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={loading}
+            sx={{ bgcolor: '#C74634', '&:hover': { bgcolor: '#b63f2e' } }}
+          >
+            {loading ? 'Iniciando sesión…' : 'Iniciar sesión'}
           </Button>
           <Button onClick={() => nav('/sign-up')} disabled={loading}>
-            Create account
+            Crear cuenta
           </Button>
         </Box>
       </Paper>

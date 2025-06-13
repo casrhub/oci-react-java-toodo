@@ -68,7 +68,8 @@ export default function LastSprintTaskReport({ sprintId: propSprintId, chartKey,
   }, [loading, onLoad, chartKey]);
 
   if (loading) return null;
-  if (error) return <Typography color="error">Error loading report: {error.message}</Typography>;
+  if (error)
+    return <Typography color="error">Error al cargar el reporte: {error.message}</Typography>;
 
   return (
     <div style={{ margin: '2rem 0' }}>
@@ -80,16 +81,16 @@ export default function LastSprintTaskReport({ sprintId: propSprintId, chartKey,
           <TableHead>
             <TableRow>
               <TableCell>
-                <strong>Task Name</strong>
+                <strong>Nombre de la tarea</strong>
               </TableCell>
               <TableCell>
-                <strong>Developer</strong>
+                <strong>Desarrollador</strong>
               </TableCell>
               <TableCell>
-                <strong>Estimated Hours</strong>
+                <strong>Horas estimadas</strong>
               </TableCell>
               <TableCell>
-                <strong>Actual Hours</strong>
+                <strong>Horas reales</strong>
               </TableCell>
             </TableRow>
           </TableHead>

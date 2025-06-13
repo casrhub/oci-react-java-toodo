@@ -94,12 +94,15 @@ export default function TeamSprintDevHoursBarChart({
   }, [loading, onLoad, chartKey]);
 
   if (loading) return null;
-  if (error) return <Typography color="error">Error loading chart: {error.message}</Typography>;
+  if (error)
+    return <Typography color="error">Error al cargar la gráfica: {error.message}</Typography>;
 
   return (
     <div style={{ margin: '2rem 0' }}>
       <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-        {usuarioId ? 'Horas Trabajadas por Sprint' : 'Horas Trabajadas por Developer por Sprint'}
+        {usuarioId
+          ? 'Horas trabajadas por sprint'
+          : 'Horas trabajadas por desarrollador por sprint'}
       </Typography>
       <ResponsiveContainer width="100%" height={340}>
         <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>

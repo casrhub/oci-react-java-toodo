@@ -1,4 +1,4 @@
-// src/pages/ManagerInsightsPage.jsx
+// File: MtdrSpring/backend/src/main/frontend/src/pages/ManagerInsightsPage.jsx
 import React from 'react';
 import { Box, Typography, Paper, Grid } from '@mui/material';
 import AppNavbar from '../components/AppNavbar';
@@ -14,7 +14,7 @@ function ManagerInsightsPage() {
 
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold' }}>
-          Insights del Equipo
+          Perspectivas del gerente
         </Typography>
 
         <Grid container spacing={4}>

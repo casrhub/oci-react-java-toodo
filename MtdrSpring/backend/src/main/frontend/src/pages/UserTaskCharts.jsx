@@ -1,3 +1,4 @@
+// File: MtdrSpring/backend/src/main/frontend/src/pages/UserTaskCharts.jsx
 import React, { useEffect, useState, useRef } from 'react';
 import {
   BarChart,
@@ -18,14 +19,19 @@ export default function UserTaskCharts({ usuarioId, chartKey, onLoad }) {
   const loadedRef = useRef(false);
 
   useEffect(() => {
-    fetch(`${API_USER_KPIS}${usuarioId}/summary`)
-      .then(async (r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    (async () => {
+      try {
+        const r = await fetch(`${API_USER_KPIS}${usuarioId}/summary`);
+        if (!r.ok) throw new Error(`Error HTTP ${r.status}`);
         const ct = r.headers.get('content-type') || '';
-        return ct.includes('application/json') ? r.json() : Promise.reject('Non-JSON');
-      })
-      .then(setSummary)
-      .catch(setErr);
+        const payload = ct.includes('application/json')
+          ? await r.json()
+          : Promise.reject('No es JSON');
+        setSummary(payload);
+      } catch (e) {
+        setErr(e);
+      }
+    })();
   }, [usuarioId]);
 
   useEffect(() => {
@@ -46,16 +52,16 @@ export default function UserTaskCharts({ usuarioId, chartKey, onLoad }) {
 
   const data = [
     {
-      name: 'Tareas Completadas',
-      'Antes del deadline': summary.completadasAntes,
-      'Después del deadline': summary.completadasDespues,
+      name: 'Tareas completadas',
+      'Antes de la fecha límite': summary.completadasAntes,
+      'Después de la fecha límite': summary.completadasDespues,
     },
   ];
 
   return (
     <div style={{ marginTop: '2rem' }}>
       <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-        Tareas Completadas (Antes vs. Después del Deadline)
+        Tareas completadas (antes vs. después de la fecha límite)
       </Typography>
       <ResponsiveContainer width="100%" height={260}>
         <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
@@ -64,9 +70,14 @@ export default function UserTaskCharts({ usuarioId, chartKey, onLoad }) {
           <YAxis allowDecimals={false} />
           <Tooltip />
           <Legend />
-          <Bar dataKey="Antes del deadline" fill="#2EAD5F" barSize={40} isAnimationActive={false} />
           <Bar
-            dataKey="Después del deadline"
+            dataKey="Antes de la fecha límite"
+            fill="#2EAD5F"
+            barSize={40}
+            isAnimationActive={false}
+          />
+          <Bar
+            dataKey="Después de la fecha límite"
             fill="#C74634"
             barSize={40}
             isAnimationActive={false}

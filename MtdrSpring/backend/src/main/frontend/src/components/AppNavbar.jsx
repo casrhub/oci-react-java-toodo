@@ -21,11 +21,11 @@ export default function AppNavbar() {
     role === 'manager'
       ? [
           { label: 'KPIs', path: '/manager/kpis' },
-          { label: 'Tasks', path: '/manager/tasks' },
+          { label: 'Tareas', path: '/manager/tasks' },
         ]
       : [
           { label: 'KPIs', path: '/dev/kpis' },
-          { label: 'Tasks', path: '/dev/tasks' },
+          { label: 'Tareas', path: '/dev/tasks' },
         ];
 
   return (
@@ -49,7 +49,7 @@ export default function AppNavbar() {
               closeMenu();
             }}
           >
-            Log out
+            Cerrar sesión
           </MenuItem>
         </Menu>
       </Toolbar>

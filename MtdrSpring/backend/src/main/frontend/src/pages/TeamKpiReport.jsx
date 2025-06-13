@@ -1,3 +1,4 @@
+// File: MtdrSpring/backend/src/main/frontend/src/pages/TeamKpiReport.jsx
 import React, { useEffect, useState, useRef } from 'react';
 import {
   Table,
@@ -55,7 +56,9 @@ export default function TeamKpiReport({ equipoId, chartKey, onLoad }) {
   }, [loading, onLoad, chartKey]);
 
   if (loading) return null;
-  if (error) return <Typography color="error">Error loading report: {error.message}</Typography>;
+  if (error) {
+    return <Typography color="error">Error al cargar informe: {error.message}</Typography>;
+  }
 
   return (
     <div style={{ marginTop: '2rem' }}>

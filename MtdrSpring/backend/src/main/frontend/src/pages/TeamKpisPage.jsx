@@ -1,4 +1,4 @@
-// src/pages/TeamKpisPage.jsx
+// File: MtdrSpring/backend/src/main/frontend/src/pages/TeamKpisPage.jsx
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Button, Typography } from '@mui/material';
@@ -16,7 +16,7 @@ function TeamKpisPage() {
 
       <Box sx={{ p: 3 }}>
         <Button onClick={() => navigate(-1)} sx={{ mb: 2 }}>
-          ← Back
+          ← Volver
         </Button>
 
         <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 3 }}>

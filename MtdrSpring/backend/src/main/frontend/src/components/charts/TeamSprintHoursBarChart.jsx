@@ -49,12 +49,13 @@ export default function TeamSprintHoursBarChart({ equipoId = 1, chartKey, onLoad
   }, [loading, onLoad, chartKey]);
 
   if (loading) return null;
-  if (error) return <Typography color="error">Error loading chart: {error.message}</Typography>;
+  if (error)
+    return <Typography color="error">Error al cargar la gráfica: {error.message}</Typography>;
 
   return (
     <div style={{ margin: '2rem 0' }}>
       <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-        Gráfica 1: Horas Totales trabajadas por Sprint
+        Horas totales trabajadas por sprint
       </Typography>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
@@ -69,7 +70,7 @@ export default function TeamSprintHoursBarChart({ equipoId = 1, chartKey, onLoad
           <Bar
             dataKey="horas"
             fill="#8884d8"
-            name="Horas Trabajadas"
+            name="Horas trabajadas"
             barSize={40}
             isAnimationActive={false}
           />

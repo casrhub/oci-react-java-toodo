@@ -1,3 +1,4 @@
+// File: MtdrSpring/backend/src/main/frontend/src/pages/DevTasksPage.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Table,
@@ -237,7 +238,7 @@ export default function DevTasksPage() {
           }}
         >
           <Typography variant="h5" fontWeight="bold">
-            My Tasks
+            Mis tareas
           </Typography>
           {role !== 'developer' && (
             <Button
@@ -246,7 +247,7 @@ export default function DevTasksPage() {
               onClick={() => setNewDlg(true)}
               sx={{ bgcolor: '#C74634', '&:hover': { bgcolor: '#b63f2e' } }}
             >
-              Add Task
+              Agregar tarea
             </Button>
           )}
         </Toolbar>
@@ -257,14 +258,14 @@ export default function DevTasksPage() {
         )}
         {pending.length > 0 && (
           <>
-            <Typography variant="h6" sx={{ mt: 3 }}>
-              Pending
+            <Typography variant="h6" sx={{ mt: 3, fontWeight: 'bold' }}>
+              Pendientes
             </Typography>
             <TableContainer component={Paper} sx={{ mt: 1 }}>
               <Table size="small">
                 <TableHead sx={{ bgcolor: '#C74634' }}>
                   <TableRow>
-                    {['#', 'Title', 'Assignee', 'Status', 'Deadline', 'Actions'].map((h) => (
+                    {['#', 'Título', 'Asignado', 'Estado', 'Fecha límite', 'Acciones'].map((h) => (
                       <TableCell key={h} sx={{ color: 'white', fontWeight: 'bold' }}>
                         {h}
                       </TableCell>
@@ -281,7 +282,7 @@ export default function DevTasksPage() {
                         </TableCell>
                         <TableCell>{renderAssignee(t)}</TableCell>
                         <TableCell>
-                          {t.estado === 'en progreso' ? 'In Progress' : 'To Do'}
+                          {t.estado === 'en progreso' ? 'En progreso' : 'Por hacer'}
                         </TableCell>
                         <TableCell>
                           {t.deadline ? (
@@ -294,7 +295,7 @@ export default function DevTasksPage() {
                                 size="small"
                                 onClick={() => setDeadlineDlg({ open: true, task: t, val: '' })}
                               >
-                                Set
+                                Establecer
                               </Button>
                             )
                           )}
@@ -305,19 +306,19 @@ export default function DevTasksPage() {
                             variant="contained"
                             onClick={() => setCompleteDlg({ open: true, task: t, hours: '' })}
                           >
-                            Done
+                            Hecho
                           </Button>
                         </TableCell>
                       </TableRow>
                       {expanded === t.tareaId && (
                         <TableRow>
                           <TableCell colSpan={6} sx={{ bgcolor: '#fafafa' }}>
-                            <Typography variant="subtitle2">Description</Typography>
+                            <Typography variant="subtitle2">Descripción</Typography>
                             <Typography sx={{ whiteSpace: 'pre-wrap' }}>
                               {t.descripcion || '—'}
                             </Typography>
                             <Typography mt={2} variant="subtitle2">
-                              Sub-tasks
+                              Subtareas
                             </Typography>
                             {t.subTareas?.length ? (
                               <ul>
@@ -328,7 +329,7 @@ export default function DevTasksPage() {
                                 ))}
                               </ul>
                             ) : (
-                              <Typography>No subtasks</Typography>
+                              <Typography>Sin subtareas</Typography>
                             )}
                             <Box
                               component="form"
@@ -342,19 +343,19 @@ export default function DevTasksPage() {
                             >
                               <TextField
                                 size="small"
-                                label="Title"
+                                label="Título"
                                 value={newSubTitle}
                                 onChange={(e) => setNewSubTitle(e.target.value)}
                               />
                               <TextField
                                 size="small"
-                                label="Hours"
+                                label="Horas"
                                 type="number"
                                 value={newSubHours}
                                 onChange={(e) => setNewSubHours(e.target.value)}
                               />
                               <Button type="submit" variant="contained">
-                                Add
+                                Agregar
                               </Button>
                             </Box>
                           </TableCell>
@@ -369,20 +370,20 @@ export default function DevTasksPage() {
         )}
         {completed.length > 0 && (
           <>
-            <Typography variant="h6" sx={{ mt: 4 }}>
-              Completed
+            <Typography variant="h6" sx={{ mt: 4, fontWeight: 'bold' }}>
+              Completadas
             </Typography>
             <TableContainer component={Paper} sx={{ mt: 1 }}>
               <Table size="small">
                 <TableHead sx={{ bgcolor: '#C74634' }}>
                   <TableRow>
-                    {['#', 'Title', 'Assignee', 'Status', 'Deadline'].map((h) => (
+                    {['#', 'Título', 'Asignado', 'Estado', 'Fecha límite'].map((h) => (
                       <TableCell key={h} sx={{ color: 'white', fontWeight: 'bold' }}>
                         {h}
                       </TableCell>
                     ))}
                     {role !== 'developer' && (
-                      <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
+                      <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Acciones</TableCell>
                     )}
                   </TableRow>
                 </TableHead>
@@ -392,7 +393,7 @@ export default function DevTasksPage() {
                       <TableCell>{i + 1}</TableCell>
                       <TableCell>{t.titulo}</TableCell>
                       <TableCell>{renderAssignee(t)}</TableCell>
-                      <TableCell>Done</TableCell>
+                      <TableCell>Completado</TableCell>
                       <TableCell>
                         <Moment format="DD/MM/YYYY HH:mm" utc>
                           {t.deadline}
@@ -405,7 +406,7 @@ export default function DevTasksPage() {
                             color="error"
                             onClick={() => deleteTask(t.tareaId)}
                           >
-                            Delete
+                            Eliminar
                           </Button>
                         </TableCell>
                       )}
@@ -426,7 +427,7 @@ export default function DevTasksPage() {
           open={deadlineDlg.open}
           onClose={() => setDeadlineDlg({ open: false, task: null, val: '' })}
         >
-          <DialogTitle>Set Deadline</DialogTitle>
+          <DialogTitle>Establecer fecha límite</DialogTitle>
           <DialogContent>
             <TextField
               type="datetime-local"
@@ -437,7 +438,7 @@ export default function DevTasksPage() {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setDeadlineDlg({ open: false, task: null, val: '' })}>
-              Cancel
+              Cancelar
             </Button>
             <Button
               onClick={() => {
@@ -446,7 +447,7 @@ export default function DevTasksPage() {
                 setDeadlineDlg({ open: false, task: null, val: '' });
               }}
             >
-              Save
+              Guardar
             </Button>
           </DialogActions>
         </Dialog>
@@ -454,10 +455,10 @@ export default function DevTasksPage() {
           open={completeDlg.open}
           onClose={() => setCompleteDlg({ open: false, task: null, hours: '' })}
         >
-          <DialogTitle>Complete Task</DialogTitle>
+          <DialogTitle>Completar tarea</DialogTitle>
           <DialogContent>
             <TextField
-              label="Real hours"
+              label="Horas reales"
               type="number"
               fullWidth
               value={completeDlg.hours}
@@ -466,7 +467,7 @@ export default function DevTasksPage() {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setCompleteDlg({ open: false, task: null, hours: '' })}>
-              Cancel
+              Cancelar
             </Button>
             <Button
               onClick={() => {
@@ -474,20 +475,20 @@ export default function DevTasksPage() {
                 setCompleteDlg({ open: false, task: null, hours: '' });
               }}
             >
-              Confirm
+              Confirmar
             </Button>
           </DialogActions>
         </Dialog>
         {pendingSplit && (
           <Dialog open onClose={() => setPendingSplit(null)}>
-            <DialogTitle>Divide task into subtasks</DialogTitle>
+            <DialogTitle>Dividir tarea en subtareas</DialogTitle>
             <DialogContent>
               <Typography>
-                You still have {pendingSplit.remainingHours} h to assign to subtasks.
+                Aún tienes {pendingSplit.remainingHours} h para asignar a subtareas.
               </Typography>
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setPendingSplit(null)}>OK</Button>
+              <Button onClick={() => setPendingSplit(null)}>Aceptar</Button>
             </DialogActions>
           </Dialog>
         )}

@@ -1,3 +1,4 @@
+// File: MtdrSpring/backend/src/main/frontend/src/pages/ManagerKpisPage.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
@@ -133,14 +134,14 @@ export default function ManagerKpisPage() {
             gap: 2,
           }}
         >
-          <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+          <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
             {selectedDev ? `KPIs — ${selectedDev.name}` : 'KPIs del Equipo'}
           </Typography>
 
           {role !== 'developer' && (
             <>
               <Button startIcon={<FilterListIcon />} variant="outlined" onClick={openMenu}>
-                Filtrar por developer
+                Filtrar por desarrollador
               </Button>
               <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={closeMenu}>
                 <MenuItem onClick={clearFilter}>Todo el equipo</MenuItem>

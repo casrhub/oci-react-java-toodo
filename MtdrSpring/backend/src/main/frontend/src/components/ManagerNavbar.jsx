@@ -2,10 +2,6 @@ import React from 'react';
 import { AppBar, Toolbar, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
-/**
- * Barra fija para las páginas del manager.
- * (Se eliminó el botón de “Insights”.)
- */
 export default function ManagerNavbar() {
   const navigate = useNavigate();
 
@@ -16,7 +12,7 @@ export default function ManagerNavbar() {
           KPIs
         </Button>
         <Button color="inherit" onClick={() => navigate('/manager/tasks')}>
-          Tasks
+          Tareas
         </Button>
       </Toolbar>
     </AppBar>

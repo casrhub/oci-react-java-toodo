@@ -1,3 +1,4 @@
+// File: MtdrSpring/backend/src/main/frontend/src/pages/SignUpPage.jsx
 import React, { useState } from 'react';
 import {
   Box,
@@ -50,7 +51,7 @@ export default function SignUpPage() {
     <Box sx={{ mt: 6, display: 'flex', justifyContent: 'center' }}>
       <Paper sx={{ p: 4, minWidth: 320 }}>
         <Typography variant="h5" gutterBottom>
-          Create account
+          Crear cuenta
         </Typography>
 
         <Box
@@ -59,7 +60,7 @@ export default function SignUpPage() {
           sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
         >
           <TextField
-            label="Email"
+            label="Correo electrónico"
             type="email"
             required
             fullWidth
@@ -67,7 +68,7 @@ export default function SignUpPage() {
             onChange={(e) => setEmail(e.target.value)}
           />
           <TextField
-            label="Password"
+            label="Contraseña"
             type="password"
             required
             fullWidth
@@ -75,24 +76,24 @@ export default function SignUpPage() {
             onChange={(e) => setPass(e.target.value)}
           />
           <FormControl fullWidth size="small">
-            <InputLabel id="role-label">Role</InputLabel>
+            <InputLabel id="role-label">Rol</InputLabel>
             <Select
               labelId="role-label"
-              label="Role"
+              label="Rol"
               value={role}
               onChange={(e) => setRole(e.target.value)}
             >
-              <MenuItem value="developer">Developer</MenuItem>
-              <MenuItem value="manager">Manager</MenuItem>
+              <MenuItem value="developer">Desarrollador</MenuItem>
+              <MenuItem value="manager">Gerente</MenuItem>
             </Select>
           </FormControl>
 
           {role === 'developer' && (
             <FormControl fullWidth size="small">
-              <InputLabel id="dev-label">Developer</InputLabel>
+              <InputLabel id="dev-label">Desarrollador</InputLabel>
               <Select
                 labelId="dev-label"
-                label="Developer"
+                label="Desarrollador"
                 value={developerId}
                 onChange={(e) => setDeveloperId(e.target.value)}
                 required
@@ -112,13 +113,13 @@ export default function SignUpPage() {
             type="submit"
             variant="contained"
             disabled={loading || (role === 'developer' && developerId === '')}
-            sx={{ bgcolor: '#C74634' }}
+            sx={{ bgcolor: '#C74634', '&:hover': { bgcolor: '#b63f2e' } }}
           >
-            {loading ? 'Creating…' : 'Sign Up'}
+            {loading ? 'Creando…' : 'Crear cuenta'}
           </Button>
 
           <Button onClick={() => nav('/sign-in')} disabled={loading}>
-            Already have an account?
+            ¿Ya tienes una cuenta?
           </Button>
         </Box>
       </Paper>

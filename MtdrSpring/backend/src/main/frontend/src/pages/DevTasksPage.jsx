@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Table,
   TableHead,
@@ -27,7 +27,6 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Moment from 'react-moment';
-
 import { useAuth } from '../context/AuthContext';
 import { useAuthFetch } from '../utils/authFetch';
 import { API_TAREAS, API_SUBTAREAS, API_USUARIOS } from '../api';
@@ -38,26 +37,25 @@ export default function DevTasksPage() {
   const { role, developerId } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const [newDlg, setNewDlg] = useState(false);
   const [inserting, setInserting] = useState(false);
   const [deadlineDlg, setDeadlineDlg] = useState({ open: false, task: null, val: '' });
   const [completeDlg, setCompleteDlg] = useState({ open: false, task: null, hours: '' });
   const [pendingSplit, setPendingSplit] = useState(null);
-
   const [expanded, setExpanded] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
-
   const [newSubTitle, setNewSubTitle] = useState('');
   const [newSubHours, setNewSubHours] = useState('');
-
+  const [pageLoading, setPageLoading] = useState(true);
+  const failSafe = useRef(null);
   const authFetch = useAuthFetch();
 
-  useEffect(() => {
-    Promise.all([fetchTasks(), fetchUsers()]).finally(() => setLoading(false));
-  }, []);
+  const startLoading = () => {
+    setPageLoading(true);
+    if (failSafe.current) clearTimeout(failSafe.current);
+    failSafe.current = setTimeout(() => setPageLoading(false), 30000);
+  };
 
   const fetchTasks = () =>
     authFetch(API_TAREAS)
@@ -77,6 +75,11 @@ export default function DevTasksPage() {
         )
       )
       .catch(setError);
+
+  useEffect(() => {
+    startLoading();
+    Promise.all([fetchTasks(), fetchUsers()]).finally(() => setPageLoading(false));
+  }, []);
 
   const reloadOne = (id) =>
     authFetch(`${API_TAREAS}/${id}`)
@@ -206,19 +209,33 @@ export default function DevTasksPage() {
     (t) => t.estado === 'completado' && (role !== 'developer' || t.usuarioId === developerId)
   );
 
-  if (loading) return <CircularProgress sx={{ m: 4 }} />;
-  if (error) return <Typography color="error">{String(error)}</Typography>;
-
   return (
     <>
+      {pageLoading && (
+        <Box
+          sx={{
+            position: 'fixed',
+            inset: 0,
+            bgcolor: 'white',
+            zIndex: 9999,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <CircularProgress size={80} />
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            Cargando tareas, por favor espera…
+          </Typography>
+        </Box>
+      )}
       <AppNavbar />
-
-      <div style={{ padding: 16 }}>
+      <div style={{ padding: 16, visibility: pageLoading ? 'hidden' : 'visible' }}>
         <Toolbar sx={{ justifyContent: 'space-between' }}>
           <Typography variant="h5" fontWeight="bold">
             My Tasks
           </Typography>
-
           <Box display="flex" alignItems="center" gap={2}>
             <Button
               variant="outlined"
@@ -242,7 +259,11 @@ export default function DevTasksPage() {
             )}
           </Box>
         </Toolbar>
-
+        {error && (
+          <Typography color="error" sx={{ mt: 2 }}>
+            {String(error)}
+          </Typography>
+        )}
         {pending.length > 0 && (
           <>
             <Typography variant="h6" sx={{ mt: 3 }}>
@@ -297,7 +318,6 @@ export default function DevTasksPage() {
                           </Button>
                         </TableCell>
                       </TableRow>
-
                       {expanded === t.tareaId && (
                         <TableRow>
                           <TableCell colSpan={6} sx={{ bgcolor: '#fafafa' }}>
@@ -305,7 +325,6 @@ export default function DevTasksPage() {
                             <Typography sx={{ whiteSpace: 'pre-wrap' }}>
                               {t.descripcion || '—'}
                             </Typography>
-
                             <Typography mt={2} variant="subtitle2">
                               Sub-tasks
                             </Typography>
@@ -320,7 +339,6 @@ export default function DevTasksPage() {
                             ) : (
                               <Typography>No subtasks</Typography>
                             )}
-
                             <Box
                               component="form"
                               sx={{ display: 'flex', gap: 1, mt: 1, maxWidth: 400 }}
@@ -358,7 +376,6 @@ export default function DevTasksPage() {
             </TableContainer>
           </>
         )}
-
         {completed.length > 0 && (
           <>
             <Typography variant="h6" sx={{ mt: 4 }}>
@@ -405,14 +422,12 @@ export default function DevTasksPage() {
             </TableContainer>
           </>
         )}
-
         <Dialog open={newDlg} onClose={() => setNewDlg(false)} maxWidth="sm" fullWidth>
           <DialogTitle>Nueva Tarea</DialogTitle>
           <DialogContent>
             <NewItem addItem={addItem} isInserting={inserting} users={users} />
           </DialogContent>
         </Dialog>
-
         <Dialog
           open={deadlineDlg.open}
           onClose={() => setDeadlineDlg({ open: false, task: null, val: '' })}
@@ -441,7 +456,6 @@ export default function DevTasksPage() {
             </Button>
           </DialogActions>
         </Dialog>
-
         <Dialog
           open={completeDlg.open}
           onClose={() => setCompleteDlg({ open: false, task: null, hours: '' })}
@@ -470,7 +484,6 @@ export default function DevTasksPage() {
             </Button>
           </DialogActions>
         </Dialog>
-
         {pendingSplit && (
           <Dialog open onClose={() => setPendingSplit(null)}>
             <DialogTitle>Divide task into subtasks</DialogTitle>

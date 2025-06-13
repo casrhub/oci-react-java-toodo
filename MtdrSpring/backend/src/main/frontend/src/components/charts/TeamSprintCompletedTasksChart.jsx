@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   BarChart,
   Bar,
@@ -22,32 +22,37 @@ const teamMembers = [
 
 const COLORS = ['#4fc3f7', '#81c784', '#ba68c8', '#ffd54f', '#ff8a65'];
 
-export default function TeamSprintCompletedTasksChart({ equipoId = 1, usuarioId = null, onLoad }) {
+export default function TeamSprintCompletedTasksChart({
+  equipoId = 1,
+  usuarioId = null,
+  chartKey,
+  onLoad,
+}) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const loadedRef = useRef(false);
 
   useEffect(() => {
-    const fetchData = async () => {
+    (async () => {
       try {
-        const tasksRes = await fetch(API_TAREAS);
-        const allTasks = await tasksRes.json();
-        let tasks = allTasks.filter((t) => t.equipoId === equipoId);
-        if (usuarioId) tasks = tasks.filter((t) => t.usuarioId === usuarioId);
-        const bySprint = tasks.reduce((acc, task) => {
-          if (task.estado !== 'completado') return acc;
-          const sprintKey = task.sprintId != null ? `Sprint ${task.sprintId}` : 'Sin Sprint';
-          if (!acc[sprintKey]) {
-            acc[sprintKey] = { sprint: sprintKey };
+        const res = await fetch(API_TAREAS);
+        const tasks = await res.json();
+        let list = tasks.filter((t) => t.equipoId === equipoId && t.estado === 'completado');
+        if (usuarioId) list = list.filter((t) => t.usuarioId === usuarioId);
+        const bySprint = list.reduce((acc, t) => {
+          const k = t.sprintId != null ? `Sprint ${t.sprintId}` : 'Sin Sprint';
+          if (!acc[k]) {
+            acc[k] = { sprint: k };
             if (usuarioId) {
               const m = teamMembers.find((mm) => mm.id === usuarioId);
-              acc[sprintKey][m.name] = 0;
+              acc[k][m.name] = 0;
             } else {
-              teamMembers.forEach((m) => (acc[sprintKey][m.name] = 0));
+              teamMembers.forEach((m) => (acc[k][m.name] = 0));
             }
           }
-          const member = teamMembers.find((m) => m.id === task.usuarioId);
-          if (member) acc[sprintKey][member.name] += 1;
+          const member = teamMembers.find((m) => m.id === t.usuarioId);
+          if (member) acc[k][member.name] += 1;
           return acc;
         }, {});
         const result = Object.values(bySprint).sort((a, b) => {
@@ -61,15 +66,15 @@ export default function TeamSprintCompletedTasksChart({ equipoId = 1, usuarioId 
       } finally {
         setLoading(false);
       }
-    };
-    fetchData();
+    })();
   }, [equipoId, usuarioId]);
 
   useEffect(() => {
-    if (!loading && onLoad) {
-      onLoad();
+    if (!loading && !loadedRef.current) {
+      loadedRef.current = true;
+      if (onLoad) onLoad(chartKey);
     }
-  }, [loading, onLoad]);
+  }, [loading, onLoad, chartKey]);
 
   if (loading) return null;
   if (error) return <Typography color="error">Error loading chart: {error.message}</Typography>;
@@ -93,24 +98,24 @@ export default function TeamSprintCompletedTasksChart({ equipoId = 1, usuarioId 
           <Legend />
           {usuarioId
             ? (() => {
-                const member = teamMembers.find((m) => m.id === usuarioId);
-                const colorIndex = teamMembers.findIndex((m) => m.id === usuarioId);
+                const m = teamMembers.find((mm) => mm.id === usuarioId);
+                const idx = teamMembers.findIndex((mm) => mm.id === usuarioId);
                 return (
                   <Bar
-                    dataKey={member.name}
-                    fill={COLORS[colorIndex % COLORS.length]}
-                    name={member.name}
+                    dataKey={m.name}
+                    fill={COLORS[idx % COLORS.length]}
                     barSize={30}
+                    isAnimationActive={false}
                   />
                 );
               })()
-            : teamMembers.map((member, idx) => (
+            : teamMembers.map((m, idx) => (
                 <Bar
-                  key={member.id}
-                  dataKey={member.name}
+                  key={m.id}
+                  dataKey={m.name}
                   fill={COLORS[idx % COLORS.length]}
-                  name={member.name}
                   barSize={30}
+                  isAnimationActive={false}
                 />
               ))}
         </BarChart>

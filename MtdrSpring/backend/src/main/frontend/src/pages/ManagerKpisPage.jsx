@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Button,
@@ -33,9 +33,27 @@ export default function ManagerKpisPage() {
   const { role, developerId } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedDev, setSelectedDev] = useState(null);
-  const [loadedCount, setLoadedCount] = useState(0);
-  const totalCharts = selectedDev ? 4 : 6;
+  const [loadedKeys, setLoadedKeys] = useState(new Set());
   const [pageLoading, setPageLoading] = useState(true);
+  const failSafe = useRef(null);
+
+  const teamKeys = [
+    'teamHours',
+    'teamDevHours',
+    'teamCompleted',
+    'lastSprint',
+    'teamTasks',
+    'teamReport',
+  ];
+  const devKeys = ['devHours', 'devCompleted', 'userTasks', 'userReport'];
+  const expectedKeys = selectedDev ? devKeys : teamKeys;
+
+  const startLoading = () => {
+    setLoadedKeys(new Set());
+    setPageLoading(true);
+    if (failSafe.current) clearTimeout(failSafe.current);
+    failSafe.current = setTimeout(() => setPageLoading(false), 30000);
+  };
 
   useEffect(() => {
     if (role === 'developer' && developerId) {
@@ -45,52 +63,61 @@ export default function ManagerKpisPage() {
   }, [role, developerId]);
 
   useEffect(() => {
-    if (loadedCount === totalCharts) {
+    startLoading();
+  }, [selectedDev]);
+
+  useEffect(() => {
+    if (loadedKeys.size >= expectedKeys.length) {
+      if (failSafe.current) clearTimeout(failSafe.current);
       setPageLoading(false);
     }
-  }, [loadedCount, totalCharts]);
+  }, [loadedKeys, expectedKeys.length]);
 
-  const handleChartLoad = () => {
-    setLoadedCount((prev) => prev + 1);
-  };
+  const handleChartLoad = (key) =>
+    setLoadedKeys((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
 
   const openMenu = (e) => setAnchorEl(e.currentTarget);
   const closeMenu = () => setAnchorEl(null);
   const selectDev = (m) => {
+    startLoading();
     setSelectedDev(m);
     closeMenu();
   };
   const clearFilter = () => {
+    startLoading();
     setSelectedDev(null);
     closeMenu();
   };
 
   return (
     <>
+      {pageLoading && (
+        <Box
+          sx={{
+            position: 'fixed',
+            inset: 0,
+            bgcolor: 'white',
+            zIndex: 9999,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <CircularProgress size={80} />
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            Cargando KPIs, por favor espera…
+          </Typography>
+        </Box>
+      )}
+
       <AppNavbar />
-      <Box sx={{ position: 'relative', p: 3 }}>
-        {pageLoading && (
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              bgcolor: 'rgba(255,255,255,0.8)',
-              zIndex: 1,
-            }}
-          >
-            <CircularProgress size={80} />
-            <Typography variant="h6" sx={{ mt: 2 }}>
-              Cargando KPIs, por favor espera...
-            </Typography>
-          </Box>
-        )}
+
+      <Box sx={{ p: 3, visibility: pageLoading ? 'hidden' : 'visible' }}>
         <Box
           sx={{
             mb: 3,
@@ -104,68 +131,76 @@ export default function ManagerKpisPage() {
           <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
             {selectedDev ? `KPIs — ${selectedDev.name}` : 'KPIs del Equipo'}
           </Typography>
+
           {role !== 'developer' && (
-            <Button startIcon={<FilterListIcon />} variant="outlined" onClick={openMenu}>
-              Filtrar por developer
-            </Button>
-          )}
-          {role !== 'developer' && (
-            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={closeMenu}>
-              <MenuItem onClick={clearFilter}>Todo el equipo</MenuItem>
-              {teamMembers.map((m) => (
-                <MenuItem key={m.id} onClick={() => selectDev(m)}>
-                  {m.name}
-                </MenuItem>
-              ))}
-            </Menu>
+            <>
+              <Button startIcon={<FilterListIcon />} variant="outlined" onClick={openMenu}>
+                Filtrar por developer
+              </Button>
+              <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={closeMenu}>
+                <MenuItem onClick={clearFilter}>Todo el equipo</MenuItem>
+                {teamMembers.map((m) => (
+                  <MenuItem key={m.id} onClick={() => selectDev(m)}>
+                    {m.name}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </>
           )}
         </Box>
+
         {!selectedDev && role !== 'developer' && (
           <>
-            <Grid container spacing={6}>
+            <Grid container spacing={4}>
               <Grid item xs={12} md={6}>
                 <Paper elevation={3} sx={{ p: 3 }}>
-                  <TeamSprintHoursBarChart onLoad={handleChartLoad} />
+                  <TeamSprintHoursBarChart chartKey="teamHours" onLoad={handleChartLoad} />
                 </Paper>
               </Grid>
               <Grid item xs={12} md={6}>
                 <Paper elevation={3} sx={{ p: 3 }}>
-                  <TeamSprintDevHoursBarChart onLoad={handleChartLoad} />
+                  <TeamSprintDevHoursBarChart chartKey="teamDevHours" onLoad={handleChartLoad} />
                 </Paper>
               </Grid>
               <Grid item xs={12}>
                 <Paper elevation={3} sx={{ p: 3 }}>
-                  <TeamSprintCompletedTasksChart onLoad={handleChartLoad} />
+                  <TeamSprintCompletedTasksChart
+                    chartKey="teamCompleted"
+                    onLoad={handleChartLoad}
+                  />
                 </Paper>
               </Grid>
               <Grid item xs={12}>
                 <Paper elevation={3} sx={{ p: 3 }}>
-                  <LastSprintTaskReport onLoad={handleChartLoad} />
+                  <LastSprintTaskReport chartKey="lastSprint" onLoad={handleChartLoad} />
                 </Paper>
               </Grid>
             </Grid>
-            <Grid container spacing={6} sx={{ mt: 6 }}>
+
+            <Grid container spacing={4} sx={{ mt: 4 }}>
               <Grid item xs={12}>
                 <Paper elevation={3} sx={{ p: 3 }}>
-                  <TeamTaskCharts equipoId={1} onLoad={handleChartLoad} />
+                  <TeamTaskCharts equipoId={1} chartKey="teamTasks" onLoad={handleChartLoad} />
                 </Paper>
               </Grid>
               <Grid item xs={12}>
                 <Paper elevation={3} sx={{ p: 3 }}>
-                  <TeamKpiReport equipoId={1} onLoad={handleChartLoad} />
+                  <TeamKpiReport equipoId={1} chartKey="teamReport" onLoad={handleChartLoad} />
                 </Paper>
               </Grid>
             </Grid>
           </>
         )}
+
         {selectedDev && (
           <>
-            <Grid container spacing={6} sx={{ mb: 6 }}>
+            <Grid container spacing={4}>
               <Grid item xs={12} md={6}>
                 <Paper elevation={3} sx={{ p: 3 }}>
                   <TeamSprintDevHoursBarChart
                     equipoId={1}
                     usuarioId={selectedDev.id}
+                    chartKey="devHours"
                     onLoad={handleChartLoad}
                   />
                 </Paper>
@@ -175,20 +210,30 @@ export default function ManagerKpisPage() {
                   <TeamSprintCompletedTasksChart
                     equipoId={1}
                     usuarioId={selectedDev.id}
+                    chartKey="devCompleted"
                     onLoad={handleChartLoad}
                   />
                 </Paper>
               </Grid>
             </Grid>
-            <Grid container spacing={6}>
+
+            <Grid container spacing={4} sx={{ mt: 4 }}>
               <Grid item xs={12}>
                 <Paper elevation={3} sx={{ p: 3 }}>
-                  <UserTaskCharts usuarioId={selectedDev.id} onLoad={handleChartLoad} />
+                  <UserTaskCharts
+                    usuarioId={selectedDev.id}
+                    chartKey="userTasks"
+                    onLoad={handleChartLoad}
+                  />
                 </Paper>
               </Grid>
               <Grid item xs={12}>
                 <Paper elevation={3} sx={{ p: 3 }}>
-                  <UserKpiReport usuarioId={selectedDev.id} onLoad={handleChartLoad} />
+                  <UserKpiReport
+                    usuarioId={selectedDev.id}
+                    chartKey="userReport"
+                    onLoad={handleChartLoad}
+                  />
                 </Paper>
               </Grid>
             </Grid>

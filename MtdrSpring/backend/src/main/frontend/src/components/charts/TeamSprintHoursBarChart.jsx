@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   BarChart,
   Bar,
@@ -12,13 +12,14 @@ import {
 import { Typography } from '@mui/material';
 import { API_SPRINTS, API_TEAM_KPIS } from '../../api';
 
-export default function TeamSprintHoursBarChart({ equipoId = 1, onLoad }) {
+export default function TeamSprintHoursBarChart({ equipoId = 1, chartKey, onLoad }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const loadedRef = useRef(false);
 
   useEffect(() => {
-    const fetchData = async () => {
+    (async () => {
       try {
         const sprintRes = await fetch(API_SPRINTS);
         const sprints = await sprintRes.json();
@@ -28,10 +29,7 @@ export default function TeamSprintHoursBarChart({ equipoId = 1, onLoad }) {
               `${API_TEAM_KPIS}${equipoId}/sprint/${sprint.sprintId}/horas-trabajadas`
             );
             const horas = await horasRes.json();
-            return {
-              sprint: sprint.nombre ?? `Sprint ${sprint.sprintId}`,
-              horas: Number(horas),
-            };
+            return { sprint: sprint.nombre ?? `Sprint ${sprint.sprintId}`, horas: Number(horas) };
           })
         );
         setData(results);
@@ -40,15 +38,15 @@ export default function TeamSprintHoursBarChart({ equipoId = 1, onLoad }) {
       } finally {
         setLoading(false);
       }
-    };
-    fetchData();
+    })();
   }, [equipoId]);
 
   useEffect(() => {
-    if (!loading && onLoad) {
-      onLoad();
+    if (!loading && !loadedRef.current) {
+      loadedRef.current = true;
+      if (onLoad) onLoad(chartKey);
     }
-  }, [loading, onLoad]);
+  }, [loading, onLoad, chartKey]);
 
   if (loading) return null;
   if (error) return <Typography color="error">Error loading chart: {error.message}</Typography>;
@@ -68,7 +66,13 @@ export default function TeamSprintHoursBarChart({ equipoId = 1, onLoad }) {
           />
           <Tooltip />
           <Legend />
-          <Bar dataKey="horas" fill="#8884d8" name="Horas Trabajadas" barSize={40} />
+          <Bar
+            dataKey="horas"
+            fill="#8884d8"
+            name="Horas Trabajadas"
+            barSize={40}
+            isAnimationActive={false}
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>

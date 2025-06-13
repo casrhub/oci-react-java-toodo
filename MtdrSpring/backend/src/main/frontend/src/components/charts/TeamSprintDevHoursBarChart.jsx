@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   BarChart,
   Bar,
@@ -22,20 +22,26 @@ const teamMembers = [
 
 const COLORS = ['#4fc3f7', '#81c784', '#ba68c8', '#ffd54f', '#ff8a65'];
 
-export default function TeamSprintDevHoursBarChart({ equipoId = 1, usuarioId = null, onLoad }) {
+export default function TeamSprintDevHoursBarChart({
+  equipoId = 1,
+  usuarioId = null,
+  chartKey,
+  onLoad,
+}) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const loadedRef = useRef(false);
 
   useEffect(() => {
-    const fetchData = async () => {
+    (async () => {
       try {
         const sprintRes = await fetch(API_SPRINTS);
         const sprints = await sprintRes.json();
         let results;
         if (usuarioId) {
           const member = teamMembers.find((m) => m.id === usuarioId);
-          if (!member) throw new Error('Developer no encontrado en la lista local.');
+          if (!member) throw new Error('Developer no encontrado');
           results = await Promise.all(
             sprints.map(async (sprint) => {
               const res = await fetch(
@@ -61,7 +67,7 @@ export default function TeamSprintDevHoursBarChart({ equipoId = 1, usuarioId = n
                   return { [member.name]: Number(horas) };
                 })
               );
-              const sprintData = memberHours.reduce((acc, cur) => ({ ...acc, ...cur }), {});
+              const sprintData = memberHours.reduce((a, b) => ({ ...a, ...b }), {});
               return {
                 sprint: sprint.nombre ?? `Sprint ${sprint.sprintId}`,
                 sprintId: sprint.sprintId,
@@ -77,15 +83,15 @@ export default function TeamSprintDevHoursBarChart({ equipoId = 1, usuarioId = n
       } finally {
         setLoading(false);
       }
-    };
-    fetchData();
+    })();
   }, [equipoId, usuarioId]);
 
   useEffect(() => {
-    if (!loading && onLoad) {
-      onLoad();
+    if (!loading && !loadedRef.current) {
+      loadedRef.current = true;
+      if (onLoad) onLoad(chartKey);
     }
-  }, [loading, onLoad]);
+  }, [loading, onLoad, chartKey]);
 
   if (loading) return null;
   if (error) return <Typography color="error">Error loading chart: {error.message}</Typography>;
@@ -108,23 +114,23 @@ export default function TeamSprintDevHoursBarChart({ equipoId = 1, usuarioId = n
           {usuarioId
             ? (() => {
                 const member = teamMembers.find((m) => m.id === usuarioId);
-                const colorIndex = teamMembers.findIndex((m) => m.id === usuarioId);
+                const idx = teamMembers.findIndex((m) => m.id === usuarioId);
                 return (
                   <Bar
                     dataKey={member.name}
-                    fill={COLORS[colorIndex % COLORS.length]}
-                    name={member.name}
+                    fill={COLORS[idx % COLORS.length]}
                     barSize={30}
+                    isAnimationActive={false}
                   />
                 );
               })()
-            : teamMembers.map((member, idx) => (
+            : teamMembers.map((m, idx) => (
                 <Bar
-                  key={member.id}
-                  dataKey={member.name}
+                  key={m.id}
+                  dataKey={m.name}
                   fill={COLORS[idx % COLORS.length]}
-                  name={member.name}
                   barSize={30}
+                  isAnimationActive={false}
                 />
               ))}
         </BarChart>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Typography,
   Table,
@@ -19,53 +19,53 @@ const teamMembers = [
   { id: 103, name: 'Fernanda Díaz Gutiérrez' },
 ];
 
-export default function LastSprintTaskReport({ sprintId: propSprintId, onLoad }) {
+export default function LastSprintTaskReport({ sprintId: propSprintId, chartKey, onLoad }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [rows, setRows] = useState([]);
   const [sprintName, setSprintName] = useState('');
+  const loadedRef = useRef(false);
 
   useEffect(() => {
-    const fetchData = async () => {
+    (async () => {
       try {
         let sprintId = propSprintId;
         let tareas = [];
         if (!sprintId) {
-          const sprintsRes = await fetch(API_SPRINTS);
-          const sprints = await sprintsRes.json();
-          if (!Array.isArray(sprints) || sprints.length === 0) throw new Error('No sprints found');
+          const sRes = await fetch(API_SPRINTS);
+          const sprints = await sRes.json();
+          if (!Array.isArray(sprints) || !sprints.length) throw new Error('No sprints found');
           const lastSprint = sprints.reduce((a, b) => (a.sprintId > b.sprintId ? a : b));
           sprintId = lastSprint.sprintId;
         }
         const sprintRes = await fetch(`${API_SPRINTS}/${sprintId}`);
         const sprint = await sprintRes.json();
-        const nombre = sprint.nombre ?? `Sprint ${sprint.sprintId}`;
+        setSprintName(sprint.nombre ?? `Sprint ${sprint.sprintId}`);
         tareas = sprint.tareas || [];
         const tableRows = tareas.map((t) => {
-          const teamMember = teamMembers.find((member) => member.id === t.usuarioId);
+          const tm = teamMembers.find((m) => m.id === t.usuarioId);
           return {
             taskName: t.titulo,
-            developer: teamMember ? teamMember.name : `Usuario ${t.usuarioId}`,
+            developer: tm ? tm.name : `Usuario ${t.usuarioId}`,
             estimated: t.horasEstimadas,
             actual: t.horasReales,
           };
         });
-        setSprintName(nombre);
         setRows(tableRows);
       } catch (err) {
         setError(err);
       } finally {
         setLoading(false);
       }
-    };
-    fetchData();
+    })();
   }, [propSprintId]);
 
   useEffect(() => {
-    if (!loading && onLoad) {
-      onLoad();
+    if (!loading && !loadedRef.current) {
+      loadedRef.current = true;
+      if (onLoad) onLoad(chartKey);
     }
-  }, [loading, onLoad]);
+  }, [loading, onLoad, chartKey]);
 
   if (loading) return null;
   if (error) return <Typography color="error">Error loading report: {error.message}</Typography>;
@@ -94,12 +94,12 @@ export default function LastSprintTaskReport({ sprintId: propSprintId, onLoad })
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row, idx) => (
-              <TableRow key={idx}>
-                <TableCell>{row.taskName}</TableCell>
-                <TableCell>{row.developer}</TableCell>
-                <TableCell>{row.estimated}</TableCell>
-                <TableCell>{row.actual}</TableCell>
+            {rows.map((r, i) => (
+              <TableRow key={i}>
+                <TableCell>{r.taskName}</TableCell>
+                <TableCell>{r.developer}</TableCell>
+                <TableCell>{r.estimated}</TableCell>
+                <TableCell>{r.actual}</TableCell>
               </TableRow>
             ))}
           </TableBody>

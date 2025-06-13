@@ -93,6 +93,11 @@ export default function ManagerKpisPage() {
     closeMenu();
   };
 
+  const paperProps = {
+    elevation: 0,
+    sx: { p: 3, boxShadow: 'none', border: 'none', height: '100%' },
+  };
+
   return (
     <>
       {pageLoading && (
@@ -153,17 +158,17 @@ export default function ManagerKpisPage() {
           <>
             <Grid container spacing={4}>
               <Grid item xs={12} md={6}>
-                <Paper elevation={3} sx={{ p: 3 }}>
+                <Paper {...paperProps}>
                   <TeamSprintHoursBarChart chartKey="teamHours" onLoad={handleChartLoad} />
                 </Paper>
               </Grid>
               <Grid item xs={12} md={6}>
-                <Paper elevation={3} sx={{ p: 3 }}>
+                <Paper {...paperProps}>
                   <TeamSprintDevHoursBarChart chartKey="teamDevHours" onLoad={handleChartLoad} />
                 </Paper>
               </Grid>
               <Grid item xs={12}>
-                <Paper elevation={3} sx={{ p: 3 }}>
+                <Paper {...paperProps}>
                   <TeamSprintCompletedTasksChart
                     chartKey="teamCompleted"
                     onLoad={handleChartLoad}
@@ -171,7 +176,7 @@ export default function ManagerKpisPage() {
                 </Paper>
               </Grid>
               <Grid item xs={12}>
-                <Paper elevation={3} sx={{ p: 3 }}>
+                <Paper {...paperProps}>
                   <LastSprintTaskReport chartKey="lastSprint" onLoad={handleChartLoad} />
                 </Paper>
               </Grid>
@@ -179,12 +184,12 @@ export default function ManagerKpisPage() {
 
             <Grid container spacing={4} sx={{ mt: 4 }}>
               <Grid item xs={12}>
-                <Paper elevation={3} sx={{ p: 3 }}>
+                <Paper {...paperProps}>
                   <TeamTaskCharts equipoId={1} chartKey="teamTasks" onLoad={handleChartLoad} />
                 </Paper>
               </Grid>
               <Grid item xs={12}>
-                <Paper elevation={3} sx={{ p: 3 }}>
+                <Paper {...paperProps}>
                   <TeamKpiReport equipoId={1} chartKey="teamReport" onLoad={handleChartLoad} />
                 </Paper>
               </Grid>
@@ -196,7 +201,7 @@ export default function ManagerKpisPage() {
           <>
             <Grid container spacing={4}>
               <Grid item xs={12} md={6}>
-                <Paper elevation={3} sx={{ p: 3 }}>
+                <Paper {...paperProps}>
                   <TeamSprintDevHoursBarChart
                     equipoId={1}
                     usuarioId={selectedDev.id}
@@ -206,7 +211,7 @@ export default function ManagerKpisPage() {
                 </Paper>
               </Grid>
               <Grid item xs={12} md={6}>
-                <Paper elevation={3} sx={{ p: 3 }}>
+                <Paper {...paperProps}>
                   <TeamSprintCompletedTasksChart
                     equipoId={1}
                     usuarioId={selectedDev.id}
@@ -219,7 +224,7 @@ export default function ManagerKpisPage() {
 
             <Grid container spacing={4} sx={{ mt: 4 }}>
               <Grid item xs={12}>
-                <Paper elevation={3} sx={{ p: 3 }}>
+                <Paper {...paperProps}>
                   <UserTaskCharts
                     usuarioId={selectedDev.id}
                     chartKey="userTasks"
@@ -228,7 +233,7 @@ export default function ManagerKpisPage() {
                 </Paper>
               </Grid>
               <Grid item xs={12}>
-                <Paper elevation={3} sx={{ p: 3 }}>
+                <Paper {...paperProps}>
                   <UserKpiReport
                     usuarioId={selectedDev.id}
                     chartKey="userReport"

@@ -62,7 +62,7 @@ export default function UserKpiReport({ usuarioId, chartKey, onLoad }) {
       <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
         Reporte por Sprint
       </Typography>
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} elevation={0} sx={{ boxShadow: 'none', border: 'none' }}>
         <Table>
           <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
             <TableRow>

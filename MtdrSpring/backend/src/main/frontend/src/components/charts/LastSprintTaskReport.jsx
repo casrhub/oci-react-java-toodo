@@ -75,7 +75,7 @@ export default function LastSprintTaskReport({ sprintId: propSprintId, chartKey,
       <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
         Reporte de tareas del sprint ({sprintName})
       </Typography>
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} elevation={0} sx={{ boxShadow: 'none', border: 'none' }}>
         <Table>
           <TableHead>
             <TableRow>

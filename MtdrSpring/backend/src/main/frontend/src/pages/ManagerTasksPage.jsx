@@ -8,8 +8,6 @@ import {
   TableContainer,
   Paper,
   Button,
-  Menu,
-  MenuItem,
   Toolbar,
   Typography,
   Dialog,
@@ -21,9 +19,9 @@ import {
   FormControl,
   InputLabel,
   Select,
+  MenuItem,
   Box,
 } from '@mui/material';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Moment from 'react-moment';
@@ -41,7 +39,6 @@ export default function ManagerTasksPage() {
   const [completeDlg, setCompleteDlg] = useState({ open: false, task: null, hours: '' });
   const [pendingSplit, setPendingSplit] = useState(null);
   const [expanded, setExpanded] = useState(null);
-  const [anchorEl, setAnchorEl] = useState(null);
   const [newSubTitle, setNewSubTitle] = useState('');
   const [newSubHours, setNewSubHours] = useState('');
   const [pageLoading, setPageLoading] = useState(true);
@@ -224,9 +221,19 @@ export default function ManagerTasksPage() {
       )}
       <AppNavbar />
       <div style={{ padding: 16, visibility: pageLoading ? 'hidden' : 'visible' }}>
-        <Typography variant="h5" fontWeight="bold" sx={{ mb: 2 }}>
-          My Tasks
-        </Typography>
+        <Toolbar sx={{ justifyContent: 'space-between', mb: 2, px: 0 }}>
+          <Typography variant="h5" fontWeight="bold">
+            My Tasks
+          </Typography>
+          <Button
+            startIcon={<AddIcon />}
+            variant="contained"
+            onClick={() => setNewDlg(true)}
+            sx={{ bgcolor: '#C74634', '&:hover': { bgcolor: '#b63f2e' } }}
+          >
+            Add Task
+          </Button>
+        </Toolbar>
         {error && (
           <Typography color="error" sx={{ mb: 2 }}>
             {error.toString()}
@@ -234,34 +241,6 @@ export default function ManagerTasksPage() {
         )}
         {!error && (
           <>
-            <Toolbar sx={{ justifyContent: 'space-between' }}>
-              <Box />
-              <div>
-                <Button
-                  variant="outlined"
-                  startIcon={<FilterListIcon />}
-                  onClick={(e) => setAnchorEl(e.currentTarget)}
-                  sx={{ mr: 2 }}
-                >
-                  Filter
-                </Button>
-                <Menu
-                  anchorEl={anchorEl}
-                  open={Boolean(anchorEl)}
-                  onClose={() => setAnchorEl(null)}
-                >
-                  <MenuItem onClick={() => setAnchorEl(null)}>No filters yet</MenuItem>
-                </Menu>
-                <Button
-                  startIcon={<AddIcon />}
-                  variant="contained"
-                  onClick={() => setNewDlg(true)}
-                  sx={{ bgcolor: '#C74634', '&:hover': { bgcolor: '#b63f2e' } }}
-                >
-                  Add Task
-                </Button>
-              </div>
-            </Toolbar>
             {pending.length > 0 && (
               <>
                 <Typography variant="h6" sx={{ mt: 3 }}>
@@ -486,7 +465,6 @@ export default function ManagerTasksPage() {
             <DialogContent>
               <Typography>
                 You still have {pendingSplit.remainingHours} h to assign to subtasks.
-                (Implementación futura)
               </Typography>
             </DialogContent>
             <DialogActions>

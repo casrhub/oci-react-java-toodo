@@ -8,8 +8,6 @@ import {
   TableContainer,
   Paper,
   Button,
-  Menu,
-  MenuItem,
   Toolbar,
   Typography,
   Dialog,
@@ -21,9 +19,9 @@ import {
   FormControl,
   InputLabel,
   Select,
+  MenuItem,
   Box,
 } from '@mui/material';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Moment from 'react-moment';
@@ -44,7 +42,6 @@ export default function DevTasksPage() {
   const [completeDlg, setCompleteDlg] = useState({ open: false, task: null, hours: '' });
   const [pendingSplit, setPendingSplit] = useState(null);
   const [expanded, setExpanded] = useState(null);
-  const [anchorEl, setAnchorEl] = useState(null);
   const [newSubTitle, setNewSubTitle] = useState('');
   const [newSubHours, setNewSubHours] = useState('');
   const [pageLoading, setPageLoading] = useState(true);
@@ -232,32 +229,26 @@ export default function DevTasksPage() {
       )}
       <AppNavbar />
       <div style={{ padding: 16, visibility: pageLoading ? 'hidden' : 'visible' }}>
-        <Toolbar sx={{ justifyContent: 'space-between' }}>
+        <Toolbar
+          sx={{
+            justifyContent: role !== 'developer' ? 'space-between' : 'flex-start',
+            mb: 2,
+            px: 0,
+          }}
+        >
           <Typography variant="h5" fontWeight="bold">
             My Tasks
           </Typography>
-          <Box display="flex" alignItems="center" gap={2}>
+          {role !== 'developer' && (
             <Button
-              variant="outlined"
-              startIcon={<FilterListIcon />}
-              onClick={(e) => setAnchorEl(e.currentTarget)}
+              startIcon={<AddIcon />}
+              variant="contained"
+              onClick={() => setNewDlg(true)}
+              sx={{ bgcolor: '#C74634', '&:hover': { bgcolor: '#b63f2e' } }}
             >
-              Filter
+              Add Task
             </Button>
-            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
-              <MenuItem onClick={() => setAnchorEl(null)}>No filters yet</MenuItem>
-            </Menu>
-            {role !== 'developer' && (
-              <Button
-                startIcon={<AddIcon />}
-                variant="contained"
-                onClick={() => setNewDlg(true)}
-                sx={{ bgcolor: '#C74634', '&:hover': { bgcolor: '#b63f2e' } }}
-              >
-                Add Task
-              </Button>
-            )}
-          </Box>
+          )}
         </Toolbar>
         {error && (
           <Typography color="error" sx={{ mt: 2 }}>
@@ -385,11 +376,14 @@ export default function DevTasksPage() {
               <Table size="small">
                 <TableHead sx={{ bgcolor: '#C74634' }}>
                   <TableRow>
-                    {['#', 'Title', 'Assignee', 'Status', 'Deadline', 'Actions'].map((h) => (
+                    {['#', 'Title', 'Assignee', 'Status', 'Deadline'].map((h) => (
                       <TableCell key={h} sx={{ color: 'white', fontWeight: 'bold' }}>
                         {h}
                       </TableCell>
                     ))}
+                    {role !== 'developer' && (
+                      <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
+                    )}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -404,8 +398,8 @@ export default function DevTasksPage() {
                           {t.deadline}
                         </Moment>
                       </TableCell>
-                      <TableCell>
-                        {role !== 'developer' && (
+                      {role !== 'developer' && (
+                        <TableCell>
                           <Button
                             startIcon={<DeleteIcon />}
                             color="error"
@@ -413,8 +407,8 @@ export default function DevTasksPage() {
                           >
                             Delete
                           </Button>
-                        )}
-                      </TableCell>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -490,7 +484,6 @@ export default function DevTasksPage() {
             <DialogContent>
               <Typography>
                 You still have {pendingSplit.remainingHours} h to assign to subtasks.
-                (Implementación futura)
               </Typography>
             </DialogContent>
             <DialogActions>

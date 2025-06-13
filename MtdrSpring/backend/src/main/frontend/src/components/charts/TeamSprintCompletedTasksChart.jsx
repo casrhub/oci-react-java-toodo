@@ -9,10 +9,9 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
-import { CircularProgress, Typography } from '@mui/material';
+import { Typography } from '@mui/material';
 import { API_TAREAS } from '../../api';
 
-// ─── Miembros (hard-codeados para Equipo 1) ──────────────────────────────────
 const teamMembers = [
   { id: 102, name: 'Cesar Alan Silva Ramos' },
   { id: 101, name: 'Jose Maria' },
@@ -23,11 +22,7 @@ const teamMembers = [
 
 const COLORS = ['#4fc3f7', '#81c784', '#ba68c8', '#ffd54f', '#ff8a65'];
 
-/**
- * ● Sin `usuarioId`  →  barras para todos los developers.
- * ● Con  `usuarioId`  →  solo una barra con las tareas del developer.
- */
-function TeamSprintCompletedTasksChart({ equipoId = 1, usuarioId = null }) {
+export default function TeamSprintCompletedTasksChart({ equipoId = 1, usuarioId = null, onLoad }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,20 +30,13 @@ function TeamSprintCompletedTasksChart({ equipoId = 1, usuarioId = null }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Todas las tareas
         const tasksRes = await fetch(API_TAREAS);
         const allTasks = await tasksRes.json();
-
-        // Filtrado por equipo (y opcionalmente por usuario)
         let tasks = allTasks.filter((t) => t.equipoId === equipoId);
         if (usuarioId) tasks = tasks.filter((t) => t.usuarioId === usuarioId);
-
-        // Agrupar por sprint
         const bySprint = tasks.reduce((acc, task) => {
           if (task.estado !== 'completado') return acc;
-
           const sprintKey = task.sprintId != null ? `Sprint ${task.sprintId}` : 'Sin Sprint';
-
           if (!acc[sprintKey]) {
             acc[sprintKey] = { sprint: sprintKey };
             if (usuarioId) {
@@ -58,19 +46,15 @@ function TeamSprintCompletedTasksChart({ equipoId = 1, usuarioId = null }) {
               teamMembers.forEach((m) => (acc[sprintKey][m.name] = 0));
             }
           }
-
           const member = teamMembers.find((m) => m.id === task.usuarioId);
           if (member) acc[sprintKey][member.name] += 1;
-
           return acc;
         }, {});
-
         const result = Object.values(bySprint).sort((a, b) => {
           if (a.sprint === 'Sin Sprint') return 1;
           if (b.sprint === 'Sin Sprint') return -1;
           return Number(a.sprint.split(' ')[1]) - Number(b.sprint.split(' ')[1]);
         });
-
         setData(result);
       } catch (err) {
         setError(err);
@@ -78,14 +62,18 @@ function TeamSprintCompletedTasksChart({ equipoId = 1, usuarioId = null }) {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [equipoId, usuarioId]);
 
-  if (loading) return <CircularProgress />;
+  useEffect(() => {
+    if (!loading && onLoad) {
+      onLoad();
+    }
+  }, [loading, onLoad]);
+
+  if (loading) return null;
   if (error) return <Typography color="error">Error loading chart: {error.message}</Typography>;
 
-  /* ────────────────────────────────────────────────────────────────────────── */
   return (
     <div style={{ margin: '2rem 0' }}>
       <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
@@ -93,7 +81,6 @@ function TeamSprintCompletedTasksChart({ equipoId = 1, usuarioId = null }) {
           ? 'Tareas Completadas por Sprint'
           : 'Tareas Completadas por Developer por Sprint'}
       </Typography>
-
       <ResponsiveContainer width="100%" height={340}>
         <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -104,7 +91,6 @@ function TeamSprintCompletedTasksChart({ equipoId = 1, usuarioId = null }) {
           />
           <Tooltip />
           <Legend />
-
           {usuarioId
             ? (() => {
                 const member = teamMembers.find((m) => m.id === usuarioId);
@@ -132,5 +118,3 @@ function TeamSprintCompletedTasksChart({ equipoId = 1, usuarioId = null }) {
     </div>
   );
 }
-
-export default TeamSprintCompletedTasksChart;

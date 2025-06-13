@@ -9,15 +9,10 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
-import { CircularProgress, Typography } from '@mui/material';
+import { Typography } from '@mui/material';
 import { API_USER_KPIS } from '../api';
 
-/**
- * Muestra una sola gráfica de barras con:
- *   • Tareas completadas ANTES del deadline
- *   • Tareas completadas DESPUÉS del deadline
- */
-function UserTaskCharts({ usuarioId }) {
+export default function UserTaskCharts({ usuarioId, onLoad }) {
   const [summary, setSummary] = useState(null);
   const [err, setErr] = useState(null);
 
@@ -32,16 +27,23 @@ function UserTaskCharts({ usuarioId }) {
       .catch(setErr);
   }, [usuarioId]);
 
-  if (err)
+  useEffect(() => {
+    if (summary && onLoad) {
+      onLoad();
+    }
+  }, [summary, onLoad]);
+
+  if (err) {
     return (
       <div style={{ color: 'red', padding: '1rem' }}>
-        <h3>Error al cargar KPIs</h3>
+        <Typography variant="h6">Error al cargar KPIs</Typography>
         <pre>{String(err)}</pre>
       </div>
     );
-  if (!summary) return <CircularProgress />;
+  }
 
-  /* ─── Datos para la gráfica ───────────────────────────── */
+  if (!summary) return null;
+
   const data = [
     {
       name: 'Tareas Completadas',
@@ -69,5 +71,3 @@ function UserTaskCharts({ usuarioId }) {
     </div>
   );
 }
-
-export default UserTaskCharts;

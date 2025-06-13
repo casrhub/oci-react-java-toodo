@@ -1,9 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { CircularProgress, Typography } from '@mui/material';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  CartesianGrid,
+} from 'recharts';
+import { Typography } from '@mui/material';
 import { API_SPRINTS, API_TEAM_KPIS } from '../../api';
 
-function TeamSprintHoursBarChart({ equipoId = 1 }) {
+export default function TeamSprintHoursBarChart({ equipoId = 1, onLoad }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,11 +24,13 @@ function TeamSprintHoursBarChart({ equipoId = 1 }) {
         const sprints = await sprintRes.json();
         const results = await Promise.all(
           sprints.map(async (sprint) => {
-            const horasRes = await fetch(`${API_TEAM_KPIS}${equipoId}/sprint/${sprint.sprintId}/horas-trabajadas`);
+            const horasRes = await fetch(
+              `${API_TEAM_KPIS}${equipoId}/sprint/${sprint.sprintId}/horas-trabajadas`
+            );
             const horas = await horasRes.json();
             return {
               sprint: sprint.nombre ?? `Sprint ${sprint.sprintId}`,
-              horas: Number(horas)
+              horas: Number(horas),
             };
           })
         );
@@ -33,7 +44,13 @@ function TeamSprintHoursBarChart({ equipoId = 1 }) {
     fetchData();
   }, [equipoId]);
 
-  if (loading) return <CircularProgress />;
+  useEffect(() => {
+    if (!loading && onLoad) {
+      onLoad();
+    }
+  }, [loading, onLoad]);
+
+  if (loading) return null;
   if (error) return <Typography color="error">Error loading chart: {error.message}</Typography>;
 
   return (
@@ -45,7 +62,10 @@ function TeamSprintHoursBarChart({ equipoId = 1 }) {
         <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="sprint" />
-          <YAxis allowDecimals={false} label={{ value: 'Horas', angle: -90, position: 'insideLeft' }} />
+          <YAxis
+            allowDecimals={false}
+            label={{ value: 'Horas', angle: -90, position: 'insideLeft' }}
+          />
           <Tooltip />
           <Legend />
           <Bar dataKey="horas" fill="#8884d8" name="Horas Trabajadas" barSize={40} />
@@ -54,5 +74,3 @@ function TeamSprintHoursBarChart({ equipoId = 1 }) {
     </div>
   );
 }
-
-export default TeamSprintHoursBarChart; 

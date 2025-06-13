@@ -9,10 +9,9 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
-import { CircularProgress, Typography } from '@mui/material';
+import { Typography } from '@mui/material';
 import { API_SPRINTS, API_TEAM_KPIS } from '../../api';
 
-// ─── Miembros (hard-codeados para Equipo 1) ──────────────────────────────────
 const teamMembers = [
   { id: 102, name: 'Cesar Alan Silva Ramos' },
   { id: 101, name: 'Jose Maria' },
@@ -23,11 +22,7 @@ const teamMembers = [
 
 const COLORS = ['#4fc3f7', '#81c784', '#ba68c8', '#ffd54f', '#ff8a65'];
 
-/**
- * ● Sin `usuarioId`  →  Gráfica de todas las barras (horas por developer).
- * ● Con  `usuarioId`  →  Gráfica de una sola barra (horas del developer).
- */
-function TeamSprintDevHoursBarChart({ equipoId = 1, usuarioId = null }) {
+export default function TeamSprintDevHoursBarChart({ equipoId = 1, usuarioId = null, onLoad }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,14 +32,10 @@ function TeamSprintDevHoursBarChart({ equipoId = 1, usuarioId = null }) {
       try {
         const sprintRes = await fetch(API_SPRINTS);
         const sprints = await sprintRes.json();
-
         let results;
-
-        // ─── Vista de DEVELOPER ────────────────────────────────────────────
         if (usuarioId) {
           const member = teamMembers.find((m) => m.id === usuarioId);
           if (!member) throw new Error('Developer no encontrado en la lista local.');
-
           results = await Promise.all(
             sprints.map(async (sprint) => {
               const res = await fetch(
@@ -58,9 +49,7 @@ function TeamSprintDevHoursBarChart({ equipoId = 1, usuarioId = null }) {
               };
             })
           );
-        }
-        // ─── Vista de EQUIPO (comportamiento original) ────────────────────
-        else {
+        } else {
           results = await Promise.all(
             sprints.map(async (sprint) => {
               const memberHours = await Promise.all(
@@ -81,7 +70,6 @@ function TeamSprintDevHoursBarChart({ equipoId = 1, usuarioId = null }) {
             })
           );
         }
-
         results.sort((a, b) => a.sprintId - b.sprintId);
         setData(results);
       } catch (err) {
@@ -90,20 +78,23 @@ function TeamSprintDevHoursBarChart({ equipoId = 1, usuarioId = null }) {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [equipoId, usuarioId]);
 
-  if (loading) return <CircularProgress />;
+  useEffect(() => {
+    if (!loading && onLoad) {
+      onLoad();
+    }
+  }, [loading, onLoad]);
+
+  if (loading) return null;
   if (error) return <Typography color="error">Error loading chart: {error.message}</Typography>;
 
-  /* ────────────────────────────────────────────────────────────────────────── */
   return (
     <div style={{ margin: '2rem 0' }}>
       <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
         {usuarioId ? 'Horas Trabajadas por Sprint' : 'Horas Trabajadas por Developer por Sprint'}
       </Typography>
-
       <ResponsiveContainer width="100%" height={340}>
         <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -114,7 +105,6 @@ function TeamSprintDevHoursBarChart({ equipoId = 1, usuarioId = null }) {
           />
           <Tooltip />
           <Legend />
-
           {usuarioId
             ? (() => {
                 const member = teamMembers.find((m) => m.id === usuarioId);
@@ -142,5 +132,3 @@ function TeamSprintDevHoursBarChart({ equipoId = 1, usuarioId = null }) {
     </div>
   );
 }
-
-export default TeamSprintDevHoursBarChart;
